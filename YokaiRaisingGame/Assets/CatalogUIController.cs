@@ -86,7 +86,7 @@ public class CatalogUIController : MonoBehaviour
         }
 
         string displayName = isFireBall ? "ひのたま" : yokaiName;
-        ShowRegistrationMessage($"{displayName}が図鑑に登録された");
+        ShowRegistrationMessage($"{displayName}が図鑑に登録されたのう");
     }
 
     public void OpenCatalog()
@@ -139,7 +139,7 @@ public class CatalogUIController : MonoBehaviour
 
     IEnumerator ShowRegistrationRoutine(string message)
     {
-        registrationMessageText.text = message;
+        registrationMessageText.text = MentorSpeechFormatter.Format(message);
         yield return new WaitForSeconds(registrationMessageDuration);
         registrationMessageText.text = string.Empty;
     }

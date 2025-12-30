@@ -14,9 +14,9 @@ public class YokaiStateDisplay : MonoBehaviour
     [SerializeField] private GameObject yokaiAdult;
 
     [Header("表示テキスト")]
-    [SerializeField] private string normalLabel = "現在の状態：通常";
-    [SerializeField] private string criticalLabel = "現在の状態：瀕死";
-    [SerializeField] private string mononokeLabel = "現在の状態：モノノケ化";
+    [SerializeField] private string normalLabel = "現在の状態は通常じゃ";
+    [SerializeField] private string criticalLabel = "現在の状態は瀕死じゃ";
+    [SerializeField] private string mononokeLabel = "現在の状態はモノノケ化じゃ";
 
     [Header("状態（Inspector用）")]
     [SerializeField] private YokaiState currentState = YokaiState.Normal;
@@ -53,19 +53,19 @@ public class YokaiStateDisplay : MonoBehaviour
         switch (currentState)
         {
             case YokaiState.Mononoke:
-                stateText.text = mononokeLabel;
+                stateText.text = MentorSpeechFormatter.Format(mononokeLabel);
                 stateText.color = mononokeTextColor;
                 stateText.fontStyle = FontStyles.Bold;
                 SetBackgroundColor(mononokeBackgroundColor);
                 return;
             case YokaiState.Critical:
-                stateText.text = criticalLabel;
+                stateText.text = MentorSpeechFormatter.Format(criticalLabel);
                 stateText.color = criticalTextColor;
                 stateText.fontStyle = FontStyles.Bold;
                 SetBackgroundColor(criticalBackgroundColor);
                 return;
             default:
-                stateText.text = normalLabel;
+                stateText.text = MentorSpeechFormatter.Format(normalLabel);
                 stateText.color = normalTextColor;
                 stateText.fontStyle = FontStyles.Normal;
                 SetBackgroundColor(normalBackgroundColor);
