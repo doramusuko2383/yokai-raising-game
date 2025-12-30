@@ -19,7 +19,7 @@ public class FireBallIdle : MonoBehaviour
     [SerializeField] private TMP_Text growthMessageText;
 
     [Header("メッセージ")]
-    [SerializeField] private string growthCompleteMessage = "育成を終え、記録が残りました";
+    [SerializeField] private string growthCompleteMessage = "育成を終えたのう。記録を残したぞ";
 
     bool isGrowthComplete = false;
     Vector3 baseScale;
@@ -148,7 +148,7 @@ public class FireBallIdle : MonoBehaviour
 
         if (growthMessageText != null)
         {
-            growthMessageText.text = growthCompleteMessage;
+            growthMessageText.text = MentorSpeechFormatter.Format(growthCompleteMessage);
         }
 
         if (gameManager != null)
