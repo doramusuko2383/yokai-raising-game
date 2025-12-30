@@ -8,6 +8,11 @@ public class YokaiStateDisplay : MonoBehaviour
     [SerializeField] private TMP_Text stateText;
     [SerializeField] private Image stateBackground;
 
+    [Header("見た目（状態に対応するGameObject）")]
+    [SerializeField] private GameObject fireBall;
+    [SerializeField] private GameObject yokaiChild;
+    [SerializeField] private GameObject yokaiAdult;
+
     [Header("表示テキスト")]
     [SerializeField] private string normalLabel = "現在の状態：通常";
     [SerializeField] private string criticalLabel = "現在の状態：瀕死";
@@ -27,12 +32,14 @@ public class YokaiStateDisplay : MonoBehaviour
     void Start()
     {
         UpdateStateLabel();
+        UpdateStateVisual();
     }
 
 #if UNITY_EDITOR
     void OnValidate()
     {
         UpdateStateLabel();
+        UpdateStateVisual();
     }
 #endif
 
@@ -70,6 +77,7 @@ public class YokaiStateDisplay : MonoBehaviour
     {
         currentState = newState;
         UpdateStateLabel();
+        UpdateStateVisual();
     }
 
     void SetBackgroundColor(Color color)
@@ -80,5 +88,22 @@ public class YokaiStateDisplay : MonoBehaviour
         }
 
         stateBackground.color = color;
+    }
+
+    void UpdateStateVisual()
+    {
+        SetActiveByState(fireBall, currentState == YokaiState.Normal);
+        SetActiveByState(yokaiChild, currentState == YokaiState.Mononoke);
+        SetActiveByState(yokaiAdult, currentState == YokaiState.Critical);
+    }
+
+    void SetActiveByState(GameObject target, bool isActive)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        target.SetActive(isActive);
     }
 }
