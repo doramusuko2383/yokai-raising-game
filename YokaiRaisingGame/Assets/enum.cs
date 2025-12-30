@@ -1,6 +1,6 @@
 public enum YokaiState
 {
     Normal,
-    Weak,
+    Critical,
     Mononoke
 }

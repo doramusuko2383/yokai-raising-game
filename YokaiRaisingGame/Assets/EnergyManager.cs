@@ -21,9 +21,12 @@ public class EnergyManager : MonoBehaviour
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
 
-    [Header("弱り演出")]
-    public float weakScale = 0.8f;
-    public float weakAlpha = 0.4f;
+    [Header("瀕死演出")]
+    public float criticalScale = 0.8f;
+    public float criticalAlpha = 0.4f;
+
+    [Header("放置判定（参照）")]
+    [SerializeField] private YokaiIdleStateController idleStateController;
 
     Vector3 originalScale;
     Color originalColor;
@@ -60,37 +63,56 @@ public class EnergyManager : MonoBehaviour
 
     public void ChangeEnergy(float amount)
     {
+        if (amount > 0f && idleStateController != null)
+        {
+            idleStateController.RecordAction();
+        }
+
         energy = Mathf.Clamp(energy + amount, 0, maxEnergy);
 
-        if (energy <= 0 && currentState != YokaiState.Weak)
+        if (energy <= 0 && idleStateController != null)
         {
-            EnterWeakState();
+            idleStateController.SetCriticalCandidate(true);
         }
-        else if (energy > 0 && currentState == YokaiState.Weak)
+        else if (energy > 0 && idleStateController != null)
         {
-            RecoverFromWeak();
+            idleStateController.SetCriticalCandidate(false);
+        }
+
+        if (energy > 0 && currentState == YokaiState.Critical)
+        {
+            RecoverFromCritical();
+            if (idleStateController != null)
+            {
+                idleStateController.UpdateStateDisplay(YokaiState.Normal);
+            }
         }
 
         UpdateUI();
     }
 
-    void EnterWeakState()
+    public void EnterCriticalFromIdle()
     {
-        currentState = YokaiState.Weak;
+        if (currentState == YokaiState.Critical)
+        {
+            return;
+        }
 
-        yokaiSprite.transform.localScale = originalScale * weakScale;
+        currentState = YokaiState.Critical;
+
+        yokaiSprite.transform.localScale = originalScale * criticalScale;
         yokaiSprite.color = new Color(
             originalColor.r,
             originalColor.g,
             originalColor.b,
-            weakAlpha
+            criticalAlpha
         );
 
         SetWeakUI(true);
-        Debug.Log("😵 弱り状態");
+        Debug.Log("😵 瀕死状態");
     }
 
-    void RecoverFromWeak()
+    void RecoverFromCritical()
     {
         currentState = YokaiState.Normal;
 
@@ -125,7 +147,13 @@ public class EnergyManager : MonoBehaviour
         Debug.Log("📺 広告を見た（仮）→ 超回復！");
 
         energy = maxEnergy;
-        RecoverFromWeak();
+        RecoverFromCritical();
+        if (idleStateController != null)
+        {
+            idleStateController.UpdateStateDisplay(YokaiState.Normal);
+        }
         UpdateUI();
     }
+
+    public bool IsCritical => currentState == YokaiState.Critical;
 }
