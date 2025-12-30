@@ -20,6 +20,9 @@ public class KegareManager : MonoBehaviour
     [Header("対象")]
     public SpriteRenderer yokaiSprite;
 
+    [Header("放置判定（参照）")]
+    [SerializeField] private YokaiIdleStateController idleStateController;
+
     [Header("演出")]
     public float pulseSpeed = 2f;
     public float maxOverlayAlpha = 0.35f;
@@ -64,18 +67,32 @@ public class KegareManager : MonoBehaviour
     {
         if (isMononoke) return;
 
+        if (amount < 0f && idleStateController != null)
+        {
+            idleStateController.RecordAction();
+        }
+
         kegare = Mathf.Clamp(kegare + amount, 0, maxKegare);
 
-        if (kegare >= maxKegare)
+        if (kegare >= maxKegare && idleStateController != null)
         {
-            EnterMononoke();
+            idleStateController.SetMononokeCandidate(true);
+        }
+        else if (kegare < maxKegare && idleStateController != null)
+        {
+            idleStateController.SetMononokeCandidate(false);
         }
 
         UpdateUI();
     }
 
-    void EnterMononoke()
+    public void EnterMononokeFromIdle()
     {
+        if (isMononoke)
+        {
+            return;
+        }
+
         isMononoke = true;
         isDanger = true;
 
@@ -98,6 +115,11 @@ public class KegareManager : MonoBehaviour
         kegare = 0f;
         isMononoke = false;
         isDanger = false;
+        if (idleStateController != null)
+        {
+            idleStateController.SetMononokeCandidate(false);
+            idleStateController.UpdateStateDisplay(YokaiState.Normal);
+        }
 
         if (yokaiSprite != null)
             yokaiSprite.color = originalColor;

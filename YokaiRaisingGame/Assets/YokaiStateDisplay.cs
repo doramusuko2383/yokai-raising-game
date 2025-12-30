@@ -10,7 +10,7 @@ public class YokaiStateDisplay : MonoBehaviour
 
     [Header("表示テキスト")]
     [SerializeField] private string normalLabel = "現在の状態：通常";
-    [SerializeField] private string weakLabel = "現在の状態：瀕死";
+    [SerializeField] private string criticalLabel = "現在の状態：瀕死";
     [SerializeField] private string mononokeLabel = "現在の状態：モノノケ化";
 
     [Header("状態（Inspector用）")]
@@ -19,10 +19,10 @@ public class YokaiStateDisplay : MonoBehaviour
     [Header("色設定")]
     [SerializeField] private Color normalTextColor = new Color(0.95f, 0.95f, 0.95f, 1f);
     [SerializeField] private Color mononokeTextColor = new Color(0.55f, 0.3f, 0.75f, 1f);
-    [SerializeField] private Color weakTextColor = new Color(0.9f, 0.2f, 0.2f, 1f);
+    [SerializeField] private Color criticalTextColor = new Color(0.9f, 0.2f, 0.2f, 1f);
     [SerializeField] private Color normalBackgroundColor = new Color(0.2f, 0.2f, 0.2f, 0.35f);
     [SerializeField] private Color mononokeBackgroundColor = new Color(0.2f, 0.05f, 0.3f, 0.45f);
-    [SerializeField] private Color weakBackgroundColor = new Color(0.4f, 0.05f, 0.05f, 0.45f);
+    [SerializeField] private Color criticalBackgroundColor = new Color(0.4f, 0.05f, 0.05f, 0.45f);
 
     void Start()
     {
@@ -51,11 +51,11 @@ public class YokaiStateDisplay : MonoBehaviour
                 stateText.fontStyle = FontStyles.Bold;
                 SetBackgroundColor(mononokeBackgroundColor);
                 return;
-            case YokaiState.Weak:
-                stateText.text = weakLabel;
-                stateText.color = weakTextColor;
+            case YokaiState.Critical:
+                stateText.text = criticalLabel;
+                stateText.color = criticalTextColor;
                 stateText.fontStyle = FontStyles.Bold;
-                SetBackgroundColor(weakBackgroundColor);
+                SetBackgroundColor(criticalBackgroundColor);
                 return;
             default:
                 stateText.text = normalLabel;
@@ -64,6 +64,12 @@ public class YokaiStateDisplay : MonoBehaviour
                 SetBackgroundColor(normalBackgroundColor);
                 return;
         }
+    }
+
+    public void SetState(YokaiState newState)
+    {
+        currentState = newState;
+        UpdateStateLabel();
     }
 
     void SetBackgroundColor(Color color)
