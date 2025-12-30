@@ -1,91 +1,160 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using TMPro;
+using UnityEngine;
 
 public class FireBallIdle : MonoBehaviour
 {
-    [Header("進化設定")]
-    public float evolveScale = 2.0f;
-    public float evolveTime = 10f;
+    [Header("成長設定")]
+    [Range(0f, 1f)] public float currentGrowth = 0f;
+    public float growthSpeed = 0.05f;
+    [Range(0f, 1f)] public float completeGrowthThreshold = 1f;
+    public float maxScaleMultiplier = 2.0f;
 
-    [Header("タップ加速")]
-    public float tapBoostAmount = 0.2f;
+    [Header("お世話")]
+    public float careGrowthAmount = 0.05f;
 
-    [Header("進化演出")]
-    public float popScale = 1.4f;
-    public float popDuration = 0.3f;
+    [Header("参照")]
+    [SerializeField] private YokaiIdleStateController idleStateController;
+    [SerializeField] private YokaiStateDisplay stateDisplay;
+    [SerializeField] private TMP_Text growthMessageText;
 
-    float baseScale;
-    float growRate;
-    float tapBoost = 0f;
-    bool evolved = false;
+    [Header("メッセージ")]
+    [SerializeField] private string growthCompleteMessage = "育成完了！図鑑に登録したよ";
 
-    int tapCount = 0;
-    float lifeTime = 0f;
-    int bornHour; // ★ 生まれた時間（時）
+    bool isGrowthComplete = false;
+    Vector3 baseScale;
+    Vector3 maxScale;
 
     GameManager gameManager;
     SpriteRenderer sr;
 
     void Start()
     {
-        baseScale = transform.localScale.x;
-        growRate = (evolveScale - baseScale) / evolveTime;
-
-        bornHour = System.DateTime.Now.Hour; // ★ ここ重要
+        baseScale = transform.localScale;
+        maxScale = baseScale * maxScaleMultiplier;
 
         gameManager = FindObjectOfType<GameManager>();
-        sr = GetComponent<SpriteRenderer>();
-    }
-
-    void Update()
-    {
-        if (evolved) return;
-
-        lifeTime += Time.deltaTime;
-
-        baseScale += (growRate + tapBoost) * Time.deltaTime;
-        tapBoost = Mathf.Lerp(tapBoost, 0f, Time.deltaTime * 4f);
-
-        transform.localScale = Vector3.one * baseScale;
-
-        if (gameManager != null)
+        if (idleStateController == null)
         {
-            gameManager.UpdateGauge(baseScale / evolveScale);
+            idleStateController = FindObjectOfType<YokaiIdleStateController>();
+        }
+        if (stateDisplay == null)
+        {
+            stateDisplay = FindObjectOfType<YokaiStateDisplay>();
+        }
+        sr = GetComponent<SpriteRenderer>();
+
+        if (growthMessageText != null)
+        {
+            growthMessageText.text = string.Empty;
         }
 
-        if (baseScale >= evolveScale)
+        ApplyGrowthToScale();
+        UpdateGrowthGauge();
+
+        StartCoroutine(GrowthLoop());
+    }
+
+    IEnumerator GrowthLoop()
+    {
+        var wait = new WaitForSeconds(0.2f);
+
+        while (!isGrowthComplete)
         {
-            StartCoroutine(EvolveEffect());
+            yield return wait;
+
+            if (!CanGrow())
+            {
+                continue;
+            }
+
+            currentGrowth = Mathf.Clamp01(currentGrowth + growthSpeed * 0.2f);
+            ApplyGrowthToScale();
+            UpdateGrowthGauge();
+
+            if (currentGrowth >= completeGrowthThreshold)
+            {
+                HandleGrowthComplete();
+            }
         }
     }
 
     void OnMouseDown()
     {
-        tapCount++;
-        tapBoost += tapBoostAmount;
+        if (!CanGrow())
+        {
+            return;
+        }
+
+        currentGrowth = Mathf.Clamp01(currentGrowth + careGrowthAmount);
+        ApplyGrowthToScale();
+        UpdateGrowthGauge();
+
+        if (idleStateController != null)
+        {
+            idleStateController.RecordAction();
+        }
+
+        if (currentGrowth >= completeGrowthThreshold)
+        {
+            HandleGrowthComplete();
+        }
     }
 
-    IEnumerator EvolveEffect()
+    bool CanGrow()
     {
-        evolved = true;
+        if (isGrowthComplete)
+        {
+            return false;
+        }
 
-        Vector3 originalScale = transform.localScale;
-        transform.localScale = originalScale * popScale;
-        if (sr != null) sr.color = Color.white;
+        if (stateDisplay != null && stateDisplay.CurrentState != YokaiState.Normal)
+        {
+            return false;
+        }
 
-        yield return new WaitForSeconds(popDuration);
+        if (idleStateController != null && idleStateController.IsIdleNow())
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    void ApplyGrowthToScale()
+    {
+        transform.localScale = Vector3.Lerp(baseScale, maxScale, currentGrowth);
+    }
+
+    void UpdateGrowthGauge()
+    {
+        if (gameManager != null)
+        {
+            gameManager.UpdateGauge(currentGrowth);
+        }
+    }
+
+    void HandleGrowthComplete()
+    {
+        isGrowthComplete = true;
+        currentGrowth = Mathf.Clamp01(currentGrowth);
+        ApplyGrowthToScale();
+        UpdateGrowthGauge();
+
+        if (sr != null)
+        {
+            sr.enabled = false;
+        }
+
+        if (growthMessageText != null)
+        {
+            growthMessageText.text = growthCompleteMessage;
+        }
 
         if (gameManager != null)
         {
-            gameManager.SpawnEvolved(
-                tapCount,
-                lifeTime,
-                bornHour,
-                transform.position
-            );
+            gameManager.RegisterToDex("FireBall");
             gameManager.SpawnFireBall();
         }
-
-        Destroy(gameObject);
     }
 }

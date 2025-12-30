@@ -73,6 +73,8 @@ public class YokaiStateDisplay : MonoBehaviour
         }
     }
 
+    public YokaiState CurrentState => currentState;
+
     public void SetState(YokaiState newState)
     {
         currentState = newState;
