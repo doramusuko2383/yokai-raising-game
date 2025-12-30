@@ -12,9 +12,15 @@ public class GameManager : MonoBehaviour
 
     [Header("UI")]
     public Slider growthSlider;
+    [SerializeField] private CatalogUIController catalogUI;
 
     void Start()
     {
+        if (catalogUI == null)
+        {
+            catalogUI = FindObjectOfType<CatalogUIController>();
+        }
+
         SpawnFireBall();
     }
 
@@ -75,5 +81,10 @@ public class GameManager : MonoBehaviour
     public void RegisterToDex(string yokaiName)
     {
         Debug.Log($"📖 図鑑登録: {yokaiName}");
+
+        if (catalogUI != null)
+        {
+            catalogUI.RegisterYokai(yokaiName);
+        }
     }
 }
