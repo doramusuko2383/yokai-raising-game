@@ -16,6 +16,7 @@ public class KegareManager : MonoBehaviour
     [Header("広告UI")]
     public GameObject adWatchButton;   // 📺広告ボタン
     public GameObject actionPanel;     // 通常操作UI
+    [SerializeField] private Button emergencyPurifyButton; // 緊急おきよめ
 
     [Header("対象")]
     public SpriteRenderer yokaiSprite;
@@ -26,6 +27,9 @@ public class KegareManager : MonoBehaviour
     [Header("演出")]
     public float pulseSpeed = 2f;
     public float maxOverlayAlpha = 0.35f;
+
+    [Header("特別回復（仮）")]
+    [SerializeField] private float emergencyPurifySafeKegare = 20f;
 
     bool isDanger = false;
     bool isMononoke = false;
@@ -40,6 +44,7 @@ public class KegareManager : MonoBehaviour
             originalColor = yokaiSprite.color;
 
         UpdateUI();
+        UpdateEmergencyPurifyButton();
     }
 
     void Update()
@@ -105,20 +110,17 @@ public class KegareManager : MonoBehaviour
         if (adWatchButton != null)
             adWatchButton.SetActive(true);
 
+        UpdateEmergencyPurifyButton();
         Debug.Log("👹 モノノケ状態");
     }
 
-    public void OnClickAdWatch()
+    void RecoverFromMononoke()
     {
-        Debug.Log("📺 お祓い広告（仮）");
-
-        kegare = 0f;
         isMononoke = false;
         isDanger = false;
         if (idleStateController != null)
         {
             idleStateController.SetMononokeCandidate(false);
-            idleStateController.UpdateStateDisplay(YokaiState.Normal);
         }
 
         if (yokaiSprite != null)
@@ -129,6 +131,37 @@ public class KegareManager : MonoBehaviour
 
         if (adWatchButton != null)
             adWatchButton.SetActive(false);
+
+        UpdateEmergencyPurifyButton();
+    }
+
+    public void OnClickAdWatch()
+    {
+        Debug.Log("📺 お祓い広告（仮）");
+
+        kegare = 0f;
+        RecoverFromMononoke();
+        if (idleStateController != null)
+        {
+            idleStateController.UpdateStateDisplay(YokaiState.Normal);
+        }
+
+        UpdateUI();
+    }
+
+    public void OnClickEmergencyPurify()
+    {
+        if (!isMononoke)
+        {
+            return;
+        }
+
+        kegare = Mathf.Clamp(emergencyPurifySafeKegare, 0f, maxKegare);
+        RecoverFromMononoke();
+        if (idleStateController != null)
+        {
+            idleStateController.UpdateStateDisplay(YokaiState.Normal);
+        }
 
         UpdateUI();
     }
@@ -144,5 +177,13 @@ public class KegareManager : MonoBehaviour
             warningIcon.SetActive(warningNow);
 
         isDanger = warningNow || isMononoke;
+    }
+
+    void UpdateEmergencyPurifyButton()
+    {
+        if (emergencyPurifyButton != null)
+        {
+            emergencyPurifyButton.interactable = isMononoke;
+        }
     }
 }

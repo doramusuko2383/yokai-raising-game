@@ -17,6 +17,7 @@ public class EnergyManager : MonoBehaviour
     public GameObject actionPanel;     // 浄化・だんごパネル
     public GameObject adWatchButton;   // 📺 広告を見る
     public GameObject weakMessage;     // 弱り文言（任意）
+    [SerializeField] private Button specialDangoButton; // 特別三本団子
 
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
@@ -24,6 +25,9 @@ public class EnergyManager : MonoBehaviour
     [Header("瀕死演出")]
     public float criticalScale = 0.8f;
     public float criticalAlpha = 0.4f;
+
+    [Header("特別回復（仮）")]
+    [SerializeField] private float specialDangoSafeEnergy = 40f;
 
     [Header("放置判定（参照）")]
     [SerializeField] private YokaiIdleStateController idleStateController;
@@ -46,6 +50,7 @@ public class EnergyManager : MonoBehaviour
         // 初期は通常状態
         SetWeakUI(false);
         UpdateUI();
+        UpdateSpecialDangoButton();
     }
 
     void Update()
@@ -109,6 +114,7 @@ public class EnergyManager : MonoBehaviour
         );
 
         SetWeakUI(true);
+        UpdateSpecialDangoButton();
         Debug.Log("😵 瀕死状態");
     }
 
@@ -120,6 +126,7 @@ public class EnergyManager : MonoBehaviour
         yokaiSprite.color = originalColor;
 
         SetWeakUI(false);
+        UpdateSpecialDangoButton();
         Debug.Log("✨ 回復");
     }
 
@@ -141,12 +148,37 @@ public class EnergyManager : MonoBehaviour
             energySlider.value = energy / maxEnergy;
     }
 
+    void UpdateSpecialDangoButton()
+    {
+        if (specialDangoButton != null)
+        {
+            specialDangoButton.interactable = currentState == YokaiState.Critical;
+        }
+    }
+
     // 📺 広告を見る（仮）
     public void OnClickAdWatch()
     {
         Debug.Log("📺 広告を見た（仮）→ 超回復！");
 
         energy = maxEnergy;
+        RecoverFromCritical();
+        if (idleStateController != null)
+        {
+            idleStateController.UpdateStateDisplay(YokaiState.Normal);
+        }
+        UpdateUI();
+    }
+
+    // 🍡 特別三本団子（仮）
+    public void OnClickSpecialDango()
+    {
+        if (currentState != YokaiState.Critical)
+        {
+            return;
+        }
+
+        energy = Mathf.Clamp(specialDangoSafeEnergy, 0f, maxEnergy);
         RecoverFromCritical();
         if (idleStateController != null)
         {
