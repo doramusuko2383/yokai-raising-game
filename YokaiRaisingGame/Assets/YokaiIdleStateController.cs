@@ -46,6 +46,11 @@ public class YokaiIdleStateController : MonoBehaviour
         }
     }
 
+    public bool IsIdleNow()
+    {
+        return Time.time - lastActionTime >= idleThreshold;
+    }
+
     IEnumerator CheckIdleLoop()
     {
         var wait = new WaitForSeconds(1f);
@@ -91,7 +96,7 @@ public class YokaiIdleStateController : MonoBehaviour
 
     bool IsIdle()
     {
-        return Time.time - lastActionTime >= idleThreshold;
+        return IsIdleNow();
     }
 
     bool IsStateLocked()

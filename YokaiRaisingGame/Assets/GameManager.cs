@@ -71,4 +71,9 @@ public class GameManager : MonoBehaviour
         if (growthSlider != null)
             growthSlider.value = progress01;
     }
+
+    public void RegisterToDex(string yokaiName)
+    {
+        Debug.Log($"📖 図鑑登録: {yokaiName}");
+    }
 }
