@@ -29,6 +29,8 @@ public class KegareManager : MonoBehaviour
 
     Color originalColor;
 
+    public bool IsMononoke => isMononoke;
+
     void Start()
     {
         if (yokaiSprite != null)
