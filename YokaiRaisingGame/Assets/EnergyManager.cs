@@ -7,6 +7,10 @@ public class EnergyManager : MonoBehaviour
     public float energy = 100f;
     public float maxEnergy = 100f;
 
+    [Header("World")]
+    [SerializeField]
+    WorldConfig worldConfig;
+
     [Header("UI")]
     public Slider energySlider;
 
@@ -27,6 +31,19 @@ public class EnergyManager : MonoBehaviour
 
     Vector3 originalScale;
     Color originalColor;
+
+    void Awake()
+    {
+        if (worldConfig == null)
+        {
+            worldConfig = WorldConfig.LoadDefault();
+
+            if (worldConfig == null)
+            {
+                Debug.LogWarning("WorldConfig が見つかりません: Resources/WorldConfig_Yokai");
+            }
+        }
+    }
 
     void Start()
     {
@@ -87,7 +104,10 @@ public class EnergyManager : MonoBehaviour
         );
 
         SetWeakUI(true);
-        Debug.Log("😵 弱り状態");
+        if (worldConfig != null)
+        {
+            Debug.Log(worldConfig.weakMessage);
+        }
     }
 
     void RecoverFromWeak()
@@ -98,7 +118,10 @@ public class EnergyManager : MonoBehaviour
         yokaiSprite.color = originalColor;
 
         SetWeakUI(false);
-        Debug.Log("✨ 回復");
+        if (worldConfig != null)
+        {
+            Debug.Log(worldConfig.normalMessage);
+        }
     }
 
     void SetWeakUI(bool isWeak)
@@ -122,7 +145,10 @@ public class EnergyManager : MonoBehaviour
     // 📺 広告を見る（仮）
     public void OnClickAdWatch()
     {
-        Debug.Log("📺 広告を見た（仮）→ 超回復！");
+        if (worldConfig != null)
+        {
+            Debug.Log(worldConfig.recoveredMessage);
+        }
 
         energy = maxEnergy;
         RecoverFromWeak();
