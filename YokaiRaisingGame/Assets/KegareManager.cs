@@ -8,6 +8,10 @@ public class KegareManager : MonoBehaviour
     public float maxKegare = 100f;
     public float warningThreshold = 70f;
 
+    [Header("World")]
+    [SerializeField]
+    WorldConfig worldConfig;
+
     [Header("UI")]
     public Slider kegareSlider;
     public GameObject warningIcon;
@@ -26,8 +30,22 @@ public class KegareManager : MonoBehaviour
 
     bool isDanger = false;
     bool isMononoke = false;
+    bool wasWarning = false;
 
     Color originalColor;
+
+    void Awake()
+    {
+        if (worldConfig == null)
+        {
+            worldConfig = WorldConfig.LoadDefault();
+
+            if (worldConfig == null)
+            {
+                Debug.LogWarning("WorldConfig が見つかりません: Resources/WorldConfig_Yokai");
+            }
+        }
+    }
 
     void Start()
     {
@@ -86,12 +104,18 @@ public class KegareManager : MonoBehaviour
         if (adWatchButton != null)
             adWatchButton.SetActive(true);
 
-        Debug.Log("👹 モノノケ状態");
+        if (worldConfig != null)
+        {
+            Debug.Log(worldConfig.mononokeMessage);
+        }
     }
 
     public void OnClickAdWatch()
     {
-        Debug.Log("📺 お祓い広告（仮）");
+        if (worldConfig != null)
+        {
+            Debug.Log(worldConfig.recoveredMessage);
+        }
 
         kegare = 0f;
         isMononoke = false;
@@ -119,6 +143,12 @@ public class KegareManager : MonoBehaviour
         if (warningIcon != null)
             warningIcon.SetActive(warningNow);
 
+        if (worldConfig != null && warningNow && !wasWarning)
+        {
+            Debug.Log(worldConfig.dangerMessage);
+        }
+
+        wasWarning = warningNow;
         isDanger = warningNow || isMononoke;
     }
 }
