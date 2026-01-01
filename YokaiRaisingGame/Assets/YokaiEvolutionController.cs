@@ -28,6 +28,8 @@ public class YokaiEvolutionController : MonoBehaviour
             return;
         }
 
+        Debug.Log($"[EVOLUTION] Trigger received for {gameObject.name}");
+
         if (currentYokaiPrefab != null)
         {
             currentYokaiPrefab.SetActive(false);

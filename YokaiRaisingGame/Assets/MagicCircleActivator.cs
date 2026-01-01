@@ -9,6 +9,8 @@ public class MagicCircleActivator : MonoBehaviour
     GameObject uiInstance;
     KegareManager kegareManager;
     EnergyManager energyManager;
+    bool? lastShouldShow;
+    float lastLogTime;
 
     public event System.Action SuccessSeRequested;
     public event System.Action SuccessEffectRequested;
@@ -43,6 +45,7 @@ public class MagicCircleActivator : MonoBehaviour
             energyManager = FindObjectOfType<EnergyManager>();
 
         bool shouldShow = ShouldShowMagicCircle();
+        LogMagicCircleState(shouldShow);
         if (shouldShow)
         {
             if (!uiInstance.activeSelf)
@@ -107,18 +110,57 @@ public class MagicCircleActivator : MonoBehaviour
         return kegareNeeded || energyNeeded;
     }
 
+    void LogMagicCircleState(bool shouldShow)
+    {
+        float kegareValue = kegareManager != null ? kegareManager.kegare : -1f;
+        float maxKegare = kegareManager != null ? kegareManager.maxKegare : -1f;
+        float energyValue = energyManager != null ? energyManager.energy : -1f;
+        float maxEnergy = energyManager != null ? energyManager.maxEnergy : -1f;
+        string reason = string.Empty;
+
+        if (shouldShow)
+        {
+            reason = "threshold met";
+        }
+        else if (kegareManager == null || energyManager == null)
+        {
+            reason = "manager missing";
+        }
+        else
+        {
+            bool kegareReady = kegareValue >= maxKegare;
+            bool energyReady = energyValue <= 0f;
+            if (!kegareReady && !energyReady)
+            {
+                reason = "threshold not met";
+            }
+        }
+
+        bool shouldLog = !lastShouldShow.HasValue || lastShouldShow.Value != shouldShow || Time.unscaledTime - lastLogTime > 5f;
+        if (!shouldLog)
+        {
+            return;
+        }
+
+        lastShouldShow = shouldShow;
+        lastLogTime = Time.unscaledTime;
+
+        string stateLabel = shouldShow ? "shown" : "not shown";
+        Debug.Log($"[MAGIC CIRCLE] {stateLabel}: kegare={kegareValue:F0}/{maxKegare:F0} energy={energyValue:F0}/{maxEnergy:F0} reason={reason}");
+    }
+
     void OnHealRequested()
     {
         NotifySuccessHooks();
 
         if (kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare)
         {
-            kegareManager.ApplyPurify();
+            kegareManager.ApplyPurifyFromMagicCircle();
         }
 
         if (energyManager != null && energyManager.energy <= 0f)
         {
-            energyManager.ApplyHeal();
+            energyManager.ApplyHealFromMagicCircle();
         }
 
         controller.Hide();

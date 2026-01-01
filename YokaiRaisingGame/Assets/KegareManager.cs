@@ -12,6 +12,10 @@ public class KegareManager : MonoBehaviour
     [SerializeField]
     WorldConfig worldConfig;
 
+    [Header("Dependencies")]
+    [SerializeField]
+    EnergyManager energyManager;
+
     [Header("UI")]
     public Slider kegareSlider;
     public GameObject warningIcon;
@@ -92,6 +96,22 @@ public class KegareManager : MonoBehaviour
 
     public void ApplyPurify(float purifyRatio = 0.7f)
     {
+        ApplyPurifyInternal(purifyRatio, allowWhenCritical: false, logContext: "おきよめ");
+    }
+
+    public void ApplyPurifyFromMagicCircle(float purifyRatio = 0.7f)
+    {
+        ApplyPurifyInternal(purifyRatio, allowWhenCritical: true, logContext: "magic circle");
+    }
+
+    void ApplyPurifyInternal(float purifyRatio, bool allowWhenCritical, string logContext)
+    {
+        if (!allowWhenCritical && ShouldBlockItemRecovery())
+        {
+            Debug.Log($"[RECOVERY BLOCK] {logContext} purify ignored because kegare or energy is critical.");
+            return;
+        }
+
         float purifyAmount = maxKegare * purifyRatio;
         kegare = Mathf.Clamp(kegare - purifyAmount, 0f, maxKegare);
 
@@ -134,6 +154,18 @@ public class KegareManager : MonoBehaviour
         RecoverFromMononoke();
 
         UpdateUI();
+    }
+
+    bool ShouldBlockItemRecovery()
+    {
+        if (energyManager == null)
+        {
+            energyManager = FindObjectOfType<EnergyManager>();
+        }
+
+        bool isKegareMax = kegare >= maxKegare;
+        bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
+        return isKegareMax || isEnergyZero;
     }
 
     void RecoverFromMononoke()

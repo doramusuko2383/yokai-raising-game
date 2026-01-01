@@ -11,6 +11,10 @@ public class EnergyManager : MonoBehaviour
     [SerializeField]
     WorldConfig worldConfig;
 
+    [Header("Dependencies")]
+    [SerializeField]
+    KegareManager kegareManager;
+
     [Header("UI")]
     public Slider energySlider;
 
@@ -93,6 +97,22 @@ public class EnergyManager : MonoBehaviour
 
     public void ApplyHeal(float healRatio = 0.4f)
     {
+        ApplyHealInternal(healRatio, allowWhenCritical: false, logContext: "だんご");
+    }
+
+    public void ApplyHealFromMagicCircle(float healRatio = 0.4f)
+    {
+        ApplyHealInternal(healRatio, allowWhenCritical: true, logContext: "magic circle");
+    }
+
+    void ApplyHealInternal(float healRatio, bool allowWhenCritical, string logContext)
+    {
+        if (!allowWhenCritical && ShouldBlockItemRecovery())
+        {
+            Debug.Log($"[RECOVERY BLOCK] {logContext} heal ignored because kegare or energy is critical.");
+            return;
+        }
+
         float healAmount = maxEnergy * healRatio;
         ChangeEnergy(healAmount);
     }
@@ -159,5 +179,17 @@ public class EnergyManager : MonoBehaviour
         energy = maxEnergy;
         RecoverFromWeak();
         UpdateUI();
+    }
+
+    bool ShouldBlockItemRecovery()
+    {
+        if (kegareManager == null)
+        {
+            kegareManager = FindObjectOfType<KegareManager>();
+        }
+
+        bool isKegareMax = kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
+        bool isEnergyZero = energy <= 0f;
+        return isKegareMax || isEnergyZero;
     }
 }
