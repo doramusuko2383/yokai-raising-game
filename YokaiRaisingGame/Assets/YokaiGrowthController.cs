@@ -3,9 +3,10 @@ using UnityEngine;
 
 public class YokaiGrowthController : MonoBehaviour
 {
-    const string CurrentScaleKey = "YokaiGrowth_CurrentScale";
-    const string LastUpdateTimeKey = "YokaiGrowth_LastUpdateTime";
-    const string EvolutionReadyKey = "YokaiGrowth_EvolutionReady";
+    string SavePrefix => gameObject.name;
+    string CurrentScaleKey => $"{SavePrefix}_Growth_CurrentScale";
+    string LastUpdateTimeKey => $"{SavePrefix}_Growth_LastUpdateTime";
+    string EvolutionReadyKey => $"{SavePrefix}_Growth_EvolutionReady";
 
     [Header("Scale")]
     [SerializeField]
@@ -171,6 +172,16 @@ public class YokaiGrowthController : MonoBehaviour
         PlayerPrefs.SetString(LastUpdateTimeKey, lastUpdateTime.ToBinary().ToString());
         PlayerPrefs.SetInt(EvolutionReadyKey, isEvolutionReady ? 1 : 0);
         PlayerPrefs.Save();
+    }
+
+    public void ResetGrowthState()
+    {
+        currentScale = initialScale;
+        isEvolutionReady = false;
+        isGrowthStopped = false;
+        lastUpdateTime = DateTime.Now;
+        ApplyScale();
+        SaveState();
     }
 
 #if UNITY_EDITOR
