@@ -8,12 +8,17 @@ public class MagicCircleActivator : MonoBehaviour
     MagicCircleSwipeController controller;
     GameObject uiInstance;
     KegareManager kegareManager;
-    EnergyManager energyManager;
-    bool? lastShouldShow;
-    float lastLogTime;
+    PurifyRequestType pendingRequest = PurifyRequestType.None;
 
     public event System.Action SuccessSeRequested;
     public event System.Action SuccessEffectRequested;
+
+    enum PurifyRequestType
+    {
+        None,
+        Normal,
+        Emergency
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Initialize()
@@ -33,34 +38,6 @@ public class MagicCircleActivator : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    void Update()
-    {
-        if (controller == null)
-            return;
-
-        if (kegareManager == null)
-            kegareManager = FindObjectOfType<KegareManager>();
-
-        if (energyManager == null)
-            energyManager = FindObjectOfType<EnergyManager>();
-
-        bool shouldShow = ShouldShowMagicCircle();
-        LogMagicCircleState(shouldShow);
-        if (shouldShow)
-        {
-            if (!uiInstance.activeSelf)
-                uiInstance.SetActive(true);
-
-            controller.Show();
-        }
-        else
-        {
-            controller.Hide();
-            if (uiInstance.activeSelf)
-                uiInstance.SetActive(false);
-        }
-    }
-
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         SetupForScene();
@@ -69,7 +46,6 @@ public class MagicCircleActivator : MonoBehaviour
     void SetupForScene()
     {
         kegareManager = FindObjectOfType<KegareManager>();
-        energyManager = FindObjectOfType<EnergyManager>();
 
         var canvas = FindObjectOfType<Canvas>();
         if (canvas == null)
@@ -101,67 +77,67 @@ public class MagicCircleActivator : MonoBehaviour
         controller.HealRequested += OnHealRequested;
         controller.Hide();
         uiInstance.SetActive(false);
+        Debug.Log("MagicCircleActivator: MagicCircleSwipeUI を初期化しました。");
     }
 
-    bool ShouldShowMagicCircle()
+    public void RequestNormalPurify()
     {
-        bool kegareNeeded = kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
-        bool energyNeeded = energyManager != null && energyManager.energy <= 0f;
-        return kegareNeeded || energyNeeded;
+        RequestMagicCircle(PurifyRequestType.Normal);
     }
 
-    void LogMagicCircleState(bool shouldShow)
+    public void RequestEmergencyPurify()
     {
-        float kegareValue = kegareManager != null ? kegareManager.kegare : -1f;
-        float maxKegare = kegareManager != null ? kegareManager.maxKegare : -1f;
-        float energyValue = energyManager != null ? energyManager.energy : -1f;
-        float maxEnergy = energyManager != null ? energyManager.maxEnergy : -1f;
-        string reason = string.Empty;
+        RequestMagicCircle(PurifyRequestType.Emergency);
+    }
 
-        if (shouldShow)
+    void RequestMagicCircle(PurifyRequestType requestType)
+    {
+        if (controller == null || uiInstance == null)
         {
-            reason = "threshold met";
-        }
-        else if (kegareManager == null || energyManager == null)
-        {
-            reason = "manager missing";
-        }
-        else
-        {
-            bool kegareReady = kegareValue >= maxKegare;
-            bool energyReady = energyValue <= 0f;
-            if (!kegareReady && !energyReady)
-            {
-                reason = "threshold not met";
-            }
+            Debug.LogWarning("MagicCircleActivator: controller が未初期化なので再セットアップします。");
+            SetupForScene();
         }
 
-        bool shouldLog = !lastShouldShow.HasValue || lastShouldShow.Value != shouldShow || Time.unscaledTime - lastLogTime > 5f;
-        if (!shouldLog)
+        if (controller == null || uiInstance == null)
         {
+            Debug.LogWarning("MagicCircleActivator: MagicCircleSwipeUI が見つからないため表示できません。");
             return;
         }
 
-        lastShouldShow = shouldShow;
-        lastLogTime = Time.unscaledTime;
+        pendingRequest = requestType;
+        Debug.Log($"[MAGIC CIRCLE] Request received: type={requestType}");
 
-        string stateLabel = shouldShow ? "shown" : "not shown";
-        Debug.Log($"[MAGIC CIRCLE] {stateLabel}: kegare={kegareValue:F0}/{maxKegare:F0} energy={energyValue:F0}/{maxEnergy:F0} reason={reason}");
+        if (!uiInstance.activeSelf)
+            uiInstance.SetActive(true);
+
+        controller.Show();
     }
 
     void OnHealRequested()
     {
         NotifySuccessHooks();
 
-        if (kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare)
+        if (kegareManager == null)
+            kegareManager = FindObjectOfType<KegareManager>();
+
+        if (pendingRequest == PurifyRequestType.Normal)
         {
-            kegareManager.ApplyPurifyFromMagicCircle();
+            Debug.Log("[MAGIC CIRCLE] Success route: 通常おきよめ");
+            if (kegareManager != null)
+                kegareManager.ApplyPurify();
+        }
+        else if (pendingRequest == PurifyRequestType.Emergency)
+        {
+            Debug.Log("[MAGIC CIRCLE] Success route: 緊急お祓い");
+            if (kegareManager != null)
+                kegareManager.ApplyPurifyFromMagicCircle();
+        }
+        else
+        {
+            Debug.LogWarning("[MAGIC CIRCLE] Success route: request が未指定です。");
         }
 
-        if (energyManager != null && energyManager.energy <= 0f)
-        {
-            energyManager.ApplyHealFromMagicCircle();
-        }
+        pendingRequest = PurifyRequestType.None;
 
         controller.Hide();
         if (uiInstance != null)

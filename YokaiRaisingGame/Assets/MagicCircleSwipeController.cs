@@ -147,6 +147,6 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
         if (instructionText == null)
             return;
 
-        instructionText.text = completed ? "タップで回復" : "円をなぞって回復";
+        instructionText.text = completed ? "タップで おはらい" : "円をなぞって おはらい";
     }
 }
