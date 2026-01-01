@@ -21,6 +21,7 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
     int touchedCount;
 
     public event Action HealRequested;
+    public event Action Completed;
 
     public void Show()
     {
@@ -128,6 +129,7 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
             isCompleted = true;
             isDragging = false;
             UpdateInstruction(true);
+            Completed?.Invoke();
         }
     }
 
