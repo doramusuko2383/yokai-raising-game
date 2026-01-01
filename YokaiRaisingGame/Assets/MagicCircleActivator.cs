@@ -10,6 +10,9 @@ public class MagicCircleActivator : MonoBehaviour
     KegareManager kegareManager;
     EnergyManager energyManager;
 
+    public event System.Action SuccessSeRequested;
+    public event System.Action SuccessEffectRequested;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Initialize()
     {
@@ -106,21 +109,26 @@ public class MagicCircleActivator : MonoBehaviour
 
     void OnHealRequested()
     {
+        NotifySuccessHooks();
+
         if (kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare)
         {
-            float targetKegare = kegareManager.maxKegare * 0.3f;
-            kegareManager.OnClickAdWatch();
-            kegareManager.AddKegare(targetKegare);
+            kegareManager.ApplyPurify();
         }
 
         if (energyManager != null && energyManager.energy <= 0f)
         {
-            float targetEnergy = energyManager.maxEnergy * 0.4f;
-            energyManager.ChangeEnergy(targetEnergy);
+            energyManager.ApplyHeal();
         }
 
         controller.Hide();
         if (uiInstance != null)
             uiInstance.SetActive(false);
+    }
+
+    void NotifySuccessHooks()
+    {
+        SuccessSeRequested?.Invoke();
+        SuccessEffectRequested?.Invoke();
     }
 }

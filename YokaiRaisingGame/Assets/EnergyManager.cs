@@ -91,6 +91,12 @@ public class EnergyManager : MonoBehaviour
         UpdateUI();
     }
 
+    public void ApplyHeal(float healRatio = 0.4f)
+    {
+        float healAmount = maxEnergy * healRatio;
+        ChangeEnergy(healAmount);
+    }
+
     void EnterWeakState()
     {
         currentState = YokaiState.Weak;

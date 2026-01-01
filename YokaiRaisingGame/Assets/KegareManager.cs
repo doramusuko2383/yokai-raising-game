@@ -90,6 +90,19 @@ public class KegareManager : MonoBehaviour
         UpdateUI();
     }
 
+    public void ApplyPurify(float purifyRatio = 0.7f)
+    {
+        float purifyAmount = maxKegare * purifyRatio;
+        kegare = Mathf.Clamp(kegare - purifyAmount, 0f, maxKegare);
+
+        if (kegare < maxKegare && isMononoke)
+        {
+            RecoverFromMononoke();
+        }
+
+        UpdateUI();
+    }
+
     void EnterMononoke()
     {
         isMononoke = true;
@@ -118,6 +131,13 @@ public class KegareManager : MonoBehaviour
         }
 
         kegare = 0f;
+        RecoverFromMononoke();
+
+        UpdateUI();
+    }
+
+    void RecoverFromMononoke()
+    {
         isMononoke = false;
         isDanger = false;
 
@@ -129,8 +149,6 @@ public class KegareManager : MonoBehaviour
 
         if (adWatchButton != null)
             adWatchButton.SetActive(false);
-
-        UpdateUI();
     }
 
     void UpdateUI()
