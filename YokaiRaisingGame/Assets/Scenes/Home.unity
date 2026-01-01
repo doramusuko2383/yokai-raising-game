@@ -311,6 +311,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   energy: 100
   maxEnergy: 100
+  worldConfig: {fileID: 0}
+  kegareManager: {fileID: 0}
   energySlider: {fileID: 20035157}
   yokaiSprite: {fileID: 381708304978251678, guid: 5cfe4b2824147eb439fd1783aeedddcf, type: 3}
   actionPanel: {fileID: 1119425565}
@@ -615,6 +617,8 @@ MonoBehaviour:
   kegare: 0
   maxKegare: 100
   warningThreshold: 70
+  worldConfig: {fileID: 0}
+  energyManager: {fileID: 0}
   kegareSlider: {fileID: 676147554}
   warningIcon: {fileID: 483853552}
   dangerOverlay: {fileID: 429438362}
@@ -1353,8 +1357,38 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6983624608841432944, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8218868374499439925}
   m_SourcePrefab: {fileID: 100100000, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
+--- !u!1 &8218868374499439924 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6983624608841432944, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
+  m_PrefabInstance: {fileID: 8218868374499439923}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8218868374499439925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8218868374499439924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04f62000c97b55a488d62ec8733bbbcd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  initialScale: 1
+  currentScale: 1
+  maxScale: 2
+  growthDurationHours: 48
+  growthMultiplier: 1
+  growthRatePerSecond: 0.000005787037
+  isGrowthStopped: 0
+  isEvolutionReady: 0
+  kegareManager: {fileID: 604884281}
+  energyManager: {fileID: 515532832}
 --- !u!1001 &8933104370667362609
 PrefabInstance:
   m_ObjectHideFlags: 0
