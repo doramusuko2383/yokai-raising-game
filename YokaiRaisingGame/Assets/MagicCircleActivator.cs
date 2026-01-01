@@ -131,6 +131,10 @@ public class MagicCircleActivator : MonoBehaviour
             Debug.Log("[MAGIC CIRCLE] Success route: 緊急お祓い");
             if (kegareManager != null)
                 kegareManager.ApplyPurifyFromMagicCircle();
+
+            var energyManager = FindObjectOfType<EnergyManager>();
+            if (energyManager != null)
+                energyManager.ApplyHealFromMagicCircle();
         }
         else
         {
