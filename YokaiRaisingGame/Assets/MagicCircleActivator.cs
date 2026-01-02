@@ -123,18 +123,15 @@ public class MagicCircleActivator : MonoBehaviour
         if (pendingRequest == PurifyRequestType.Normal)
         {
             Debug.Log("[MAGIC CIRCLE] Success route: 通常おきよめ");
-            if (kegareManager != null)
+            if (kegareManager != null && IsState(YokaiState.Normal))
                 kegareManager.ApplyPurify();
         }
         else if (pendingRequest == PurifyRequestType.Emergency)
         {
             Debug.Log("[MAGIC CIRCLE] Success route: 緊急お祓い");
-            if (kegareManager != null)
-                kegareManager.ApplyPurifyFromMagicCircle();
-
-            var energyManager = FindObjectOfType<EnergyManager>();
-            if (energyManager != null)
-                energyManager.ApplyHealFromMagicCircle();
+            var stateController = FindObjectOfType<YokaiStateController>();
+            if (stateController != null)
+                stateController.ExecuteEmergencyPurify();
         }
         else
         {
@@ -146,6 +143,12 @@ public class MagicCircleActivator : MonoBehaviour
         controller.Hide();
         if (uiInstance != null)
             uiInstance.SetActive(false);
+    }
+
+    bool IsState(YokaiState state)
+    {
+        var stateController = FindObjectOfType<YokaiStateController>();
+        return stateController == null || stateController.currentState == state;
     }
 
     void NotifySuccessHooks()
