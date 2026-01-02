@@ -1248,9 +1248,25 @@ PrefabInstance:
       value: Button_MononokeHeal
       objectReference: {fileID: 0}
     - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 604884281}
+      objectReference: {fileID: 152328533}
+    - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ExecuteEmergencyPurify
+      objectReference: {fileID: 0}
+    - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Yokai.YokaiStateController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1344,6 +1360,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: energyManager
+      value: 
+      objectReference: {fileID: 515532832}
+    - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: stateController
+      value: 
+      objectReference: {fileID: 152328533}
     - target: {fileID: 8349528510299463072, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_Name
       value: Panel_Action
@@ -1478,6 +1502,7 @@ MonoBehaviour:
   growthRatePerSecond: 0.027777778
   isGrowthStopped: 0
   isEvolutionReady: 0
+  stateController: {fileID: 152328533}
   kegareManager: {fileID: 604884281}
   energyManager: {fileID: 515532832}
 --- !u!1001 &8933104370667362609
