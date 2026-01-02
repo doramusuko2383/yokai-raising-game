@@ -18,6 +18,9 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     EnergyManager energyManager;
 
+    [SerializeField]
+    PurifyButtonHandler purifyButtonHandler;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Initialize()
     {
@@ -92,6 +95,9 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginEvolution()
     {
+        if (currentState != YokaiState.EvolutionReady)
+            return;
+
         SetState(YokaiState.Evolving);
     }
 
@@ -107,6 +113,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         currentState = YokaiState.EvolutionReady;
+        RefreshState();
     }
 
     public void ExecuteEmergencyPurify()
@@ -114,11 +121,8 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.KegareMax)
             return;
 
-        if (kegareManager == null)
-            kegareManager = FindObjectOfType<KegareManager>();
-
-        if (kegareManager != null)
-            kegareManager.ExecuteEmergencyPurify();
+        if (purifyButtonHandler != null)
+            purifyButtonHandler.OnClickEmergencyPurify();
 
         SetState(YokaiState.Normal);
         RefreshState();

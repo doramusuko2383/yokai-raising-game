@@ -9,23 +9,20 @@ public class DangoButtonHandler : MonoBehaviour
     [SerializeField]
     EnergyManager energyManager;
 
+    [SerializeField]
+    float dangoAmount = 40f;
+
     public void OnClickDango()
     {
         if (!IsState(YokaiState.Normal))
             return;
 
-        if (energyManager == null)
-            energyManager = FindObjectOfType<EnergyManager>();
-
         if (energyManager != null)
-            energyManager.ApplyHeal();
+            energyManager.AddEnergy(dangoAmount);
     }
 
     bool IsState(YokaiState state)
     {
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
-
         return stateController == null || stateController.currentState == state;
     }
 }
