@@ -15,6 +15,9 @@ public class EnergyManager : MonoBehaviour
     [SerializeField]
     KegareManager kegareManager;
 
+    [SerializeField]
+    YokaiStateController stateController;
+
     [Header("UI")]
     public Slider energySlider;
 
@@ -26,15 +29,13 @@ public class EnergyManager : MonoBehaviour
     public GameObject adWatchButton;   // 📺 広告を見る
     public GameObject weakMessage;     // 弱り文言（任意）
 
-    [Header("状態")]
-    public YokaiState currentState = YokaiState.Normal;
-
     [Header("弱り演出")]
     public float weakScale = 0.8f;
     public float weakAlpha = 0.4f;
 
     Vector3 originalScale;
     Color originalColor;
+    bool isWeak;
 
     void Awake()
     {
@@ -68,26 +69,19 @@ public class EnergyManager : MonoBehaviour
 
     void Update()
     {
-        // テスト用
-        if (Input.GetKeyDown(KeyCode.J))
-        {
-            ChangeEnergy(-10f);
-        }
-        if (Input.GetKeyDown(KeyCode.H))
-        {
-            ChangeEnergy(+10f);
-        }
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
     }
 
     public void ChangeEnergy(float amount)
     {
         energy = Mathf.Clamp(energy + amount, 0, maxEnergy);
 
-        if (energy <= 0 && currentState != YokaiState.Weak)
+        if (energy <= 0 && !isWeak)
         {
             EnterWeakState();
         }
-        else if (energy > 0 && currentState == YokaiState.Weak)
+        else if (energy > 0 && isWeak)
         {
             RecoverFromWeak();
         }
@@ -107,6 +101,12 @@ public class EnergyManager : MonoBehaviour
 
     void ApplyHealInternal(float healRatio, bool allowWhenCritical, string logContext)
     {
+        if (stateController != null && stateController.currentState != YokaiState.Normal)
+        {
+            Debug.Log($"[RECOVERY BLOCK] {logContext} heal ignored because state is {stateController.currentState}.");
+            return;
+        }
+
         if (!allowWhenCritical && ShouldBlockItemRecovery())
         {
             Debug.Log($"[RECOVERY BLOCK] {logContext} heal ignored because kegare or energy is critical.");
@@ -119,7 +119,7 @@ public class EnergyManager : MonoBehaviour
 
     void EnterWeakState()
     {
-        currentState = YokaiState.Weak;
+        isWeak = true;
 
         yokaiSprite.transform.localScale = originalScale * weakScale;
         yokaiSprite.color = new Color(
@@ -138,7 +138,7 @@ public class EnergyManager : MonoBehaviour
 
     void RecoverFromWeak()
     {
-        currentState = YokaiState.Normal;
+        isWeak = false;
 
         yokaiSprite.transform.localScale = originalScale;
         yokaiSprite.color = originalColor;
@@ -171,6 +171,11 @@ public class EnergyManager : MonoBehaviour
     // 📺 広告を見る（仮）
     public void OnClickAdWatch()
     {
+        if (stateController != null && stateController.currentState != YokaiState.Normal)
+        {
+            return;
+        }
+
         if (worldConfig != null)
         {
             Debug.Log(worldConfig.recoveredMessage);

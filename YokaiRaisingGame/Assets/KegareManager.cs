@@ -16,6 +16,9 @@ public class KegareManager : MonoBehaviour
     [SerializeField]
     EnergyManager energyManager;
 
+    [SerializeField]
+    YokaiStateController stateController;
+
     [Header("UI")]
     public Slider kegareSlider;
     public GameObject warningIcon;
@@ -31,6 +34,7 @@ public class KegareManager : MonoBehaviour
     [Header("演出")]
     public float pulseSpeed = 2f;
     public float maxOverlayAlpha = 0.35f;
+    public float emergencyPurifyValue = 30f;
 
     bool isDanger = false;
     bool isMononoke = false;
@@ -61,12 +65,8 @@ public class KegareManager : MonoBehaviour
 
     void Update()
     {
-        // テスト用
-        if (Input.GetKeyDown(KeyCode.K))
-            AddKegare(10f);
-
-        if (Input.GetKeyDown(KeyCode.L))
-            AddKegare(-10f);
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
 
         // 危険演出（警告〜モノノケ）
         if (isDanger && dangerOverlay != null)
@@ -145,15 +145,18 @@ public class KegareManager : MonoBehaviour
 
     public void OnClickAdWatch()
     {
-        if (worldConfig != null)
+        if (stateController != null && stateController.currentState != YokaiState.KegareMax)
+            return;
+
+        ShowAd(() =>
         {
-            Debug.Log(worldConfig.recoveredMessage);
-        }
+            if (worldConfig != null)
+            {
+                Debug.Log(worldConfig.recoveredMessage);
+            }
 
-        kegare = 0f;
-        RecoverFromMononoke();
-
-        UpdateUI();
+            ExecuteEmergencyPurify();
+        });
     }
 
     bool ShouldBlockItemRecovery()
@@ -200,5 +203,23 @@ public class KegareManager : MonoBehaviour
 
         wasWarning = warningNow;
         isDanger = warningNow || isMononoke;
+    }
+
+    public void ExecuteEmergencyPurify()
+    {
+        kegare = Mathf.Clamp(emergencyPurifyValue, 0f, maxKegare);
+
+        if (kegare < maxKegare && isMononoke)
+        {
+            RecoverFromMononoke();
+        }
+
+        UpdateUI();
+    }
+
+    void ShowAd(System.Action onCompleted)
+    {
+        Debug.Log("[AD] Showing rewarded ad before emergency purify.");
+        onCompleted?.Invoke();
     }
 }
