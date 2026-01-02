@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 
+namespace Yokai
+{
 public class YokaiGrowthController : MonoBehaviour
 {
     string SavePrefix => gameObject.name;
@@ -28,6 +30,9 @@ public class YokaiGrowthController : MonoBehaviour
     public bool isEvolutionReady;
 
     [Header("Dependencies")]
+    [SerializeField]
+    private YokaiStateController stateController;
+
     [SerializeField]
     KegareManager kegareManager;
 
@@ -123,6 +128,11 @@ public class YokaiGrowthController : MonoBehaviour
             {
                 Debug.Log($"[EVOLUTION READY] {gameObject.name} is ready to evolve");
                 Debug.Log("[EVOLUTION] Waiting for magic circle activation");
+                if (stateController == null)
+                    stateController = FindObjectOfType<YokaiStateController>();
+
+                if (stateController != null)
+                    stateController.SetEvolutionReady();
             }
             LogGrowthStoppedReason();
         }
@@ -269,4 +279,5 @@ public class YokaiGrowthController : MonoBehaviour
         CalculateGrowthRate();
     }
 #endif
+}
 }

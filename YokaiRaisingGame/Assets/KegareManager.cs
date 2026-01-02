@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using Yokai;
 
 public class KegareManager : MonoBehaviour
 {

@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+namespace Yokai
+{
 public class YokaiStateController : MonoBehaviour
 {
     [Header("状態")]
@@ -8,7 +10,7 @@ public class YokaiStateController : MonoBehaviour
 
     [Header("Dependencies")]
     [SerializeField]
-    YokaiGrowthController growthController;
+    private YokaiGrowthController growthController;
 
     [SerializeField]
     KegareManager kegareManager;
@@ -74,11 +76,8 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
-        if (growthController != null && growthController.isEvolutionReady)
-        {
-            SetState(YokaiState.EvolutionReady);
+        if (currentState == YokaiState.EvolutionReady)
             return;
-        }
 
         SetState(YokaiState.Normal);
     }
@@ -100,6 +99,14 @@ public class YokaiStateController : MonoBehaviour
     {
         SetState(YokaiState.Normal);
         RefreshState();
+    }
+
+    public void SetEvolutionReady()
+    {
+        if (currentState != YokaiState.Normal)
+            return;
+
+        currentState = YokaiState.EvolutionReady;
     }
 
     public void ExecuteEmergencyPurify()
@@ -162,4 +169,5 @@ public class YokaiStateController : MonoBehaviour
             energyManager.ChangeEnergy(amount);
     }
 #endif
+}
 }
