@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Yokai;
 
 public class MagicCircleActivator : MonoBehaviour
 {
@@ -8,7 +7,6 @@ public class MagicCircleActivator : MonoBehaviour
 
     MagicCircleSwipeController controller;
     GameObject uiInstance;
-    KegareManager kegareManager;
     PurifyRequestType pendingRequest = PurifyRequestType.None;
 
     public event System.Action SuccessSeRequested;
@@ -46,8 +44,6 @@ public class MagicCircleActivator : MonoBehaviour
 
     void SetupForScene()
     {
-        kegareManager = FindObjectOfType<KegareManager>();
-
         var canvas = FindObjectOfType<Canvas>();
         if (canvas == null)
         {
@@ -118,38 +114,18 @@ public class MagicCircleActivator : MonoBehaviour
     {
         NotifySuccessHooks();
 
-        if (kegareManager == null)
-            kegareManager = FindObjectOfType<KegareManager>();
-
         if (pendingRequest == PurifyRequestType.Normal)
-        {
             Debug.Log("[MAGIC CIRCLE] Success route: 通常おきよめ");
-            if (kegareManager != null && IsState(YokaiState.Normal))
-                kegareManager.ApplyPurify();
-        }
         else if (pendingRequest == PurifyRequestType.Emergency)
-        {
             Debug.Log("[MAGIC CIRCLE] Success route: 緊急お祓い");
-            var stateController = FindObjectOfType<YokaiStateController>();
-            if (stateController != null)
-                stateController.ExecuteEmergencyPurify();
-        }
         else
-        {
             Debug.LogWarning("[MAGIC CIRCLE] Success route: request が未指定です。");
-        }
 
         pendingRequest = PurifyRequestType.None;
 
         controller.Hide();
         if (uiInstance != null)
             uiInstance.SetActive(false);
-    }
-
-    bool IsState(YokaiState state)
-    {
-        var stateController = FindObjectOfType<YokaiStateController>();
-        return stateController == null || stateController.currentState == state;
     }
 
     void NotifySuccessHooks()

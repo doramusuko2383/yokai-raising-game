@@ -100,6 +100,11 @@ public class KegareManager : MonoBehaviour
         ApplyPurifyInternal(purifyRatio, allowWhenCritical: false, logContext: "おきよめ");
     }
 
+    public void Purify()
+    {
+        ApplyPurify();
+    }
+
     public void ApplyPurifyFromMagicCircle(float purifyRatio = 0.7f)
     {
         ApplyPurifyInternal(purifyRatio, allowWhenCritical: true, logContext: "magic circle");
@@ -149,15 +154,13 @@ public class KegareManager : MonoBehaviour
         if (stateController != null && stateController.currentState != YokaiState.KegareMax)
             return;
 
-        ShowAd(() =>
+        if (worldConfig != null)
         {
-            if (worldConfig != null)
-            {
-                Debug.Log(worldConfig.recoveredMessage);
-            }
+            Debug.Log(worldConfig.recoveredMessage);
+        }
 
-            ExecuteEmergencyPurify();
-        });
+        if (stateController != null)
+            stateController.ExecuteEmergencyPurify();
     }
 
     bool ShouldBlockItemRecovery()
@@ -218,9 +221,4 @@ public class KegareManager : MonoBehaviour
         UpdateUI();
     }
 
-    void ShowAd(System.Action onCompleted)
-    {
-        Debug.Log("[AD] Showing rewarded ad before emergency purify.");
-        onCompleted?.Invoke();
-    }
 }

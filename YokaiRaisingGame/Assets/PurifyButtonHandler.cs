@@ -6,12 +6,21 @@ public class PurifyButtonHandler : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
+    [SerializeField]
+    KegareManager kegareManager;
+
+    [SerializeField]
+    MagicCircleActivator magicCircleActivator;
+
     public void OnClickPurify()
     {
         if (!IsState(YokaiState.Normal))
             return;
 
-        FindObjectOfType<MagicCircleActivator>()?.RequestNormalPurify();
+        StartPurifyEffect();
+
+        if (kegareManager != null)
+            kegareManager.Purify();
     }
 
     public void OnClickEmergencyPurify()
@@ -21,16 +30,37 @@ public class PurifyButtonHandler : MonoBehaviour
 
         ShowAd(() =>
         {
-            FindObjectOfType<MagicCircleActivator>()?.RequestEmergencyPurify();
+            StartPurifyEffect(isEmergency: true);
+
+            if (kegareManager != null)
+                kegareManager.ExecuteEmergencyPurify();
         });
     }
 
     bool IsState(YokaiState state)
     {
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
-
         return stateController == null || stateController.currentState == state;
+    }
+
+    void StartPurifyEffect()
+    {
+        if (magicCircleActivator != null)
+            magicCircleActivator.RequestNormalPurify();
+    }
+
+    void StartPurifyEffect(bool isEmergency)
+    {
+        if (magicCircleActivator == null)
+            return;
+
+        if (isEmergency)
+        {
+            magicCircleActivator.RequestEmergencyPurify();
+        }
+        else
+        {
+            magicCircleActivator.RequestNormalPurify();
+        }
     }
 
     void ShowAd(System.Action onCompleted)

@@ -90,6 +90,12 @@ public class EnergyManager : MonoBehaviour
         UpdateUI();
     }
 
+    public void AddEnergy(float amount)
+    {
+        ChangeEnergy(amount);
+        UpdateUI();
+    }
+
     public void ApplyHeal(float healRatio = 0.4f)
     {
         ApplyHealInternal(healRatio, allowWhenCritical: false, logContext: "だんご");
