@@ -15,32 +15,48 @@ public class YokaiEvolutionController : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
-    void OnMouseDown()
+    /// <summary>
+    /// UI Button から呼ばれる進化トリガー
+    /// </summary>
+    public void OnClickEvolve()
     {
         if (growthController == null)
+        {
+            Debug.LogWarning("[EVOLUTION] GrowthController is null");
             return;
+        }
 
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        if (stateController == null || stateController.currentState != YokaiState.EvolutionReady)
+        if (stateController == null)
+        {
+            Debug.LogWarning("[EVOLUTION] StateController not found");
             return;
+        }
 
-        Debug.Log($"[EVOLUTION] Tap received for {gameObject.name}");
+        if (stateController.currentState != YokaiState.EvolutionReady)
+        {
+            Debug.Log($"[EVOLUTION] Tap ignored. CurrentState={stateController.currentState}");
+            return;
+        }
 
+        Debug.Log("[EVOLUTION] Evolution triggered by tap");
+
+        // 状態遷移
         stateController.BeginEvolution();
 
+        // 見た目切り替え
         if (currentYokaiPrefab != null)
-        {
             currentYokaiPrefab.SetActive(false);
-        }
 
         if (nextYokaiPrefab != null)
-        {
             nextYokaiPrefab.SetActive(true);
-        }
 
+        // 成長リセット
         growthController.ResetGrowthState();
+
+        // 完了
         stateController.CompleteEvolution();
     }
 }
