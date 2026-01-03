@@ -110,13 +110,15 @@ public class EnergyManager : MonoBehaviour
     {
         if (stateController != null && stateController.currentState != YokaiState.Normal)
         {
-            Debug.Log($"[RECOVERY BLOCK] {logContext} heal ignored because state is {stateController.currentState}.");
+            // DEBUG: 状態不一致で処理が止まった理由を明示する
+            Debug.Log($"[RECOVERY BLOCK] {logContext} heal blocked. state={stateController.currentState}");
             return;
         }
 
-        if (!allowWhenCritical && ShouldBlockItemRecovery())
+        if (!allowWhenCritical && TryGetRecoveryBlockReason(out string blockReason))
         {
-            Debug.Log($"[RECOVERY BLOCK] {logContext} heal ignored because kegare or energy is critical.");
+            // DEBUG: ブロック理由を明確にログ出力する
+            Debug.Log($"[RECOVERY BLOCK] {logContext} heal blocked. reason={blockReason}");
             return;
         }
 
@@ -195,7 +197,7 @@ public class EnergyManager : MonoBehaviour
         UpdateUI();
     }
 
-    bool ShouldBlockItemRecovery()
+    bool TryGetRecoveryBlockReason(out string reason)
     {
         if (kegareManager == null)
         {
@@ -204,6 +206,19 @@ public class EnergyManager : MonoBehaviour
 
         bool isKegareMax = kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
         bool isEnergyZero = energy <= 0f;
-        return isKegareMax || isEnergyZero;
+        if (!isKegareMax && !isEnergyZero)
+        {
+            reason = string.Empty;
+            return false;
+        }
+
+        if (isKegareMax && isEnergyZero)
+            reason = "穢れMAX / 霊力0";
+        else if (isKegareMax)
+            reason = "穢れMAX";
+        else
+            reason = "霊力0";
+
+        return true;
     }
 }

@@ -127,7 +127,6 @@ public class YokaiGrowthController : MonoBehaviour
             if (!wasEvolutionReady)
             {
                 Debug.Log($"[EVOLUTION READY] {gameObject.name} is ready to evolve");
-                Debug.Log("[EVOLUTION] Waiting for magic circle activation");
                 if (stateController == null)
                     stateController = FindObjectOfType<YokaiStateController>();
 
