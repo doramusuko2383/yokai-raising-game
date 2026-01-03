@@ -183,6 +183,7 @@ MonoBehaviour:
   growthController: {fileID: 0}
   kegareManager: {fileID: 604884281}
   energyManager: {fileID: 515532832}
+  purifyButtonHandler: {fileID: 0}
 --- !u!114 &252916619 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1773064882957594954, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
@@ -287,6 +288,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3256271838671843495, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
   m_PrefabInstance: {fileID: 4728112825340963316}
   m_PrefabAsset: {fileID: 0}
+--- !u!224 &482696537 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 5012653312142739719, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+  m_PrefabInstance: {fileID: 8933104370667362609}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &483853552 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2311641823650929014, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
@@ -326,7 +332,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 091029a6a9999b64f9dc6b5348983bc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  energy: 100
+  energy: 0
   maxEnergy: 100
   worldConfig: {fileID: 0}
   kegareManager: {fileID: 604884281}
@@ -677,6 +683,54 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &724772125
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 724772127}
+  - component: {fileID: 724772126}
+  m_Layer: 0
+  m_Name: YokaiEvolutionController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &724772126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 724772125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67ab6d8f088d6e441baf6c4308ecb14f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  growthController: {fileID: 0}
+  currentYokaiPrefab: {fileID: 6983624608841432944, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
+  nextYokaiPrefab: {fileID: 418583937333045513, guid: e2cc9e0d0603512488e37d212b69603d, type: 3}
+  stateController: {fileID: 0}
+--- !u!4 &724772127
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 724772125}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 110.63831, y: 278.27518, z: 0.4623633}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &775327144
 GameObject:
   m_ObjectHideFlags: 0
@@ -1247,6 +1301,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Button_MononokeHeal
       objectReference: {fileID: 0}
+    - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
+      propertyPath: kegareManager
+      value: 
+      objectReference: {fileID: 604884281}
+    - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
+      propertyPath: stateController
+      value: 
+      objectReference: {fileID: 152328533}
+    - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
+      propertyPath: magicCircleActivator
+      value: 
+      objectReference: {fileID: 1905322487}
     - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
@@ -1254,14 +1320,14 @@ PrefabInstance:
     - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 152328533}
+      objectReference: {fileID: 604884281}
     - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: ExecuteEmergencyPurify
+      value: OnClickAdWatch
       objectReference: {fileID: 0}
     - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Yokai.YokaiStateController, Assembly-CSharp
+      value: KegareManager, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -1368,6 +1434,18 @@ PrefabInstance:
       propertyPath: stateController
       value: 
       objectReference: {fileID: 152328533}
+    - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: kegareManager
+      value: 
+      objectReference: {fileID: 604884281}
+    - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: stateController
+      value: 
+      objectReference: {fileID: 152328533}
+    - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: magicCircleActivator
+      value: 
+      objectReference: {fileID: 1905322487}
     - target: {fileID: 8349528510299463072, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_Name
       value: Panel_Action
@@ -1513,6 +1591,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 543276398}
     m_Modifications:
+    - target: {fileID: 494436429589663072, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1376546974375751405, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.0033569336
@@ -1553,6 +1635,38 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2613655299382171711, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2613655299382171711, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2613655299382171711, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3454465726285525538, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3454465726285525538, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3454465726285525538, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3502078056993418985, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -54
+      objectReference: {fileID: 0}
+    - target: {fileID: 3502078056993418985, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 189
+      objectReference: {fileID: 0}
     - target: {fileID: 3546593559723938574, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -1585,6 +1699,18 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5012653312142739719, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5012653312142739719, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5012653312142739719, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6119971282747257870, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -1596,6 +1722,54 @@ PrefabInstance:
     - target: {fileID: 6119971282747257870, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
       propertyPath: m_AnchorMin.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6761044949102708515, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_Value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6761044949102708515, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_FillRect
+      value: 
+      objectReference: {fileID: 482696537}
+    - target: {fileID: 6761044949102708515, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_MaxValue
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6761044949102708515, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_HandleRect
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6761044949102708515, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_Interactable
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6761044949102708515, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_WholeNumbers
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7806094638374986364, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8226099312714809083, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 120
+      objectReference: {fileID: 0}
+    - target: {fileID: 8226099312714809083, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 8347800102085315760, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_Type
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8347800102085315760, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 568bfe22d05ba5640b19157f4fccc1fe, type: 3}
+    - target: {fileID: 8347800102085315760, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
+      propertyPath: m_FillAmount
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1612,3 +1786,4 @@ SceneRoots:
   - {fileID: 543276398}
   - {fileID: 2028275034}
   - {fileID: 1905322488}
+  - {fileID: 724772127}

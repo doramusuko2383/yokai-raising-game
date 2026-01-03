@@ -90,6 +90,9 @@ public class KegareManager : MonoBehaviour
         if (kegare >= maxKegare)
         {
             EnterMononoke();
+
+            if (stateController != null)
+                stateController.RefreshState();
         }
 
         UpdateUI();
@@ -144,9 +147,7 @@ public class KegareManager : MonoBehaviour
             adWatchButton.SetActive(true);
 
         if (worldConfig != null)
-        {
             Debug.Log(worldConfig.mononokeMessage);
-        }
     }
 
     public void OnClickAdWatch()

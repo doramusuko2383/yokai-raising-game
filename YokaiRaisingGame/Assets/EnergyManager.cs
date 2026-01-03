@@ -172,7 +172,9 @@ public class EnergyManager : MonoBehaviour
     void UpdateUI()
     {
         if (energySlider != null)
-            energySlider.value = energy / maxEnergy;
+            energySlider.value = (float)energy / (float)maxEnergy;
+        Debug.Log($"[ENERGY UI] raw={energy}/{maxEnergy} => value={(float)energy / (float)maxEnergy}");
+
     }
 
     // 📺 広告を見る（仮）
