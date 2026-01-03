@@ -18,18 +18,30 @@ public class GameManager : MonoBehaviour
         SpawnFireBall();
     }
 
-    public void SpawnFireBall()
+    public GameObject SpawnFireBall()
     {
-        Instantiate(fireBallPrefab, Vector3.zero, Quaternion.identity);
+        if (fireBallPrefab == null)
+        {
+            Debug.LogWarning("[SPAWN] FireBall prefab is not assigned.");
+            return null;
+        }
+
+        return Instantiate(fireBallPrefab, Vector3.zero, Quaternion.identity);
     }
 
-    public void SpawnEvolved(
+    public GameObject SpawnEvolved(
         int tapCount,
         float lifeTime,
         int bornHour,
         Vector3 position
     )
     {
+        if (evolutionPrefabs == null || evolutionPrefabs.Length == 0)
+        {
+            Debug.LogWarning("[SPAWN] Evolution prefabs are not assigned.");
+            return null;
+        }
+
         YokaiAttribute attr =
             DecideSecret(bornHour, tapCount, lifeTime) ??
             DecideNormalAttribute(tapCount);
@@ -37,7 +49,13 @@ public class GameManager : MonoBehaviour
         int index = (int)attr;
         index = Mathf.Clamp(index, 0, evolutionPrefabs.Length - 1);
 
-        Instantiate(evolutionPrefabs[index], position, Quaternion.identity);
+        if (evolutionPrefabs[index] == null)
+        {
+            Debug.LogWarning($"[SPAWN] Evolution prefab at index {index} is null.");
+            return null;
+        }
+
+        return Instantiate(evolutionPrefabs[index], position, Quaternion.identity);
     }
 
     // ★ D：例外チェック（当たったら即決）

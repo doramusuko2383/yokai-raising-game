@@ -16,7 +16,7 @@ public class YokaiEvolutionController : MonoBehaviour
     YokaiStateController stateController;
 
     /// <summary>
-    /// UI Button ‚©‚çŒÄ‚Î‚ê‚éi‰»ƒgƒŠƒK[
+    /// UI Button ã‹ã‚‰å‘¼ã°ã‚Œã‚‹é€²åŒ–ãƒˆãƒªã‚¬ãƒ¼
     /// </summary>
     public void OnClickEvolve()
     {
@@ -43,20 +43,28 @@ public class YokaiEvolutionController : MonoBehaviour
 
         Debug.Log("[EVOLUTION] Evolution triggered by tap");
 
-        // ó‘Ô‘JˆÚ
-        stateController.BeginEvolution();
+        if (nextYokaiPrefab == null)
+        {
+            Debug.LogWarning("[EVOLUTION] Next yokai prefab is not assigned.");
+            stateController.CompleteEvolution();
+            return;
+        }
 
-        // Œ©‚½–ÚØ‚è‘Ö‚¦
+        if (currentYokaiPrefab == null)
+            Debug.LogWarning("[EVOLUTION] Current yokai prefab is not assigned.");
+        else
+        nextYokaiPrefab.SetActive(true);
+        // è¦‹ãŸç›®åˆ‡ã‚Šæ›¿ãˆ
         if (currentYokaiPrefab != null)
             currentYokaiPrefab.SetActive(false);
 
         if (nextYokaiPrefab != null)
             nextYokaiPrefab.SetActive(true);
 
-        // ¬’·ƒŠƒZƒbƒg
+        // æˆé•·ãƒªã‚»ãƒƒãƒˆ
         growthController.ResetGrowthState();
 
-        // Š®—¹
+        // å®Œäº†
         stateController.CompleteEvolution();
     }
 }
