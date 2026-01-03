@@ -115,9 +115,10 @@ public class KegareManager : MonoBehaviour
 
     void ApplyPurifyInternal(float purifyRatio, bool allowWhenCritical, string logContext)
     {
-        if (!allowWhenCritical && ShouldBlockItemRecovery())
+        if (!allowWhenCritical && TryGetRecoveryBlockReason(out string blockReason))
         {
-            Debug.Log($"[RECOVERY BLOCK] {logContext} purify ignored because kegare or energy is critical.");
+            // DEBUG: ブロック理由を明確にログ出力する
+            Debug.Log($"[RECOVERY BLOCK] {logContext} purify blocked. reason={blockReason}");
             return;
         }
 
@@ -164,7 +165,7 @@ public class KegareManager : MonoBehaviour
             stateController.ExecuteEmergencyPurify();
     }
 
-    bool ShouldBlockItemRecovery()
+    bool TryGetRecoveryBlockReason(out string reason)
     {
         if (energyManager == null)
         {
@@ -173,7 +174,20 @@ public class KegareManager : MonoBehaviour
 
         bool isKegareMax = kegare >= maxKegare;
         bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
-        return isKegareMax || isEnergyZero;
+        if (!isKegareMax && !isEnergyZero)
+        {
+            reason = string.Empty;
+            return false;
+        }
+
+        if (isKegareMax && isEnergyZero)
+            reason = "穢れMAX / 霊力0";
+        else if (isKegareMax)
+            reason = "穢れMAX";
+        else
+            reason = "霊力0";
+
+        return true;
     }
 
     void RecoverFromMononoke()

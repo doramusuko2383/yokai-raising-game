@@ -14,32 +14,50 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickPurify()
     {
-        if (!IsState(YokaiState.Normal))
+        if (!IsState(YokaiState.Normal, "おきよめ"))
             return;
 
         StartPurifyEffect();
 
+        if (kegareManager == null)
+            kegareManager = FindObjectOfType<KegareManager>();
+
         if (kegareManager != null)
             kegareManager.Purify();
+        else
+            Debug.LogWarning("[PURIFY] KegareManager が見つからないためおきよめできません。");
     }
 
     public void OnClickEmergencyPurify()
     {
-        if (!IsState(YokaiState.KegareMax))
+        if (!IsState(YokaiState.KegareMax, "緊急お祓い"))
             return;
 
         ShowAd(() =>
         {
             StartPurifyEffect(isEmergency: true);
 
+            if (kegareManager == null)
+                kegareManager = FindObjectOfType<KegareManager>();
+
             if (kegareManager != null)
                 kegareManager.ExecuteEmergencyPurify();
+            else
+                Debug.LogWarning("[PURIFY] KegareManager が見つからないため緊急お祓いできません。");
         });
     }
 
-    bool IsState(YokaiState state)
+    bool IsState(YokaiState state, string actionLabel)
     {
-        return stateController == null || stateController.currentState == state;
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+
+        if (stateController == null || stateController.currentState == state)
+            return true;
+
+        // DEBUG: 状態不一致で処理が止まった理由を明示する
+        Debug.Log($"[ACTION BLOCK] {actionLabel} blocked. state={stateController.currentState}");
+        return false;
     }
 
     void StartPurifyEffect()

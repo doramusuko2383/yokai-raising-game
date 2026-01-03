@@ -15,12 +15,10 @@ public class YokaiEvolutionController : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
-    void Update()
+    void OnMouseDown()
     {
         if (growthController == null)
-        {
             return;
-        }
 
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
@@ -28,10 +26,7 @@ public class YokaiEvolutionController : MonoBehaviour
         if (stateController == null || stateController.currentState != YokaiState.EvolutionReady)
             return;
 
-        if (!Input.GetMouseButtonDown(0))
-            return;
-
-        Debug.Log($"[EVOLUTION] Trigger received for {gameObject.name}");
+        Debug.Log($"[EVOLUTION] Tap received for {gameObject.name}");
 
         stateController.BeginEvolution();
 

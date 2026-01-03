@@ -113,6 +113,8 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         currentState = YokaiState.EvolutionReady;
+        // DEBUG: EvolutionReady になったことを明示してタップ可能を知らせる
+        Debug.Log("[EVOLUTION] Ready. Tap the yokai to evolve.");
         RefreshState();
     }
 

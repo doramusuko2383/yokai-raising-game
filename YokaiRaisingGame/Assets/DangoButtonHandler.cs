@@ -14,15 +14,28 @@ public class DangoButtonHandler : MonoBehaviour
 
     public void OnClickDango()
     {
-        if (!IsState(YokaiState.Normal))
+        if (!IsState(YokaiState.Normal, "だんご"))
             return;
+
+        if (energyManager == null)
+            energyManager = FindObjectOfType<EnergyManager>();
 
         if (energyManager != null)
             energyManager.AddEnergy(dangoAmount);
+        else
+            Debug.LogWarning("[DANGO] EnergyManager が見つからないためだんごが使えません。");
     }
 
-    bool IsState(YokaiState state)
+    bool IsState(YokaiState state, string actionLabel)
     {
-        return stateController == null || stateController.currentState == state;
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+
+        if (stateController == null || stateController.currentState == state)
+            return true;
+
+        // DEBUG: 状態不一致で処理が止まった理由を明示する
+        Debug.Log($"[ACTION BLOCK] {actionLabel} blocked. state={stateController.currentState}");
+        return false;
     }
 }
