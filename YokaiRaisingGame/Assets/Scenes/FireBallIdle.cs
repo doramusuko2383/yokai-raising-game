@@ -75,15 +75,24 @@ public class FireBallIdle : MonoBehaviour
 
         yield return new WaitForSeconds(popDuration);
 
-        if (gameManager != null)
+        if (gameManager == null)
         {
-            gameManager.SpawnEvolved(
-                tapCount,
-                lifeTime,
-                bornHour,
-                transform.position
-            );
-            gameManager.SpawnFireBall();
+            Debug.LogWarning("[EVOLUTION] GameManager not found. Evolution aborted.");
+            yield break;
+        }
+
+        GameObject evolvedInstance = gameManager.SpawnEvolved(
+            tapCount,
+            lifeTime,
+            bornHour,
+            transform.position
+        );
+        GameObject fireBallInstance = gameManager.SpawnFireBall();
+
+        if (evolvedInstance == null || fireBallInstance == null)
+        {
+            Debug.LogWarning("[EVOLUTION] Spawn failed. Keeping current yokai.");
+            yield break;
         }
 
         Destroy(gameObject);

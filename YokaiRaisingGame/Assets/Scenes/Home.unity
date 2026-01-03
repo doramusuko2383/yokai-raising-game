@@ -567,6 +567,7 @@ GameObject:
   m_Component:
   - component: {fileID: 587157696}
   - component: {fileID: 587157695}
+  - component: {fileID: 900000001}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -593,6 +594,26 @@ MonoBehaviour:
   - {fileID: 6342781704519830155, guid: 5cfe4b2824147eb439fd1783aeedddcf, type: 3}
   - {fileID: 6342781704519830155, guid: 5cfe4b2824147eb439fd1783aeedddcf, type: 3}
   growthSlider: {fileID: 252916619}
+--- !u!114 &900000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 587157694}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1152a01acd0a4b3e9fb1dda8cecec2c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showButton: 1
+  buttonLabel: Reset Scene
+  buttonRect:
+    serializedVersion: 2
+    x: 10
+    y: 10
+    width: 160
+    height: 40
 --- !u!4 &587157696
 Transform:
   m_ObjectHideFlags: 0
@@ -776,6 +797,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 992496716}
+  - component: {fileID: 900000002}
   m_Layer: 5
   m_Name: CharacterRoot
   m_TagString: Untagged
@@ -805,6 +827,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &900000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 992496715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 131545b69d5c4811acc5342dd7126086, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  characterRoot: {fileID: 992496716}
+  fireBallPrefab: {fileID: 6983624608841432944, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
+  fireBallName: FireBall
+  spawnOnStart: 1
 --- !u!1 &1119425565 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8349528510299463072, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
