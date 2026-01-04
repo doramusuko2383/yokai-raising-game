@@ -124,7 +124,7 @@ public class YokaiEvolutionController : MonoBehaviour
         }
 
         // 完了
-        TriggerSe("Evolution_Complete");
+        SEHub.Play(YokaiSE.Evolution_Complete);
         Debug.Log($"{FormatEvolutionLog("Complete")} Evolution completed. Switching to Normal state.");
         stateController.CompleteEvolution();
         LogYokaiActiveState("[EVOLUTION][After]");
@@ -310,7 +310,7 @@ public class YokaiEvolutionController : MonoBehaviour
         float chargeFlashIntensity = 0.18f;
 
         Debug.Log("[EVOLUTION] Charge start");
-        TriggerSe("Evolution_Charge");
+        SEHub.Play(YokaiSE.Evolution_Charge);
         Debug.Log($"{FormatEvolutionLog("Phase:Charge")} Charging evolution energy.");
         while (timer < ChargeDuration)
         {
@@ -327,7 +327,7 @@ public class YokaiEvolutionController : MonoBehaviour
         Debug.Log($"{FormatEvolutionLog("Phase:Charge")} Charge phase complete.");
 
         Debug.Log("[EVOLUTION] Burst");
-        TriggerSe("Evolution_Burst");
+        SEHub.Play(YokaiSE.Evolution_Burst);
         TriggerBurstRecoil();
         Debug.Log($"{FormatEvolutionLog("Phase:Burst")} Burst flash triggered.");
         timer = 0f;
@@ -387,12 +387,6 @@ public class YokaiEvolutionController : MonoBehaviour
     string FormatEvolutionLog(string phase)
     {
         return $"[EVOLUTION][{Time.time:0.00}s][{phase}]";
-    }
-
-    void TriggerSe(string cue)
-    {
-        Debug.Log($"[SE] {cue}");
-        // TODO: Replace with AudioManager hook when available.
     }
 
     void TriggerBurstRecoil()
