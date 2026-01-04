@@ -36,13 +36,38 @@ public class YokaiDangerEffect : MonoBehaviour
     float noiseSeedY;
     Color returnFromColor;
     Vector3 returnFromPosition;
+    bool isSuppressed;
+    DangerIntensity intensityLevel = DangerIntensity.Medium;
 
     const float ReturnDuration = 0.25f;
     const float PulseIntensity = 0.85f;
     const float NoiseSpeed = 1.6f;
     const float PulseExponent = 1.35f;
+    const float SoftPulseMultiplier = 0.6f;
+    const float SoftShakeMultiplier = 0.4f;
+    const float SoftSpeedMultiplier = 0.85f;
+    const float SoftColorDepth = 0.65f;
+    const float StrongPulseMultiplier = 1.1f;
+    const float StrongShakeMultiplier = 1.15f;
+    const float StrongSpeedMultiplier = 1.1f;
+    const float StrongColorDepth = 1.2f;
 
     public bool IsBlinking => isBlinking;
+
+    enum DangerIntensity
+    {
+        Soft,
+        Medium,
+        Strong
+    }
+
+    struct IntensitySettings
+    {
+        public float pulseMultiplier;
+        public float shakeMultiplier;
+        public float speedMultiplier;
+        public float colorDepth;
+    }
 
     void Awake()
     {
@@ -70,11 +95,12 @@ public class YokaiDangerEffect : MonoBehaviour
     {
         if (isBlinking)
         {
-            float pulse = (Mathf.Sin(Time.time * pulseSpeed) + 1f) * 0.5f;
+            IntensitySettings settings = GetIntensitySettings();
+            float pulse = (Mathf.Sin(Time.time * (pulseSpeed * settings.speedMultiplier)) + 1f) * 0.5f;
             pulse = Mathf.Pow(pulse, PulseExponent);
-            Color deepDanger = Color.Lerp(dangerColor, Color.black, 0.45f);
+            Color deepDanger = Color.Lerp(dangerColor, Color.black, 0.45f * settings.colorDepth);
             Color pulseColor = Color.Lerp(deepDanger, dangerColor, pulse);
-            ApplyColor(Color.Lerp(originalColor, pulseColor, PulseIntensity));
+            ApplyColor(Color.Lerp(originalColor, pulseColor, PulseIntensity * settings.pulseMultiplier));
 
             shakeTimer += Time.deltaTime;
             if (shakeTimer >= shakeInterval)
@@ -84,7 +110,7 @@ public class YokaiDangerEffect : MonoBehaviour
                 float offsetX = (Mathf.PerlinNoise(noiseSeedX, timeSample) - 0.5f) * 2f;
                 float offsetY = (Mathf.PerlinNoise(noiseSeedY, timeSample + 2.3f) - 0.5f) * 2f;
                 float pulseShake = Mathf.Lerp(0.7f, 1.1f, pulse);
-                targetShakeOffset = new Vector3(offsetX, offsetY, 0f) * shakeAmplitude * pulseShake;
+                targetShakeOffset = new Vector3(offsetX, offsetY, 0f) * shakeAmplitude * settings.shakeMultiplier * pulseShake;
             }
 
             currentShakeOffset = Vector3.Lerp(
@@ -128,12 +154,31 @@ public class YokaiDangerEffect : MonoBehaviour
 
         if (!isBlinking)
         {
-            Debug.Log("[DANGER] Effect OFF: returning to original visuals");
+            Debug.Log($"{FormatDangerLog("OFF")} Effect OFF: returning to original visuals");
         }
         else
         {
-            Debug.Log("[DANGER] Effect ON: pulsing danger visuals");
+            Debug.Log($"{FormatDangerLog("ON")} Effect ON: pulsing danger visuals");
         }
+    }
+
+    public void SetSuppressed(bool suppress)
+    {
+        if (isSuppressed == suppress)
+            return;
+
+        isSuppressed = suppress;
+        Debug.Log($"{FormatDangerLog(isSuppressed ? "Suppress:ON" : "Suppress:OFF")} Danger suppression {(isSuppressed ? "enabled" : "disabled")}.");
+    }
+
+    public void SetIntensityLevel(int level)
+    {
+        DangerIntensity newLevel = (DangerIntensity)Mathf.Clamp(level, 0, 2);
+        if (intensityLevel == newLevel)
+            return;
+
+        intensityLevel = newLevel;
+        Debug.Log($"{FormatDangerLog("Intensity")} Danger intensity set to {intensityLevel}.");
     }
 
     public void RefreshOriginalColor()
@@ -197,5 +242,42 @@ public class YokaiDangerEffect : MonoBehaviour
         }
 
         transform.localPosition = position;
+    }
+
+    IntensitySettings GetIntensitySettings()
+    {
+        DangerIntensity activeLevel = isSuppressed ? DangerIntensity.Soft : intensityLevel;
+        switch (activeLevel)
+        {
+            case DangerIntensity.Soft:
+                return new IntensitySettings
+                {
+                    pulseMultiplier = SoftPulseMultiplier,
+                    shakeMultiplier = SoftShakeMultiplier,
+                    speedMultiplier = SoftSpeedMultiplier,
+                    colorDepth = SoftColorDepth
+                };
+            case DangerIntensity.Strong:
+                return new IntensitySettings
+                {
+                    pulseMultiplier = StrongPulseMultiplier,
+                    shakeMultiplier = StrongShakeMultiplier,
+                    speedMultiplier = StrongSpeedMultiplier,
+                    colorDepth = StrongColorDepth
+                };
+            default:
+                return new IntensitySettings
+                {
+                    pulseMultiplier = 1f,
+                    shakeMultiplier = 1f,
+                    speedMultiplier = 1f,
+                    colorDepth = 1f
+                };
+        }
+    }
+
+    string FormatDangerLog(string phase)
+    {
+        return $"[DANGER][{Time.time:0.00}s][{phase}]";
     }
 }

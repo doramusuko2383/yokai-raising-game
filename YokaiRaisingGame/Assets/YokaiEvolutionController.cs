@@ -28,6 +28,13 @@ public class YokaiEvolutionController : MonoBehaviour
     string yokaiAdultName = "YokaiAdult";
 
     bool isEvolving;
+    const float ChargeScaleMultiplier = 1.06f;
+    const float BurstScaleMultiplier = 1.18f;
+    const float ChargeDuration = 0.55f;
+    const float BurstDuration = 0.09f;
+    const float SettleDuration = 0.32f;
+    const float ChargeWobbleAmplitude = 0.015f;
+    const float ChargeWobbleFrequency = 5.5f;
 
     struct DangerEffectState
     {
@@ -68,7 +75,7 @@ public class YokaiEvolutionController : MonoBehaviour
             return;
         }
 
-        Debug.Log("[EVOLUTION][Start] Evolution triggered by tap");
+        Debug.Log($"{FormatEvolutionLog("Start")} Evolution triggered by tap");
         StartCoroutine(EvolutionSequence());
     }
 
@@ -112,7 +119,7 @@ public class YokaiEvolutionController : MonoBehaviour
         }
 
         // 完了
-        Debug.Log("[EVOLUTION][Complete] Evolution completed. Switching to Normal state.");
+        Debug.Log($"{FormatEvolutionLog("Complete")} Evolution completed. Switching to Normal state.");
         stateController.CompleteEvolution();
         LogYokaiActiveState("[EVOLUTION][After]");
         ResumeDangerEffects(dangerEffectStates);
@@ -228,7 +235,7 @@ public class YokaiEvolutionController : MonoBehaviour
         }
 
         var effects = characterRoot.GetComponentsInChildren<YokaiDangerEffect>(true);
-        Debug.Log($"[EVOLUTION][DangerEffect][Pause][Start] Found {effects.Length} effects to pause.");
+        Debug.Log($"{FormatEvolutionLog("DangerEffect:Pause:Start")} Found {effects.Length} effects to pause.");
 
         foreach (var effect in effects)
         {
@@ -242,11 +249,12 @@ public class YokaiEvolutionController : MonoBehaviour
                 wasEnabled = effect.enabled
             });
 
+            effect.SetSuppressed(true);
             if (effect.enabled && effect.IsBlinking)
                 effect.SetBlinking(false);
         }
 
-        Debug.Log("[EVOLUTION][DangerEffect][Pause][End] Danger effects paused.");
+        Debug.Log($"{FormatEvolutionLog("DangerEffect:Pause:End")} Danger effects paused.");
     }
 
     void ResumeDangerEffects(List<DangerEffectState> states)
@@ -254,7 +262,7 @@ public class YokaiEvolutionController : MonoBehaviour
         if (states == null || states.Count == 0)
             return;
 
-        Debug.Log($"[EVOLUTION][DangerEffect][Resume][Start] Restoring {states.Count} effects.");
+        Debug.Log($"{FormatEvolutionLog("DangerEffect:Resume:Start")} Restoring {states.Count} effects.");
 
         foreach (var state in states)
         {
@@ -264,9 +272,10 @@ public class YokaiEvolutionController : MonoBehaviour
             state.effect.enabled = state.wasEnabled;
             if (state.wasEnabled)
                 state.effect.SetBlinking(state.wasBlinking);
+            state.effect.SetSuppressed(false);
         }
 
-        Debug.Log("[EVOLUTION][DangerEffect][Resume][End] Danger effects restored.");
+        Debug.Log($"{FormatEvolutionLog("DangerEffect:Resume:End")} Danger effects restored.");
     }
 
     IEnumerator PlayEvolutionStartEffect(Transform target)
@@ -286,51 +295,59 @@ public class YokaiEvolutionController : MonoBehaviour
             imageColors[i] = images[i] != null ? images[i].color : Color.white;
 
         Vector3 originalScale = target.localScale;
-        Vector3 chargeScale = originalScale * 1.06f;
-        Vector3 burstScale = originalScale * 1.18f;
-        float chargeDuration = 0.45f;
-        float burstDuration = 0.08f;
-        float settleDuration = 0.28f;
+        Vector3 originalLocalPosition = target.localPosition;
+        Vector3 chargeScale = originalScale * ChargeScaleMultiplier;
+        Vector3 burstScale = originalScale * BurstScaleMultiplier;
         float timer = 0f;
-        Color flashColor = Color.white;
-        float flashIntensity = 0.9f;
+        Color flashColor = new Color(1f, 0.95f, 0.8f, 1f);
+        float flashIntensity = 0.92f;
+        float chargeFlashIntensity = 0.18f;
 
-        Debug.Log("[EVOLUTION][Phase:Charge][Start] Charging evolution energy.");
-        while (timer < chargeDuration)
+        Debug.Log($"{FormatEvolutionLog("Phase:Charge")} Charging evolution energy.");
+        while (timer < ChargeDuration)
         {
             timer += Time.deltaTime;
-            float t = Mathf.Clamp01(timer / chargeDuration);
-            target.localScale = Vector3.Lerp(originalScale, chargeScale, t);
-            ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, 1f);
+            float t = Mathf.Clamp01(timer / ChargeDuration);
+            float eased = Mathf.SmoothStep(0f, 1f, t);
+            target.localScale = Vector3.Lerp(originalScale, chargeScale, eased);
+            float wobble = Mathf.Sin(Time.time * ChargeWobbleFrequency) * ChargeWobbleAmplitude * (0.3f + 0.7f * eased);
+            float wobbleSecondary = Mathf.Cos(Time.time * (ChargeWobbleFrequency * 0.8f)) * ChargeWobbleAmplitude * 0.6f;
+            target.localPosition = originalLocalPosition + new Vector3(wobble, wobbleSecondary, 0f);
+            ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, chargeFlashIntensity, 1f);
             yield return null;
         }
-        Debug.Log("[EVOLUTION][Phase:Charge][End] Charge phase complete.");
+        Debug.Log($"{FormatEvolutionLog("Phase:Charge")} Charge phase complete.");
 
-        Debug.Log("[EVOLUTION][Phase:Burst][Start] Burst flash triggered.");
+        Debug.Log($"{FormatEvolutionLog("Phase:Burst")} Burst flash triggered.");
         timer = 0f;
-        while (timer < burstDuration)
+        while (timer < BurstDuration)
         {
             timer += Time.deltaTime;
-            float t = Mathf.Clamp01(timer / burstDuration);
-            target.localScale = Vector3.Lerp(chargeScale, burstScale, t);
+            float t = Mathf.Clamp01(timer / BurstDuration);
+            float eased = Mathf.SmoothStep(0f, 1f, t);
+            target.localScale = Vector3.Lerp(chargeScale, burstScale, eased);
+            target.localPosition = originalLocalPosition;
             ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, 0f);
             yield return null;
         }
-        Debug.Log("[EVOLUTION][Phase:Burst][End] Burst flash complete.");
+        Debug.Log($"{FormatEvolutionLog("Phase:Burst")} Burst flash complete.");
 
-        Debug.Log("[EVOLUTION][Phase:Settle][Start] Settling back to normal.");
+        Debug.Log($"{FormatEvolutionLog("Phase:Settle")} Settling back to normal.");
         timer = 0f;
-        while (timer < settleDuration)
+        while (timer < SettleDuration)
         {
             timer += Time.deltaTime;
-            float t = Mathf.Clamp01(timer / settleDuration);
-            target.localScale = Vector3.Lerp(burstScale, originalScale, t);
+            float t = Mathf.Clamp01(timer / SettleDuration);
+            float eased = Mathf.SmoothStep(0f, 1f, t);
+            target.localScale = Vector3.Lerp(burstScale, originalScale, eased);
+            target.localPosition = originalLocalPosition;
             ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, t);
             yield return null;
         }
-        Debug.Log("[EVOLUTION][Phase:Settle][End] Settle phase complete.");
+        Debug.Log($"{FormatEvolutionLog("Phase:Settle")} Settle phase complete.");
 
         target.localScale = originalScale;
+        target.localPosition = originalLocalPosition;
         ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, 1f);
     }
 
@@ -353,5 +370,10 @@ public class YokaiEvolutionController : MonoBehaviour
             Color flash = Color.Lerp(imageColors[i], flashColor, intensity);
             images[i].color = Color.Lerp(flash, imageColors[i], returnT);
         }
+    }
+
+    string FormatEvolutionLog(string phase)
+    {
+        return $"[EVOLUTION][{Time.time:0.00}s][{phase}]";
     }
 }
