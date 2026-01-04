@@ -29,7 +29,18 @@ public class YokaiDangerEffect : MonoBehaviour
     Vector3 currentShakeOffset;
     Vector3 targetShakeOffset;
     bool isBlinking;
+    bool isReturning;
     float shakeTimer;
+    float returnTimer;
+    float noiseSeedX;
+    float noiseSeedY;
+    Color returnFromColor;
+    Vector3 returnFromPosition;
+
+    const float ReturnDuration = 0.25f;
+    const float PulseIntensity = 0.85f;
+    const float NoiseSpeed = 1.6f;
+    const float PulseExponent = 1.35f;
 
     void Awake()
     {
@@ -41,6 +52,8 @@ public class YokaiDangerEffect : MonoBehaviour
 
         originalColor = GetCurrentColor();
         originalLocalPosition = GetCurrentLocalPosition();
+        noiseSeedX = Random.value * 10f;
+        noiseSeedY = Random.value * 10f;
     }
 
     void OnEnable()
@@ -53,26 +66,48 @@ public class YokaiDangerEffect : MonoBehaviour
 
     void Update()
     {
-        if (!isBlinking)
-            return;
-
-        float pulse = (Mathf.Sin(Time.time * pulseSpeed) + 1f) * 0.5f;
-        ApplyColor(Color.Lerp(originalColor, dangerColor, pulse));
-
-        shakeTimer += Time.deltaTime;
-        if (shakeTimer >= shakeInterval)
+        if (isBlinking)
         {
-            shakeTimer = 0f;
-            Vector2 random = Random.insideUnitCircle * shakeAmplitude;
-            targetShakeOffset = new Vector3(random.x, random.y, 0f);
+            float pulse = (Mathf.Sin(Time.time * pulseSpeed) + 1f) * 0.5f;
+            pulse = Mathf.Pow(pulse, PulseExponent);
+            Color deepDanger = Color.Lerp(dangerColor, Color.black, 0.45f);
+            Color pulseColor = Color.Lerp(deepDanger, dangerColor, pulse);
+            ApplyColor(Color.Lerp(originalColor, pulseColor, PulseIntensity));
+
+            shakeTimer += Time.deltaTime;
+            if (shakeTimer >= shakeInterval)
+            {
+                shakeTimer = 0f;
+                float timeSample = Time.time * NoiseSpeed;
+                float offsetX = (Mathf.PerlinNoise(noiseSeedX, timeSample) - 0.5f) * 2f;
+                float offsetY = (Mathf.PerlinNoise(noiseSeedY, timeSample + 2.3f) - 0.5f) * 2f;
+                float pulseShake = Mathf.Lerp(0.7f, 1.1f, pulse);
+                targetShakeOffset = new Vector3(offsetX, offsetY, 0f) * shakeAmplitude * pulseShake;
+            }
+
+            currentShakeOffset = Vector3.Lerp(
+                currentShakeOffset,
+                targetShakeOffset,
+                Time.deltaTime * shakeLerpSpeed);
+
+            ApplyLocalPosition(originalLocalPosition + currentShakeOffset);
+            return;
         }
 
-        currentShakeOffset = Vector3.Lerp(
-            currentShakeOffset,
-            targetShakeOffset,
-            Time.deltaTime * shakeLerpSpeed);
+        if (isReturning)
+        {
+            returnTimer += Time.deltaTime;
+            float t = Mathf.Clamp01(returnTimer / ReturnDuration);
+            ApplyColor(Color.Lerp(returnFromColor, originalColor, t));
+            ApplyLocalPosition(Vector3.Lerp(returnFromPosition, originalLocalPosition, t));
 
-        ApplyLocalPosition(originalLocalPosition + currentShakeOffset);
+            if (t >= 1f)
+            {
+                isReturning = false;
+                currentShakeOffset = Vector3.zero;
+                targetShakeOffset = Vector3.zero;
+            }
+        }
     }
 
     public void SetBlinking(bool enable)
@@ -81,18 +116,21 @@ public class YokaiDangerEffect : MonoBehaviour
             return;
 
         isBlinking = enable;
+        isReturning = !enable;
         shakeTimer = 0f;
         currentShakeOffset = Vector3.zero;
         targetShakeOffset = Vector3.zero;
+        returnTimer = 0f;
+        returnFromColor = GetCurrentColor();
+        returnFromPosition = GetCurrentLocalPosition();
 
         if (!isBlinking)
         {
-            ApplyColor(originalColor);
-            ApplyLocalPosition(originalLocalPosition);
+            Debug.Log("[DANGER] Effect OFF: returning to original visuals");
         }
         else
         {
-            ApplyColor(dangerColor);
+            Debug.Log("[DANGER] Effect ON: pulsing danger visuals");
         }
     }
 
@@ -102,6 +140,8 @@ public class YokaiDangerEffect : MonoBehaviour
         originalLocalPosition = GetCurrentLocalPosition();
         currentShakeOffset = Vector3.zero;
         targetShakeOffset = Vector3.zero;
+        returnFromColor = originalColor;
+        returnFromPosition = originalLocalPosition;
         if (!isBlinking)
         {
             ApplyColor(originalColor);
