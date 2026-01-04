@@ -241,6 +241,17 @@ public class YokaiStateController : MonoBehaviour
         RefreshState();
     }
 
+    public void SetActiveYokai(GameObject activeYokai)
+    {
+        if (activeYokai == null)
+            return;
+
+        growthController = activeYokai.GetComponent<YokaiGrowthController>();
+        dangerEffects = activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true);
+        RefreshDangerEffectOriginalColors();
+        UpdateDangerEffects();
+    }
+
     public void SetEvolutionReady()
     {
         if (currentState != YokaiState.Normal)
@@ -344,7 +355,8 @@ public class YokaiStateController : MonoBehaviour
 
     void RefreshDangerEffectOriginalColors()
     {
-        dangerEffects = FindObjectsOfType<YokaiDangerEffect>(true);
+        if (dangerEffects == null || dangerEffects.Length == 0)
+            dangerEffects = FindObjectsOfType<YokaiDangerEffect>(true);
         if (dangerEffects == null || dangerEffects.Length == 0)
             return;
 
