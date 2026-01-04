@@ -47,6 +47,7 @@ public class YokaiStateController : MonoBehaviour
 
     float purifyTimer;
     KegareManager registeredKegareManager;
+    EnergyManager registeredEnergyManager;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Initialize()
@@ -79,8 +80,6 @@ public class YokaiStateController : MonoBehaviour
     void Update()
     {
         HandlePurifyTick();
-        RefreshState();
-        UpdateDangerEffects();
 #if UNITY_EDITOR
         HandleEditorDebugInput();
 #endif
@@ -98,6 +97,7 @@ public class YokaiStateController : MonoBehaviour
             energyManager = FindObjectOfType<EnergyManager>();
 
         RegisterKegareEvents();
+        RegisterEnergyEvents();
 
         if (actionPanel == null)
             actionPanel = GameObject.Find("UI_Action");
@@ -129,12 +129,42 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         if (registeredKegareManager != null)
+        {
             registeredKegareManager.EmergencyPurifyRequested -= ExecuteEmergencyPurify;
+            registeredKegareManager.KegareChanged -= OnKegareChanged;
+        }
 
         registeredKegareManager = kegareManager;
 
         if (registeredKegareManager != null)
+        {
             registeredKegareManager.EmergencyPurifyRequested += ExecuteEmergencyPurify;
+            registeredKegareManager.KegareChanged += OnKegareChanged;
+        }
+    }
+
+    void RegisterEnergyEvents()
+    {
+        if (registeredEnergyManager == energyManager)
+            return;
+
+        if (registeredEnergyManager != null)
+            registeredEnergyManager.EnergyChanged -= OnEnergyChanged;
+
+        registeredEnergyManager = energyManager;
+
+        if (registeredEnergyManager != null)
+            registeredEnergyManager.EnergyChanged += OnEnergyChanged;
+    }
+
+    void OnKegareChanged(float current, float max)
+    {
+        RefreshState();
+    }
+
+    void OnEnergyChanged(float current, float max)
+    {
+        RefreshState();
     }
 
     public void RefreshState()
@@ -184,6 +214,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         SetState(YokaiState.Purifying);
+        RefreshState();
     }
 
     public void StopPurifying()
@@ -192,6 +223,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         SetState(YokaiState.Normal);
+        RefreshState();
     }
 
     public void BeginEvolution()
@@ -205,6 +237,7 @@ public class YokaiStateController : MonoBehaviour
     public void CompleteEvolution()
     {
         SetState(YokaiState.Normal);
+        RefreshDangerEffectOriginalColors();
         RefreshState();
     }
 
@@ -217,6 +250,7 @@ public class YokaiStateController : MonoBehaviour
         // DEBUG: EvolutionReady になったことを明示してタップ可能を知らせる
         Debug.Log("[EVOLUTION] Ready. Tap the yokai to evolve.");
         ApplyStateUI();
+        RefreshState();
     }
 
     public void ExecuteEmergencyPurify()
@@ -259,7 +293,6 @@ public class YokaiStateController : MonoBehaviour
 
         purifyTimer = 0f;
         kegareManager.AddKegare(-purifyTickAmount);
-        RefreshState();
     }
 
     void ApplyStateUI()
@@ -306,6 +339,21 @@ public class YokaiStateController : MonoBehaviour
 
             bool shouldBlink = enableBlink && effect.gameObject.activeInHierarchy;
             effect.SetBlinking(shouldBlink);
+        }
+    }
+
+    void RefreshDangerEffectOriginalColors()
+    {
+        dangerEffects = FindObjectsOfType<YokaiDangerEffect>(true);
+        if (dangerEffects == null || dangerEffects.Length == 0)
+            return;
+
+        foreach (var effect in dangerEffects)
+        {
+            if (effect == null)
+                continue;
+
+            effect.RefreshOriginalColor();
         }
     }
 

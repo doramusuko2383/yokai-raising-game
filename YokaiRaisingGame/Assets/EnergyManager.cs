@@ -18,15 +18,6 @@ public class EnergyManager : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
-    [Header("対象")]
-    public SpriteRenderer yokaiSprite;
-
-    [Header("弱り演出")]
-    public float weakScale = 0.8f;
-    public float weakAlpha = 0.4f;
-
-    Vector3 originalScale;
-    Color originalColor;
     bool isWeak;
 
     public event System.Action<float, float> EnergyChanged;
@@ -47,16 +38,6 @@ public class EnergyManager : MonoBehaviour
 
     void Start()
     {
-        if (yokaiSprite == null)
-        {
-            Debug.LogError("❌ Yokai SpriteRenderer が設定されていません");
-            enabled = false;
-            return;
-        }
-
-        originalScale = yokaiSprite.transform.localScale;
-        originalColor = yokaiSprite.color;
-
         if (energy <= 0f)
         {
             EnterWeakState();
@@ -67,12 +48,6 @@ public class EnergyManager : MonoBehaviour
         }
 
         NotifyEnergyChanged();
-    }
-
-    void Update()
-    {
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
     }
 
     public void ChangeEnergy(float amount)
@@ -94,7 +69,6 @@ public class EnergyManager : MonoBehaviour
     public void AddEnergy(float amount)
     {
         ChangeEnergy(amount);
-        NotifyEnergyChanged();
     }
 
     public void ApplyHeal(float healRatio = 0.4f)
@@ -109,6 +83,9 @@ public class EnergyManager : MonoBehaviour
 
     void ApplyHealInternal(float healRatio, bool allowWhenCritical, string logContext)
     {
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+
         if (stateController != null && stateController.currentState != YokaiState.Normal)
         {
             // DEBUG: 状態不一致で処理が止まった理由を明示する
@@ -130,16 +107,7 @@ public class EnergyManager : MonoBehaviour
     void EnterWeakState()
     {
         isWeak = true;
-
-        yokaiSprite.transform.localScale = originalScale * weakScale;
-        yokaiSprite.color = new Color(
-            originalColor.r,
-            originalColor.g,
-            originalColor.b,
-            weakAlpha
-        );
-
-        SetWeakUI(true);
+        SetWeakState(true);
         if (worldConfig != null)
         {
             Debug.Log(worldConfig.weakMessage);
@@ -149,25 +117,24 @@ public class EnergyManager : MonoBehaviour
     void RecoverFromWeak()
     {
         isWeak = false;
-
-        yokaiSprite.transform.localScale = originalScale;
-        yokaiSprite.color = originalColor;
-
-        SetWeakUI(false);
+        SetWeakState(false);
         if (worldConfig != null)
         {
             Debug.Log(worldConfig.normalMessage);
         }
     }
 
-    void SetWeakUI(bool isWeak)
+    void SetWeakState(bool isWeakState)
     {
-        WeakStateChanged?.Invoke(isWeak);
+        WeakStateChanged?.Invoke(isWeakState);
     }
 
     // 📺 広告を見る（仮）
     public void OnClickAdWatch()
     {
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+
         if (stateController != null && stateController.currentState != YokaiState.Normal)
         {
             return;
@@ -213,8 +180,4 @@ public class EnergyManager : MonoBehaviour
         EnergyChanged?.Invoke(energy, maxEnergy);
     }
 
-    void NotifyWeakStateChanged()
-    {
-        WeakStateChanged?.Invoke(isWeak);
-    }
 }

@@ -15,6 +15,20 @@ public class EnergyUIController : MonoBehaviour
     [SerializeField]
     GameObject weakMessage;
 
+    [Header("Weak Visuals")]
+    [SerializeField]
+    SpriteRenderer yokaiSprite;
+
+    [SerializeField]
+    float weakScale = 0.8f;
+
+    [SerializeField]
+    float weakAlpha = 0.4f;
+
+    Vector3 originalScale;
+    Color originalColor;
+    bool hasCachedOriginal;
+
     void OnEnable()
     {
         if (energyManager == null)
@@ -26,6 +40,7 @@ public class EnergyUIController : MonoBehaviour
             energyManager.WeakStateChanged += OnWeakStateChanged;
         }
 
+        CacheOriginalVisuals();
         RefreshUI();
     }
 
@@ -51,6 +66,8 @@ public class EnergyUIController : MonoBehaviour
 
         if (weakMessage != null)
             weakMessage.SetActive(isWeak);
+
+        ApplyWeakVisuals(isWeak);
     }
 
     void RefreshUI()
@@ -60,5 +77,40 @@ public class EnergyUIController : MonoBehaviour
 
         OnEnergyChanged(energyManager.energy, energyManager.maxEnergy);
         OnWeakStateChanged(energyManager.energy <= 0f);
+    }
+
+    void CacheOriginalVisuals()
+    {
+        if (yokaiSprite == null)
+            return;
+
+        originalScale = yokaiSprite.transform.localScale;
+        originalColor = yokaiSprite.color;
+        hasCachedOriginal = true;
+    }
+
+    void ApplyWeakVisuals(bool isWeak)
+    {
+        if (yokaiSprite == null)
+            return;
+
+        if (!hasCachedOriginal)
+            CacheOriginalVisuals();
+
+        if (isWeak)
+        {
+            yokaiSprite.transform.localScale = originalScale * weakScale;
+            yokaiSprite.color = new Color(
+                originalColor.r,
+                originalColor.g,
+                originalColor.b,
+                weakAlpha
+            );
+        }
+        else
+        {
+            yokaiSprite.transform.localScale = originalScale;
+            yokaiSprite.color = originalColor;
+        }
     }
 }
