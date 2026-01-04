@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4496156179974796907}
   - component: {fileID: 7801126037378468043}
   - component: {fileID: 1439122780646479601}
+  - component: {fileID: 7204756624554123556}
   m_Layer: 5
   m_Name: FireBall
   m_TagString: Untagged
@@ -75,3 +76,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &7204756624554123556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6983624608841432944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6572ce23ba064abab6e6a5752f9915cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dangerColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  blinkInterval: 0.4
+  targetSprite: {fileID: 0}
+  targetImage: {fileID: 0}

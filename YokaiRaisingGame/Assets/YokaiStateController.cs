@@ -34,6 +34,10 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     CanvasGroup dangerOverlay;
 
+    [Header("Danger Effect")]
+    [SerializeField]
+    YokaiDangerEffect[] dangerEffects;
+
     [Header("Purify")]
     [SerializeField]
     float purifyTickInterval = 1f;
@@ -76,6 +80,7 @@ public class YokaiStateController : MonoBehaviour
     {
         HandlePurifyTick();
         RefreshState();
+        UpdateDangerEffects();
 #if UNITY_EDITOR
         HandleEditorDebugInput();
 #endif
@@ -113,6 +118,9 @@ public class YokaiStateController : MonoBehaviour
             if (dangerObject != null)
                 dangerOverlay = dangerObject.GetComponent<CanvasGroup>();
         }
+
+        if (dangerEffects == null || dangerEffects.Length == 0)
+            dangerEffects = FindObjectsOfType<YokaiDangerEffect>(true);
     }
 
     void RegisterKegareEvents()
@@ -279,6 +287,25 @@ public class YokaiStateController : MonoBehaviour
             dangerOverlay.alpha = showDangerOverlay ? 1f : 0f;
             dangerOverlay.blocksRaycasts = showDangerOverlay;
             dangerOverlay.interactable = showDangerOverlay;
+        }
+
+        UpdateDangerEffects();
+    }
+
+    void UpdateDangerEffects()
+    {
+        if (dangerEffects == null || dangerEffects.Length == 0)
+            return;
+
+        bool enableBlink = currentState == YokaiState.KegareMax;
+
+        foreach (var effect in dangerEffects)
+        {
+            if (effect == null)
+                continue;
+
+            bool shouldBlink = enableBlink && effect.gameObject.activeInHierarchy;
+            effect.SetBlinking(shouldBlink);
         }
     }
 

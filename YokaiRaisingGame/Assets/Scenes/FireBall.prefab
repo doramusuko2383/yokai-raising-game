@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 9012817254824917214}
   - component: {fileID: -2417003689815465113}
   - component: {fileID: -7592891237817900776}
+  - component: {fileID: 3548120210981993121}
   m_Layer: 0
   m_Name: FireBall
   m_TagString: Untagged
@@ -118,6 +119,22 @@ ParticleSystem:
   stopAction: 0
   cullingMode: 0
   ringBufferMode: 0
+--- !u!114 &3548120210981993121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6342781704519830155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6572ce23ba064abab6e6a5752f9915cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dangerColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  blinkInterval: 0.4
+  targetSprite: {fileID: 0}
+  targetImage: {fileID: 0}
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 1
   looping: 0

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using Yokai;
 
 public class EnergyManager : MonoBehaviour
@@ -19,15 +18,8 @@ public class EnergyManager : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
-    [Header("UI")]
-    public Slider energySlider;
-
     [Header("対象")]
     public SpriteRenderer yokaiSprite;
-
-    [Header("操作UI")]
-    public GameObject adWatchButton;   // 📺 広告を見る
-    public GameObject weakMessage;     // 弱り文言（任意）
 
     [Header("弱り演出")]
     public float weakScale = 0.8f;
@@ -36,6 +28,9 @@ public class EnergyManager : MonoBehaviour
     Vector3 originalScale;
     Color originalColor;
     bool isWeak;
+
+    public event System.Action<float, float> EnergyChanged;
+    public event System.Action<bool> WeakStateChanged;
 
     void Awake()
     {
@@ -62,9 +57,16 @@ public class EnergyManager : MonoBehaviour
         originalScale = yokaiSprite.transform.localScale;
         originalColor = yokaiSprite.color;
 
-        // 初期は通常状態
-        SetWeakUI(false);
-        UpdateUI();
+        if (energy <= 0f)
+        {
+            EnterWeakState();
+        }
+        else
+        {
+            RecoverFromWeak();
+        }
+
+        NotifyEnergyChanged();
     }
 
     void Update()
@@ -86,13 +88,13 @@ public class EnergyManager : MonoBehaviour
             RecoverFromWeak();
         }
 
-        UpdateUI();
+        NotifyEnergyChanged();
     }
 
     public void AddEnergy(float amount)
     {
         ChangeEnergy(amount);
-        UpdateUI();
+        NotifyEnergyChanged();
     }
 
     public void ApplyHeal(float healRatio = 0.4f)
@@ -160,19 +162,7 @@ public class EnergyManager : MonoBehaviour
 
     void SetWeakUI(bool isWeak)
     {
-        if (adWatchButton != null)
-            adWatchButton.SetActive(isWeak);
-
-        if (weakMessage != null)
-            weakMessage.SetActive(isWeak);
-    }
-
-    void UpdateUI()
-    {
-        if (energySlider != null)
-            energySlider.value = (float)energy / (float)maxEnergy;
-        Debug.Log($"[ENERGY UI] raw={energy}/{maxEnergy} => value={(float)energy / (float)maxEnergy}");
-
+        WeakStateChanged?.Invoke(isWeak);
     }
 
     // 📺 広告を見る（仮）
@@ -190,7 +180,7 @@ public class EnergyManager : MonoBehaviour
 
         energy = maxEnergy;
         RecoverFromWeak();
-        UpdateUI();
+        NotifyEnergyChanged();
     }
 
     bool TryGetRecoveryBlockReason(out string reason)
@@ -216,5 +206,15 @@ public class EnergyManager : MonoBehaviour
             reason = "霊力0";
 
         return true;
+    }
+
+    void NotifyEnergyChanged()
+    {
+        EnergyChanged?.Invoke(energy, maxEnergy);
+    }
+
+    void NotifyWeakStateChanged()
+    {
+        WeakStateChanged?.Invoke(isWeak);
     }
 }

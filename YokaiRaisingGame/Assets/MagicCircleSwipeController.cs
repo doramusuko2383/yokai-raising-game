@@ -23,6 +23,16 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
     public event Action HealRequested;
     public event Action Completed;
 
+    void OnEnable()
+    {
+        Show();
+    }
+
+    void OnDisable()
+    {
+        Hide();
+    }
+
     public void Show()
     {
         if (isActive)

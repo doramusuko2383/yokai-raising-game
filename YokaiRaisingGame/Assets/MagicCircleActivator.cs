@@ -3,10 +3,7 @@ using UnityEngine.SceneManagement;
 
 public class MagicCircleActivator : MonoBehaviour
 {
-    const string PrefabPath = "Prefabs/MagicCircleSwipeUI";
-
     MagicCircleSwipeController controller;
-    GameObject uiInstance;
     PurifyRequestType pendingRequest = PurifyRequestType.None;
 
     public event System.Action SuccessSeRequested;
@@ -17,14 +14,6 @@ public class MagicCircleActivator : MonoBehaviour
         None,
         Normal,
         Emergency
-    }
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    static void Initialize()
-    {
-        var activatorObject = new GameObject("MagicCircleActivator");
-        activatorObject.AddComponent<MagicCircleActivator>();
-        DontDestroyOnLoad(activatorObject);
     }
 
     void Awake()
@@ -44,25 +33,7 @@ public class MagicCircleActivator : MonoBehaviour
 
     void SetupForScene()
     {
-        var canvas = FindObjectOfType<Canvas>();
-        if (canvas == null)
-        {
-            Debug.LogWarning("MagicCircleActivator: Canvas が見つかりません。");
-            return;
-        }
-
-        if (uiInstance != null)
-            Destroy(uiInstance);
-
-        var prefab = Resources.Load<GameObject>(PrefabPath);
-        if (prefab == null)
-        {
-            Debug.LogWarning($"MagicCircleActivator: Prefab が見つかりません ({PrefabPath})");
-            return;
-        }
-
-        uiInstance = Instantiate(prefab, canvas.transform);
-        controller = uiInstance.GetComponent<MagicCircleSwipeController>();
+        controller = FindObjectOfType<MagicCircleSwipeController>(true);
 
         if (controller == null)
         {
@@ -72,8 +43,6 @@ public class MagicCircleActivator : MonoBehaviour
 
         controller.HealRequested -= OnHealRequested;
         controller.HealRequested += OnHealRequested;
-        controller.Hide();
-        uiInstance.SetActive(false);
         Debug.Log("MagicCircleActivator: MagicCircleSwipeUI を初期化しました。");
     }
 
@@ -89,13 +58,13 @@ public class MagicCircleActivator : MonoBehaviour
 
     void RequestMagicCircle(PurifyRequestType requestType)
     {
-        if (controller == null || uiInstance == null)
+        if (controller == null)
         {
             Debug.LogWarning("MagicCircleActivator: controller が未初期化なので再セットアップします。");
             SetupForScene();
         }
 
-        if (controller == null || uiInstance == null)
+        if (controller == null)
         {
             Debug.LogWarning("MagicCircleActivator: MagicCircleSwipeUI が見つからないため表示できません。");
             return;
@@ -103,11 +72,6 @@ public class MagicCircleActivator : MonoBehaviour
 
         pendingRequest = requestType;
         Debug.Log($"[MAGIC CIRCLE] Request received: type={requestType}");
-
-        if (!uiInstance.activeSelf)
-            uiInstance.SetActive(true);
-
-        controller.Show();
     }
 
     void OnHealRequested()
@@ -122,10 +86,6 @@ public class MagicCircleActivator : MonoBehaviour
             Debug.LogWarning("[MAGIC CIRCLE] Success route: request が未指定です。");
 
         pendingRequest = PurifyRequestType.None;
-
-        controller.Hide();
-        if (uiInstance != null)
-            uiInstance.SetActive(false);
     }
 
     void NotifySuccessHooks()

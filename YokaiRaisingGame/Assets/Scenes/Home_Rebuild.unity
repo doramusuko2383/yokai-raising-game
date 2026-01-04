@@ -881,6 +881,7 @@ GameObject:
   m_Component:
   - component: {fileID: 308681469}
   - component: {fileID: 308681470}
+  - component: {fileID: 308681471}
   m_Layer: 0
   m_Name: KegareManager
   m_TagString: Untagged
@@ -921,7 +922,6 @@ MonoBehaviour:
   worldConfig: {fileID: 0}
   energyManager: {fileID: 987239465}
   stateController: {fileID: 1388627842}
-  kegareSlider: {fileID: 2422507606306711152}
   warningIcon: {fileID: 2311641824882478505}
   dangerOverlay: {fileID: 1615978446}
   adWatchButton: {fileID: 1464837502}
@@ -930,6 +930,20 @@ MonoBehaviour:
   pulseSpeed: 2
   maxOverlayAlpha: 0.35
   emergencyPurifyValue: 30
+--- !u!114 &308681471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 308681468}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbf51fb3421f4de683e683348642758e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  kegareManager: {fileID: 308681470}
+  kegareSlider: {fileID: 2422507606306711152}
 --- !u!1 &387324152
 GameObject:
   m_ObjectHideFlags: 0
@@ -1616,6 +1630,7 @@ GameObject:
   m_Component:
   - component: {fileID: 987239466}
   - component: {fileID: 987239465}
+  - component: {fileID: 987239467}
   m_Layer: 0
   m_Name: EnergyManager
   m_TagString: Untagged
@@ -1640,13 +1655,25 @@ MonoBehaviour:
   worldConfig: {fileID: 0}
   kegareManager: {fileID: 308681470}
   stateController: {fileID: 1388627842}
-  energySlider: {fileID: 6761044948119671804}
   yokaiSprite: {fileID: 381708304978251678, guid: 5cfe4b2824147eb439fd1783aeedddcf, type: 3}
-  actionPanel: {fileID: 1762699791}
-  adWatchButton: {fileID: 0}
-  weakMessage: {fileID: 0}
   weakScale: 0.8
   weakAlpha: 0.4
+--- !u!114 &987239467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987239464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44e424736d7740128ddae2dce39c7051, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  energyManager: {fileID: 987239465}
+  energySlider: {fileID: 6761044948119671804}
+  adWatchButton: {fileID: 0}
+  weakMessage: {fileID: 0}
 --- !u!4 &987239466
 Transform:
   m_ObjectHideFlags: 0

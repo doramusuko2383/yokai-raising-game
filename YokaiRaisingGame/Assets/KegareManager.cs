@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using Yokai;
 
 public class KegareManager : MonoBehaviour
@@ -19,15 +18,13 @@ public class KegareManager : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
-    [Header("UI")]
-    public Slider kegareSlider;
-
     [Header("演出")]
     public float emergencyPurifyValue = 30f;
 
     bool isMononoke = false;
 
     public event System.Action EmergencyPurifyRequested;
+    public event System.Action<float, float> KegareChanged;
 
     void Awake()
     {
@@ -44,7 +41,7 @@ public class KegareManager : MonoBehaviour
 
     void Start()
     {
-        UpdateUI();
+        NotifyKegareChanged();
     }
 
     void Update()
@@ -66,7 +63,7 @@ public class KegareManager : MonoBehaviour
                 stateController.RefreshState();
         }
 
-        UpdateUI();
+        NotifyKegareChanged();
         if (stateController != null)
             stateController.RefreshState();
     }
@@ -101,7 +98,7 @@ public class KegareManager : MonoBehaviour
         if (kegare < maxKegare && isMononoke)
             isMononoke = false;
 
-        UpdateUI();
+        NotifyKegareChanged();
         if (stateController != null)
             stateController.RefreshState();
     }
@@ -144,12 +141,6 @@ public class KegareManager : MonoBehaviour
         return true;
     }
 
-    void UpdateUI()
-    {
-        if (kegareSlider != null)
-            kegareSlider.value = kegare / maxKegare;
-    }
-
     public void ExecuteEmergencyPurify()
     {
         kegare = Mathf.Clamp(emergencyPurifyValue, 0f, maxKegare);
@@ -157,9 +148,14 @@ public class KegareManager : MonoBehaviour
         if (kegare < maxKegare && isMononoke)
             isMononoke = false;
 
-        UpdateUI();
+        NotifyKegareChanged();
         if (stateController != null)
             stateController.RefreshState();
+    }
+
+    void NotifyKegareChanged()
+    {
+        KegareChanged?.Invoke(kegare, maxKegare);
     }
 
 }

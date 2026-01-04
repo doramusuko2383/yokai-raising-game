@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 207812243804403403}
   - component: {fileID: 7410728811607350943}
   - component: {fileID: 3893367593602657110}
+  - component: {fileID: 1402989221237489223}
   m_Layer: 5
   m_Name: YokaiChild
   m_TagString: Untagged
@@ -118,6 +119,22 @@ MonoBehaviour:
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
+--- !u!114 &1402989221237489223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4046605325193397392}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6572ce23ba064abab6e6a5752f9915cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dangerColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  blinkInterval: 0.4
+  targetSprite: {fileID: 0}
+  targetImage: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
