@@ -71,6 +71,13 @@ public class YokaiDangerEffect : MonoBehaviour
         }
     }
 
+    public void RefreshOriginalColor()
+    {
+        originalColor = GetCurrentColor();
+        if (!isBlinking)
+            ApplyColor(originalColor);
+    }
+
     Color GetCurrentColor()
     {
         if (targetSprite != null)

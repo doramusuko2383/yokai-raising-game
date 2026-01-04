@@ -44,12 +44,6 @@ public class KegareManager : MonoBehaviour
         NotifyKegareChanged();
     }
 
-    void Update()
-    {
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
-    }
-
     public void AddKegare(float amount)
     {
         if (isMononoke) return;
@@ -59,13 +53,9 @@ public class KegareManager : MonoBehaviour
         if (kegare >= maxKegare && !isMononoke)
         {
             isMononoke = true;
-            if (stateController != null)
-                stateController.RefreshState();
         }
 
         NotifyKegareChanged();
-        if (stateController != null)
-            stateController.RefreshState();
     }
 
     public void ApplyPurify(float purifyRatio = 0.7f)
@@ -99,12 +89,13 @@ public class KegareManager : MonoBehaviour
             isMononoke = false;
 
         NotifyKegareChanged();
-        if (stateController != null)
-            stateController.RefreshState();
     }
 
     public void OnClickAdWatch()
     {
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+
         if (stateController != null && stateController.currentState != YokaiState.KegareMax)
             return;
 
@@ -149,8 +140,6 @@ public class KegareManager : MonoBehaviour
             isMononoke = false;
 
         NotifyKegareChanged();
-        if (stateController != null)
-            stateController.RefreshState();
     }
 
     void NotifyKegareChanged()
