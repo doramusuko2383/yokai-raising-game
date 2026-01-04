@@ -359,21 +359,15 @@ public class YokaiStateController : MonoBehaviour
     {
         if (newState == YokaiState.KegareMax && previousState != YokaiState.KegareMax)
         {
-            TriggerSe("Danger_Start");
+            SEHub.Play(YokaiSE.Danger_Start);
             return;
         }
 
         if (previousState == YokaiState.KegareMax && newState != YokaiState.KegareMax)
         {
-            TriggerSe("Purify_Success");
-            TriggerSe("Danger_End");
+            SEHub.Play(YokaiSE.Purify_Success);
+            SEHub.Play(YokaiSE.Danger_End);
         }
-    }
-
-    void TriggerSe(string cue)
-    {
-        Debug.Log($"[SE] {cue}");
-        // TODO: Replace with AudioManager hook when available.
     }
 
     void RefreshDangerEffectOriginalColors()
