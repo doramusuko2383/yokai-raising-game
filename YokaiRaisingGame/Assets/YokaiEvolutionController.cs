@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using Yokai;
@@ -25,6 +26,8 @@ public class YokaiEvolutionController : MonoBehaviour
     [SerializeField]
     string yokaiAdultName = "YokaiAdult";
 
+    bool isEvolving;
+
     /// <summary>
     /// UI Button から呼ばれる進化トリガー
     /// </summary>
@@ -51,7 +54,19 @@ public class YokaiEvolutionController : MonoBehaviour
             return;
         }
 
-        Debug.Log("[EVOLUTION] Evolution triggered by tap");
+        if (isEvolving)
+        {
+            Debug.Log("[EVOLUTION] Tap ignored. Evolution already in progress.");
+            return;
+        }
+
+        Debug.Log("[EVOLUTION][Start] Evolution triggered by tap");
+        StartCoroutine(EvolutionSequence());
+    }
+
+    IEnumerator EvolutionSequence()
+    {
+        isEvolving = true;
 
         ResolveYokaiReferences();
         LogYokaiActiveState("[EVOLUTION][Before]");
@@ -60,6 +75,11 @@ public class YokaiEvolutionController : MonoBehaviour
             Debug.LogWarning("[EVOLUTION] Current yokai prefab is not assigned.");
         if (nextYokaiPrefab == null)
             Debug.LogWarning("[EVOLUTION] Next yokai prefab is not assigned.");
+
+        if (currentYokaiPrefab != null)
+            yield return PlayEvolutionStartEffect(currentYokaiPrefab.transform);
+        else if (characterRoot != null)
+            yield return PlayEvolutionStartEffect(characterRoot);
 
         // 見た目切り替え
         SwitchYokaiVisibility();
@@ -81,9 +101,10 @@ public class YokaiEvolutionController : MonoBehaviour
         }
 
         // 完了
-        Debug.Log("[EVOLUTION] Evolution completed. Switching to Normal state.");
+        Debug.Log("[EVOLUTION][Complete] Evolution completed. Switching to Normal state.");
         stateController.CompleteEvolution();
         LogYokaiActiveState("[EVOLUTION][After]");
+        isEvolving = false;
     }
 
     void ResolveYokaiReferences()
@@ -181,5 +202,74 @@ public class YokaiEvolutionController : MonoBehaviour
 
         if (activeCount != 1)
             Debug.LogWarning($"{prefix} Expected exactly one active yokai under CharacterRoot. ActiveCount={activeCount}");
+    }
+
+    IEnumerator PlayEvolutionStartEffect(Transform target)
+    {
+        if (target == null)
+            yield break;
+
+        SpriteRenderer[] sprites = target.GetComponentsInChildren<SpriteRenderer>(true);
+        Image[] images = target.GetComponentsInChildren<Image>(true);
+        Color[] spriteColors = new Color[sprites.Length];
+        Color[] imageColors = new Color[images.Length];
+
+        for (int i = 0; i < sprites.Length; i++)
+            spriteColors[i] = sprites[i] != null ? sprites[i].color : Color.white;
+
+        for (int i = 0; i < images.Length; i++)
+            imageColors[i] = images[i] != null ? images[i].color : Color.white;
+
+        Vector3 originalScale = target.localScale;
+        Vector3 peakScale = originalScale * 1.1f;
+        float upDuration = 0.08f;
+        float downDuration = 0.12f;
+        float timer = 0f;
+        Color flashColor = Color.white;
+        float flashIntensity = 0.8f;
+
+        ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, 0f);
+
+        while (timer < upDuration)
+        {
+            timer += Time.deltaTime;
+            float t = Mathf.Clamp01(timer / upDuration);
+            target.localScale = Vector3.Lerp(originalScale, peakScale, t);
+            yield return null;
+        }
+
+        timer = 0f;
+        while (timer < downDuration)
+        {
+            timer += Time.deltaTime;
+            float t = Mathf.Clamp01(timer / downDuration);
+            target.localScale = Vector3.Lerp(peakScale, originalScale, t);
+            ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, t);
+            yield return null;
+        }
+
+        target.localScale = originalScale;
+        ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, 1f);
+    }
+
+    void ApplyFlashColors(SpriteRenderer[] sprites, Color[] spriteColors, Image[] images, Color[] imageColors, Color flashColor, float intensity, float returnT)
+    {
+        for (int i = 0; i < sprites.Length; i++)
+        {
+            if (sprites[i] == null)
+                continue;
+
+            Color flash = Color.Lerp(spriteColors[i], flashColor, intensity);
+            sprites[i].color = Color.Lerp(flash, spriteColors[i], returnT);
+        }
+
+        for (int i = 0; i < images.Length; i++)
+        {
+            if (images[i] == null)
+                continue;
+
+            Color flash = Color.Lerp(imageColors[i], flashColor, intensity);
+            images[i].color = Color.Lerp(flash, imageColors[i], returnT);
+        }
     }
 }
