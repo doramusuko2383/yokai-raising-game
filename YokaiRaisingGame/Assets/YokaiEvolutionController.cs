@@ -35,6 +35,11 @@ public class YokaiEvolutionController : MonoBehaviour
     const float SettleDuration = 0.32f;
     const float ChargeWobbleAmplitude = 0.015f;
     const float ChargeWobbleFrequency = 5.5f;
+    const float BurstRecoilTimeScale = 0.85f;
+    const float BurstRecoilDuration = 0.12f;
+
+    bool isRecoilActive;
+    float recoilOriginalTimeScale;
 
     struct DangerEffectState
     {
@@ -119,6 +124,7 @@ public class YokaiEvolutionController : MonoBehaviour
         }
 
         // 完了
+        TriggerSe("Evolution_Complete");
         Debug.Log($"{FormatEvolutionLog("Complete")} Evolution completed. Switching to Normal state.");
         stateController.CompleteEvolution();
         LogYokaiActiveState("[EVOLUTION][After]");
@@ -303,6 +309,8 @@ public class YokaiEvolutionController : MonoBehaviour
         float flashIntensity = 0.92f;
         float chargeFlashIntensity = 0.18f;
 
+        Debug.Log("[EVOLUTION] Charge start");
+        TriggerSe("Evolution_Charge");
         Debug.Log($"{FormatEvolutionLog("Phase:Charge")} Charging evolution energy.");
         while (timer < ChargeDuration)
         {
@@ -318,6 +326,9 @@ public class YokaiEvolutionController : MonoBehaviour
         }
         Debug.Log($"{FormatEvolutionLog("Phase:Charge")} Charge phase complete.");
 
+        Debug.Log("[EVOLUTION] Burst");
+        TriggerSe("Evolution_Burst");
+        TriggerBurstRecoil();
         Debug.Log($"{FormatEvolutionLog("Phase:Burst")} Burst flash triggered.");
         timer = 0f;
         while (timer < BurstDuration)
@@ -332,6 +343,7 @@ public class YokaiEvolutionController : MonoBehaviour
         }
         Debug.Log($"{FormatEvolutionLog("Phase:Burst")} Burst flash complete.");
 
+        Debug.Log("[EVOLUTION] Settle");
         Debug.Log($"{FormatEvolutionLog("Phase:Settle")} Settling back to normal.");
         timer = 0f;
         while (timer < SettleDuration)
@@ -375,5 +387,34 @@ public class YokaiEvolutionController : MonoBehaviour
     string FormatEvolutionLog(string phase)
     {
         return $"[EVOLUTION][{Time.time:0.00}s][{phase}]";
+    }
+
+    void TriggerSe(string cue)
+    {
+        Debug.Log($"[SE] {cue}");
+        // TODO: Replace with AudioManager hook when available.
+    }
+
+    void TriggerBurstRecoil()
+    {
+        if (isRecoilActive)
+            return;
+
+        if (!isEvolving && (stateController == null || stateController.currentState != YokaiState.Purifying))
+            return;
+
+        StartCoroutine(BurstRecoilRoutine());
+    }
+
+    IEnumerator BurstRecoilRoutine()
+    {
+        isRecoilActive = true;
+        recoilOriginalTimeScale = Time.timeScale;
+        Time.timeScale = BurstRecoilTimeScale;
+
+        yield return new WaitForSecondsRealtime(BurstRecoilDuration);
+
+        Time.timeScale = recoilOriginalTimeScale;
+        isRecoilActive = false;
     }
 }
