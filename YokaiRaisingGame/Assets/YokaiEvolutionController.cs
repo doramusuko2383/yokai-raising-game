@@ -15,6 +15,12 @@ public class YokaiEvolutionController : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
+    [SerializeField]
+    string yokaiChildName = "YokaiChild";
+
+    [SerializeField]
+    string yokaiAdultName = "YokaiAdult";
+
     /// <summary>
     /// UI Button から呼ばれる進化トリガー
     /// </summary>
@@ -43,12 +49,7 @@ public class YokaiEvolutionController : MonoBehaviour
 
         Debug.Log("[EVOLUTION] Evolution triggered by tap");
 
-        if (nextYokaiPrefab == null)
-        {
-            Debug.LogWarning("[EVOLUTION] Next yokai prefab is not assigned.");
-            stateController.CompleteEvolution();
-            return;
-        }
+        ResolveYokaiReferences();
 
         if (currentYokaiPrefab == null)
             Debug.LogWarning("[EVOLUTION] Current yokai prefab is not assigned.");
@@ -58,6 +59,8 @@ public class YokaiEvolutionController : MonoBehaviour
 
         if (nextYokaiPrefab != null)
             nextYokaiPrefab.SetActive(true);
+        else
+            Debug.LogWarning("[EVOLUTION] Next yokai prefab is not assigned.");
 
         // 成長リセット
         if (nextYokaiPrefab != null)
@@ -70,6 +73,24 @@ public class YokaiEvolutionController : MonoBehaviour
         }
 
         // 完了
+        Debug.Log("[EVOLUTION] Evolution completed. Switching to Normal state.");
         stateController.CompleteEvolution();
+    }
+
+    void ResolveYokaiReferences()
+    {
+        if (currentYokaiPrefab == null)
+        {
+            var childTransform = transform.Find(yokaiChildName);
+            if (childTransform != null)
+                currentYokaiPrefab = childTransform.gameObject;
+        }
+
+        if (nextYokaiPrefab == null)
+        {
+            var adultTransform = transform.Find(yokaiAdultName);
+            if (adultTransform != null)
+                nextYokaiPrefab = adultTransform.gameObject;
+        }
     }
 }
