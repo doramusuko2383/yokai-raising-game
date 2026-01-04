@@ -201,10 +201,12 @@ public class YokaiStateController : MonoBehaviour
         if (currentState == newState)
             return;
 
+        YokaiState previousState = currentState;
         currentState = newState;
         if (currentState == YokaiState.Purifying)
             purifyTimer = 0f;
 
+        HandleStateSeTransitions(previousState, currentState);
         ApplyStateUI();
     }
 
@@ -351,6 +353,27 @@ public class YokaiStateController : MonoBehaviour
             bool shouldBlink = enableBlink && effect.gameObject.activeInHierarchy;
             effect.SetBlinking(shouldBlink);
         }
+    }
+
+    void HandleStateSeTransitions(YokaiState previousState, YokaiState newState)
+    {
+        if (newState == YokaiState.KegareMax && previousState != YokaiState.KegareMax)
+        {
+            TriggerSe("Danger_Start");
+            return;
+        }
+
+        if (previousState == YokaiState.KegareMax && newState != YokaiState.KegareMax)
+        {
+            TriggerSe("Purify_Success");
+            TriggerSe("Danger_End");
+        }
+    }
+
+    void TriggerSe(string cue)
+    {
+        Debug.Log($"[SE] {cue}");
+        // TODO: Replace with AudioManager hook when available.
     }
 
     void RefreshDangerEffectOriginalColors()
