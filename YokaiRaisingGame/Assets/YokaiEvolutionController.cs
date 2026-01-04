@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Yokai;
@@ -27,6 +28,13 @@ public class YokaiEvolutionController : MonoBehaviour
     string yokaiAdultName = "YokaiAdult";
 
     bool isEvolving;
+
+    struct DangerEffectState
+    {
+        public YokaiDangerEffect effect;
+        public bool wasBlinking;
+        public bool wasEnabled;
+    }
 
     /// <summary>
     /// UI Button から呼ばれる進化トリガー
@@ -76,6 +84,9 @@ public class YokaiEvolutionController : MonoBehaviour
         if (nextYokaiPrefab == null)
             Debug.LogWarning("[EVOLUTION] Next yokai prefab is not assigned.");
 
+        var dangerEffectStates = new List<DangerEffectState>();
+        PauseDangerEffects(dangerEffectStates);
+
         if (currentYokaiPrefab != null)
             yield return PlayEvolutionStartEffect(currentYokaiPrefab.transform);
         else if (characterRoot != null)
@@ -104,6 +115,7 @@ public class YokaiEvolutionController : MonoBehaviour
         Debug.Log("[EVOLUTION][Complete] Evolution completed. Switching to Normal state.");
         stateController.CompleteEvolution();
         LogYokaiActiveState("[EVOLUTION][After]");
+        ResumeDangerEffects(dangerEffectStates);
         isEvolving = false;
     }
 
@@ -204,6 +216,59 @@ public class YokaiEvolutionController : MonoBehaviour
             Debug.LogWarning($"{prefix} Expected exactly one active yokai under CharacterRoot. ActiveCount={activeCount}");
     }
 
+    void PauseDangerEffects(List<DangerEffectState> states)
+    {
+        if (states == null)
+            return;
+
+        if (characterRoot == null)
+        {
+            Debug.LogWarning("[EVOLUTION][DangerEffect] CharacterRoot is not assigned. Cannot pause danger effects.");
+            return;
+        }
+
+        var effects = characterRoot.GetComponentsInChildren<YokaiDangerEffect>(true);
+        Debug.Log($"[EVOLUTION][DangerEffect][Pause][Start] Found {effects.Length} effects to pause.");
+
+        foreach (var effect in effects)
+        {
+            if (effect == null)
+                continue;
+
+            states.Add(new DangerEffectState
+            {
+                effect = effect,
+                wasBlinking = effect.IsBlinking,
+                wasEnabled = effect.enabled
+            });
+
+            if (effect.enabled && effect.IsBlinking)
+                effect.SetBlinking(false);
+        }
+
+        Debug.Log("[EVOLUTION][DangerEffect][Pause][End] Danger effects paused.");
+    }
+
+    void ResumeDangerEffects(List<DangerEffectState> states)
+    {
+        if (states == null || states.Count == 0)
+            return;
+
+        Debug.Log($"[EVOLUTION][DangerEffect][Resume][Start] Restoring {states.Count} effects.");
+
+        foreach (var state in states)
+        {
+            if (state.effect == null)
+                continue;
+
+            state.effect.enabled = state.wasEnabled;
+            if (state.wasEnabled)
+                state.effect.SetBlinking(state.wasBlinking);
+        }
+
+        Debug.Log("[EVOLUTION][DangerEffect][Resume][End] Danger effects restored.");
+    }
+
     IEnumerator PlayEvolutionStartEffect(Transform target)
     {
         if (target == null)
@@ -221,32 +286,49 @@ public class YokaiEvolutionController : MonoBehaviour
             imageColors[i] = images[i] != null ? images[i].color : Color.white;
 
         Vector3 originalScale = target.localScale;
-        Vector3 peakScale = originalScale * 1.1f;
-        float upDuration = 0.08f;
-        float downDuration = 0.12f;
+        Vector3 chargeScale = originalScale * 1.06f;
+        Vector3 burstScale = originalScale * 1.18f;
+        float chargeDuration = 0.45f;
+        float burstDuration = 0.08f;
+        float settleDuration = 0.28f;
         float timer = 0f;
         Color flashColor = Color.white;
-        float flashIntensity = 0.8f;
+        float flashIntensity = 0.9f;
 
-        ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, 0f);
-
-        while (timer < upDuration)
+        Debug.Log("[EVOLUTION][Phase:Charge][Start] Charging evolution energy.");
+        while (timer < chargeDuration)
         {
             timer += Time.deltaTime;
-            float t = Mathf.Clamp01(timer / upDuration);
-            target.localScale = Vector3.Lerp(originalScale, peakScale, t);
+            float t = Mathf.Clamp01(timer / chargeDuration);
+            target.localScale = Vector3.Lerp(originalScale, chargeScale, t);
+            ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, 1f);
             yield return null;
         }
+        Debug.Log("[EVOLUTION][Phase:Charge][End] Charge phase complete.");
 
+        Debug.Log("[EVOLUTION][Phase:Burst][Start] Burst flash triggered.");
         timer = 0f;
-        while (timer < downDuration)
+        while (timer < burstDuration)
         {
             timer += Time.deltaTime;
-            float t = Mathf.Clamp01(timer / downDuration);
-            target.localScale = Vector3.Lerp(peakScale, originalScale, t);
+            float t = Mathf.Clamp01(timer / burstDuration);
+            target.localScale = Vector3.Lerp(chargeScale, burstScale, t);
+            ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, 0f);
+            yield return null;
+        }
+        Debug.Log("[EVOLUTION][Phase:Burst][End] Burst flash complete.");
+
+        Debug.Log("[EVOLUTION][Phase:Settle][Start] Settling back to normal.");
+        timer = 0f;
+        while (timer < settleDuration)
+        {
+            timer += Time.deltaTime;
+            float t = Mathf.Clamp01(timer / settleDuration);
+            target.localScale = Vector3.Lerp(burstScale, originalScale, t);
             ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, t);
             yield return null;
         }
+        Debug.Log("[EVOLUTION][Phase:Settle][End] Settle phase complete.");
 
         target.localScale = originalScale;
         ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, 1f);
