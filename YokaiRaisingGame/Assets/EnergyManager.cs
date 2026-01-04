@@ -107,7 +107,7 @@ public class EnergyManager : MonoBehaviour
     void EnterWeakState()
     {
         isWeak = true;
-        SetWeakState(true);
+        WeakStateChanged?.Invoke(true);
         if (worldConfig != null)
         {
             Debug.Log(worldConfig.weakMessage);
@@ -117,16 +117,11 @@ public class EnergyManager : MonoBehaviour
     void RecoverFromWeak()
     {
         isWeak = false;
-        SetWeakState(false);
+        WeakStateChanged?.Invoke(false);
         if (worldConfig != null)
         {
             Debug.Log(worldConfig.normalMessage);
         }
-    }
-
-    void SetWeakState(bool isWeakState)
-    {
-        WeakStateChanged?.Invoke(isWeakState);
     }
 
     // 📺 広告を見る（仮）
