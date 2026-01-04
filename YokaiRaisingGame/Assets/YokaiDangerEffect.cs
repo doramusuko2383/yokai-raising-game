@@ -93,6 +93,23 @@ public class YokaiDangerEffect : MonoBehaviour
 
     void Update()
     {
+        if (!EffectSettings.EnableEffects)
+        {
+            if (isBlinking || isReturning || currentShakeOffset != Vector3.zero || targetShakeOffset != Vector3.zero)
+            {
+                EffectSettings.LogEffectsOff("[DANGER] Effect update skipped.");
+                isBlinking = false;
+                isReturning = false;
+                shakeTimer = 0f;
+                returnTimer = 0f;
+                currentShakeOffset = Vector3.zero;
+                targetShakeOffset = Vector3.zero;
+                ApplyColor(originalColor);
+                ApplyLocalPosition(originalLocalPosition);
+            }
+            return;
+        }
+
         if (isBlinking)
         {
             IntensitySettings settings = GetIntensitySettings();
@@ -140,6 +157,24 @@ public class YokaiDangerEffect : MonoBehaviour
 
     public void SetBlinking(bool enable)
     {
+        if (!EffectSettings.EnableEffects)
+        {
+            if (isBlinking || isReturning)
+            {
+                isBlinking = false;
+                isReturning = false;
+                shakeTimer = 0f;
+                returnTimer = 0f;
+                currentShakeOffset = Vector3.zero;
+                targetShakeOffset = Vector3.zero;
+                ApplyColor(originalColor);
+                ApplyLocalPosition(originalLocalPosition);
+            }
+
+            EffectSettings.LogEffectsOff($"[DANGER] Blinking request ignored. Requested={enable}.");
+            return;
+        }
+
         if (isBlinking == enable)
             return;
 

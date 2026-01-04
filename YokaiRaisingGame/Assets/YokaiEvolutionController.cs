@@ -289,6 +289,12 @@ public class YokaiEvolutionController : MonoBehaviour
         if (target == null)
             yield break;
 
+        if (!EffectSettings.EnableEffects)
+        {
+            EffectSettings.LogEffectsOff("[EVOLUTION] Start effect skipped.");
+            yield break;
+        }
+
         SpriteRenderer[] sprites = target.GetComponentsInChildren<SpriteRenderer>(true);
         Image[] images = target.GetComponentsInChildren<Image>(true);
         Color[] spriteColors = new Color[sprites.Length];
@@ -397,11 +403,20 @@ public class YokaiEvolutionController : MonoBehaviour
         if (!isEvolving && (stateController == null || stateController.currentState != YokaiState.Purifying))
             return;
 
+        if (!EffectSettings.EnableEffects)
+        {
+            EffectSettings.LogEffectsOff("[EVOLUTION] Burst recoil timeScale skipped.");
+            return;
+        }
+
         StartCoroutine(BurstRecoilRoutine());
     }
 
     IEnumerator BurstRecoilRoutine()
     {
+        if (!EffectSettings.EnableEffects)
+            yield break;
+
         isRecoilActive = true;
         recoilOriginalTimeScale = Time.timeScale;
         Time.timeScale = BurstRecoilTimeScale;

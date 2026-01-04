@@ -26,6 +26,12 @@ public static class SEHub
     // - ミュート/親AudioGroup設定は AudioManager 側で一元管理
     public static void Play(YokaiSE se)
     {
+        if (!EffectSettings.EnableEffects)
+        {
+            EffectSettings.LogEffectsOff($"[SE] {se} skipped.");
+            return;
+        }
+
         int frame = Time.frameCount;
         if (frame != lastFrame)
         {
