@@ -7,7 +7,16 @@ public class YokaiDangerEffect : MonoBehaviour
     Color dangerColor = new Color(1f, 0.2f, 0.2f, 1f);
 
     [SerializeField]
-    float blinkInterval = 0.4f;
+    float pulseSpeed = 2.2f;
+
+    [SerializeField]
+    float shakeInterval = 0.1f;
+
+    [SerializeField]
+    float shakeAmplitude = 3f;
+
+    [SerializeField]
+    float shakeLerpSpeed = 12f;
 
     [SerializeField]
     SpriteRenderer targetSprite;
@@ -16,9 +25,11 @@ public class YokaiDangerEffect : MonoBehaviour
     Image targetImage;
 
     Color originalColor;
+    Vector3 originalLocalPosition;
+    Vector3 currentShakeOffset;
+    Vector3 targetShakeOffset;
     bool isBlinking;
-    float timer;
-    bool showDangerColor;
+    float shakeTimer;
 
     void Awake()
     {
@@ -29,12 +40,14 @@ public class YokaiDangerEffect : MonoBehaviour
             targetImage = GetComponentInChildren<Image>();
 
         originalColor = GetCurrentColor();
+        originalLocalPosition = GetCurrentLocalPosition();
     }
 
     void OnEnable()
     {
         originalColor = GetCurrentColor();
-        if (isBlinking)
+        originalLocalPosition = GetCurrentLocalPosition();
+        if (!isBlinking)
             ApplyColor(originalColor);
     }
 
@@ -43,13 +56,23 @@ public class YokaiDangerEffect : MonoBehaviour
         if (!isBlinking)
             return;
 
-        timer += Time.deltaTime;
-        if (timer < blinkInterval)
-            return;
+        float pulse = (Mathf.Sin(Time.time * pulseSpeed) + 1f) * 0.5f;
+        ApplyColor(Color.Lerp(originalColor, dangerColor, pulse));
 
-        timer = 0f;
-        showDangerColor = !showDangerColor;
-        ApplyColor(showDangerColor ? dangerColor : originalColor);
+        shakeTimer += Time.deltaTime;
+        if (shakeTimer >= shakeInterval)
+        {
+            shakeTimer = 0f;
+            Vector2 random = Random.insideUnitCircle * shakeAmplitude;
+            targetShakeOffset = new Vector3(random.x, random.y, 0f);
+        }
+
+        currentShakeOffset = Vector3.Lerp(
+            currentShakeOffset,
+            targetShakeOffset,
+            Time.deltaTime * shakeLerpSpeed);
+
+        ApplyLocalPosition(originalLocalPosition + currentShakeOffset);
     }
 
     public void SetBlinking(bool enable)
@@ -58,12 +81,14 @@ public class YokaiDangerEffect : MonoBehaviour
             return;
 
         isBlinking = enable;
-        timer = 0f;
-        showDangerColor = false;
+        shakeTimer = 0f;
+        currentShakeOffset = Vector3.zero;
+        targetShakeOffset = Vector3.zero;
 
         if (!isBlinking)
         {
             ApplyColor(originalColor);
+            ApplyLocalPosition(originalLocalPosition);
         }
         else
         {
@@ -74,8 +99,14 @@ public class YokaiDangerEffect : MonoBehaviour
     public void RefreshOriginalColor()
     {
         originalColor = GetCurrentColor();
+        originalLocalPosition = GetCurrentLocalPosition();
+        currentShakeOffset = Vector3.zero;
+        targetShakeOffset = Vector3.zero;
         if (!isBlinking)
+        {
             ApplyColor(originalColor);
+            ApplyLocalPosition(originalLocalPosition);
+        }
     }
 
     Color GetCurrentColor()
@@ -89,6 +120,17 @@ public class YokaiDangerEffect : MonoBehaviour
         return Color.white;
     }
 
+    Vector3 GetCurrentLocalPosition()
+    {
+        if (targetSprite != null)
+            return targetSprite.transform.localPosition;
+
+        if (targetImage != null)
+            return targetImage.rectTransform.localPosition;
+
+        return transform.localPosition;
+    }
+
     void ApplyColor(Color color)
     {
         if (targetSprite != null)
@@ -96,5 +138,22 @@ public class YokaiDangerEffect : MonoBehaviour
 
         if (targetImage != null)
             targetImage.color = color;
+    }
+
+    void ApplyLocalPosition(Vector3 position)
+    {
+        if (targetSprite != null)
+        {
+            targetSprite.transform.localPosition = position;
+            return;
+        }
+
+        if (targetImage != null)
+        {
+            targetImage.rectTransform.localPosition = position;
+            return;
+        }
+
+        transform.localPosition = position;
     }
 }

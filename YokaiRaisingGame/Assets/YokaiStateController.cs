@@ -301,7 +301,7 @@ public class YokaiStateController : MonoBehaviour
         bool showEmergency = currentState == YokaiState.KegareMax;
         bool showMagicCircle = currentState == YokaiState.Purifying;
         bool showStopPurify = currentState == YokaiState.Purifying;
-        bool showDangerOverlay = currentState == YokaiState.KegareMax;
+        bool showDangerOverlay = false;
 
         if (actionPanel != null)
             actionPanel.SetActive(showActionPanel);
