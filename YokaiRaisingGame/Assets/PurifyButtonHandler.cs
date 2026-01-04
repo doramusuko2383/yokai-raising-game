@@ -6,26 +6,18 @@ public class PurifyButtonHandler : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
-    [SerializeField]
-    KegareManager kegareManager;
-
-    [SerializeField]
-    MagicCircleActivator magicCircleActivator;
-
     public void OnClickPurify()
     {
         if (!IsState(YokaiState.Normal, "おきよめ"))
             return;
 
-        StartPurifyEffect();
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
 
-        if (kegareManager == null)
-            kegareManager = FindObjectOfType<KegareManager>();
-
-        if (kegareManager != null)
-            kegareManager.Purify();
+        if (stateController != null)
+            stateController.BeginPurifying();
         else
-            Debug.LogWarning("[PURIFY] KegareManager が見つからないためおきよめできません。");
+            Debug.LogWarning("[PURIFY] StateController が見つからないためおきよめできません。");
     }
 
     public void OnClickEmergencyPurify()
@@ -35,16 +27,26 @@ public class PurifyButtonHandler : MonoBehaviour
 
         ShowAd(() =>
         {
-            StartPurifyEffect(isEmergency: true);
+            if (stateController == null)
+                stateController = FindObjectOfType<YokaiStateController>();
 
-            if (kegareManager == null)
-                kegareManager = FindObjectOfType<KegareManager>();
-
-            if (kegareManager != null)
-                kegareManager.ExecuteEmergencyPurify();
+            if (stateController != null)
+                stateController.ExecuteEmergencyPurify();
             else
-                Debug.LogWarning("[PURIFY] KegareManager が見つからないため緊急お祓いできません。");
+                Debug.LogWarning("[PURIFY] StateController が見つからないため緊急お祓いできません。");
         });
+    }
+
+    public void OnClickStopPurify()
+    {
+        if (!IsState(YokaiState.Purifying, "おきよめ停止"))
+            return;
+
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+
+        if (stateController != null)
+            stateController.StopPurifying();
     }
 
     bool IsState(YokaiState state, string actionLabel)
@@ -58,27 +60,6 @@ public class PurifyButtonHandler : MonoBehaviour
         // DEBUG: 状態不一致で処理が止まった理由を明示する
         Debug.Log($"[ACTION BLOCK] {actionLabel} blocked. state={stateController.currentState}");
         return false;
-    }
-
-    void StartPurifyEffect()
-    {
-        if (magicCircleActivator != null)
-            magicCircleActivator.RequestNormalPurify();
-    }
-
-    void StartPurifyEffect(bool isEmergency)
-    {
-        if (magicCircleActivator == null)
-            return;
-
-        if (isEmergency)
-        {
-            magicCircleActivator.RequestEmergencyPurify();
-        }
-        else
-        {
-            magicCircleActivator.RequestNormalPurify();
-        }
     }
 
     void ShowAd(System.Action onCompleted)

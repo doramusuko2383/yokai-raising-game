@@ -7,7 +7,6 @@ public class KegareManager : MonoBehaviour
     [Header("数値")]
     public float kegare = 0f;
     public float maxKegare = 100f;
-    public float warningThreshold = 70f;
 
     [Header("World")]
     [SerializeField]
@@ -22,26 +21,13 @@ public class KegareManager : MonoBehaviour
 
     [Header("UI")]
     public Slider kegareSlider;
-    public GameObject warningIcon;
-    public CanvasGroup dangerOverlay;
-
-    [Header("広告UI")]
-    public GameObject adWatchButton;   // 📺広告ボタン
-    public GameObject actionPanel;     // 通常操作UI
-
-    [Header("対象")]
-    public SpriteRenderer yokaiSprite;
 
     [Header("演出")]
-    public float pulseSpeed = 2f;
-    public float maxOverlayAlpha = 0.35f;
     public float emergencyPurifyValue = 30f;
 
-    bool isDanger = false;
     bool isMononoke = false;
-    bool wasWarning = false;
 
-    Color originalColor;
+    public event System.Action EmergencyPurifyRequested;
 
     void Awake()
     {
@@ -58,9 +44,6 @@ public class KegareManager : MonoBehaviour
 
     void Start()
     {
-        if (yokaiSprite != null)
-            originalColor = yokaiSprite.color;
-
         UpdateUI();
     }
 
@@ -68,17 +51,6 @@ public class KegareManager : MonoBehaviour
     {
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
-
-        // 危険演出（警告〜モノノケ）
-        if (isDanger && dangerOverlay != null)
-        {
-            dangerOverlay.alpha =
-                0.15f + Mathf.Sin(Time.time * pulseSpeed) * maxOverlayAlpha;
-        }
-        else if (dangerOverlay != null)
-        {
-            dangerOverlay.alpha = 0f;
-        }
     }
 
     public void AddKegare(float amount)
@@ -87,15 +59,16 @@ public class KegareManager : MonoBehaviour
 
         kegare = Mathf.Clamp(kegare + amount, 0, maxKegare);
 
-        if (kegare >= maxKegare)
+        if (kegare >= maxKegare && !isMononoke)
         {
-            EnterMononoke();
-
+            isMononoke = true;
             if (stateController != null)
                 stateController.RefreshState();
         }
 
         UpdateUI();
+        if (stateController != null)
+            stateController.RefreshState();
     }
 
     public void ApplyPurify(float purifyRatio = 0.7f)
@@ -126,29 +99,11 @@ public class KegareManager : MonoBehaviour
         kegare = Mathf.Clamp(kegare - purifyAmount, 0f, maxKegare);
 
         if (kegare < maxKegare && isMononoke)
-        {
-            RecoverFromMononoke();
-        }
+            isMononoke = false;
 
         UpdateUI();
-    }
-
-    void EnterMononoke()
-    {
-        isMononoke = true;
-        isDanger = true;
-
-        if (yokaiSprite != null)
-            yokaiSprite.color = Color.red;
-
-        if (actionPanel != null)
-            actionPanel.SetActive(false);
-
-        if (adWatchButton != null)
-            adWatchButton.SetActive(true);
-
-        if (worldConfig != null)
-            Debug.Log(worldConfig.mononokeMessage);
+        if (stateController != null)
+            stateController.RefreshState();
     }
 
     public void OnClickAdWatch()
@@ -161,8 +116,7 @@ public class KegareManager : MonoBehaviour
             Debug.Log(worldConfig.recoveredMessage);
         }
 
-        if (stateController != null)
-            stateController.ExecuteEmergencyPurify();
+        EmergencyPurifyRequested?.Invoke();
     }
 
     bool TryGetRecoveryBlockReason(out string reason)
@@ -190,38 +144,10 @@ public class KegareManager : MonoBehaviour
         return true;
     }
 
-    void RecoverFromMononoke()
-    {
-        isMononoke = false;
-        isDanger = false;
-
-        if (yokaiSprite != null)
-            yokaiSprite.color = originalColor;
-
-        if (actionPanel != null)
-            actionPanel.SetActive(true);
-
-        if (adWatchButton != null)
-            adWatchButton.SetActive(false);
-    }
-
     void UpdateUI()
     {
         if (kegareSlider != null)
             kegareSlider.value = kegare / maxKegare;
-
-        bool warningNow = kegare >= warningThreshold && !isMononoke;
-
-        if (warningIcon != null)
-            warningIcon.SetActive(warningNow);
-
-        if (worldConfig != null && warningNow && !wasWarning)
-        {
-            Debug.Log(worldConfig.dangerMessage);
-        }
-
-        wasWarning = warningNow;
-        isDanger = warningNow || isMononoke;
     }
 
     public void ExecuteEmergencyPurify()
@@ -229,11 +155,11 @@ public class KegareManager : MonoBehaviour
         kegare = Mathf.Clamp(emergencyPurifyValue, 0f, maxKegare);
 
         if (kegare < maxKegare && isMononoke)
-        {
-            RecoverFromMononoke();
-        }
+            isMononoke = false;
 
         UpdateUI();
+        if (stateController != null)
+            stateController.RefreshState();
     }
 
 }

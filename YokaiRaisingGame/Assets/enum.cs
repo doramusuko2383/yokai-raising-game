@@ -1,7 +1,8 @@
 public enum YokaiState
 {
     Normal,
-    EvolutionReady,
+    Purifying,
     KegareMax,
+    EvolutionReady,
     Evolving
 }
