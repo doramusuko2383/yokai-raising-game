@@ -42,6 +42,8 @@ public class YokaiDangerEffect : MonoBehaviour
     const float NoiseSpeed = 1.6f;
     const float PulseExponent = 1.35f;
 
+    public bool IsBlinking => isBlinking;
+
     void Awake()
     {
         if (targetSprite == null)
