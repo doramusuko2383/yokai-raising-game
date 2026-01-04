@@ -26,7 +26,6 @@ public class EnergyManager : MonoBehaviour
     public SpriteRenderer yokaiSprite;
 
     [Header("操作UI")]
-    public GameObject actionPanel;     // 浄化・だんごパネル
     public GameObject adWatchButton;   // 📺 広告を見る
     public GameObject weakMessage;     // 弱り文言（任意）
 
@@ -161,9 +160,6 @@ public class EnergyManager : MonoBehaviour
 
     void SetWeakUI(bool isWeak)
     {
-        if (actionPanel != null)
-            actionPanel.SetActive(!isWeak);
-
         if (adWatchButton != null)
             adWatchButton.SetActive(isWeak);
 

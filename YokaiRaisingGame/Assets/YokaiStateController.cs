@@ -18,8 +18,31 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     EnergyManager energyManager;
 
+    [Header("UI")]
     [SerializeField]
-    PurifyButtonHandler purifyButtonHandler;
+    GameObject actionPanel;
+
+    [SerializeField]
+    GameObject emergencyPurifyButton;
+
+    [SerializeField]
+    GameObject purifyStopButton;
+
+    [SerializeField]
+    GameObject magicCircleOverlay;
+
+    [SerializeField]
+    CanvasGroup dangerOverlay;
+
+    [Header("Purify")]
+    [SerializeField]
+    float purifyTickInterval = 1f;
+
+    [SerializeField]
+    float purifyTickAmount = 2f;
+
+    float purifyTimer;
+    KegareManager registeredKegareManager;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Initialize()
@@ -45,11 +68,13 @@ public class YokaiStateController : MonoBehaviour
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         ResolveDependencies();
+        currentState = YokaiState.Normal;
         RefreshState();
     }
 
     void Update()
     {
+        HandlePurifyTick();
         RefreshState();
 #if UNITY_EDITOR
         HandleEditorDebugInput();
@@ -66,12 +91,51 @@ public class YokaiStateController : MonoBehaviour
 
         if (energyManager == null)
             energyManager = FindObjectOfType<EnergyManager>();
+
+        RegisterKegareEvents();
+
+        if (actionPanel == null)
+            actionPanel = GameObject.Find("UI_Action");
+
+        if (emergencyPurifyButton == null)
+            emergencyPurifyButton = GameObject.Find("Button_MononokeHeal")
+                ?? GameObject.Find("Btn_AdWatch");
+
+        if (purifyStopButton == null)
+            purifyStopButton = GameObject.Find("Btn_StopPurify");
+
+        if (magicCircleOverlay == null)
+            magicCircleOverlay = GameObject.Find("MagicCircleImage");
+
+        if (dangerOverlay == null)
+        {
+            var dangerObject = GameObject.Find("Overlay_Danger");
+            if (dangerObject != null)
+                dangerOverlay = dangerObject.GetComponent<CanvasGroup>();
+        }
+    }
+
+    void RegisterKegareEvents()
+    {
+        if (registeredKegareManager == kegareManager)
+            return;
+
+        if (registeredKegareManager != null)
+            registeredKegareManager.EmergencyPurifyRequested -= ExecuteEmergencyPurify;
+
+        registeredKegareManager = kegareManager;
+
+        if (registeredKegareManager != null)
+            registeredKegareManager.EmergencyPurifyRequested += ExecuteEmergencyPurify;
     }
 
     public void RefreshState()
     {
         if (currentState == YokaiState.Evolving)
+        {
+            ApplyStateUI();
             return;
+        }
 
         if (IsKegareMax())
         {
@@ -79,8 +143,17 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
-        if (currentState == YokaiState.EvolutionReady)
+        if (currentState == YokaiState.Purifying)
+        {
+            ApplyStateUI();
             return;
+        }
+
+        if (currentState == YokaiState.EvolutionReady)
+        {
+            ApplyStateUI();
+            return;
+        }
 
         SetState(YokaiState.Normal);
     }
@@ -91,6 +164,26 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         currentState = newState;
+        if (currentState == YokaiState.Purifying)
+            purifyTimer = 0f;
+
+        ApplyStateUI();
+    }
+
+    public void BeginPurifying()
+    {
+        if (currentState != YokaiState.Normal)
+            return;
+
+        SetState(YokaiState.Purifying);
+    }
+
+    public void StopPurifying()
+    {
+        if (currentState != YokaiState.Purifying)
+            return;
+
+        SetState(YokaiState.Normal);
     }
 
     public void BeginEvolution()
@@ -115,7 +208,7 @@ public class YokaiStateController : MonoBehaviour
         currentState = YokaiState.EvolutionReady;
         // DEBUG: EvolutionReady になったことを明示してタップ可能を知らせる
         Debug.Log("[EVOLUTION] Ready. Tap the yokai to evolve.");
-        RefreshState();
+        ApplyStateUI();
     }
 
     public void ExecuteEmergencyPurify()
@@ -123,8 +216,11 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.KegareMax)
             return;
 
-        if (purifyButtonHandler != null)
-            purifyButtonHandler.OnClickEmergencyPurify();
+        if (kegareManager == null)
+            kegareManager = FindObjectOfType<KegareManager>();
+
+        if (kegareManager != null)
+            kegareManager.ExecuteEmergencyPurify();
 
         SetState(YokaiState.Normal);
         RefreshState();
@@ -136,6 +232,54 @@ public class YokaiStateController : MonoBehaviour
             kegareManager = FindObjectOfType<KegareManager>();
 
         return kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
+    }
+
+    void HandlePurifyTick()
+    {
+        if (currentState != YokaiState.Purifying)
+            return;
+
+        if (kegareManager == null)
+            kegareManager = FindObjectOfType<KegareManager>();
+
+        if (kegareManager == null)
+            return;
+
+        purifyTimer += Time.deltaTime;
+        if (purifyTimer < purifyTickInterval)
+            return;
+
+        purifyTimer = 0f;
+        kegareManager.AddKegare(-purifyTickAmount);
+        RefreshState();
+    }
+
+    void ApplyStateUI()
+    {
+        bool showActionPanel = currentState == YokaiState.Normal || currentState == YokaiState.EvolutionReady;
+        bool showEmergency = currentState == YokaiState.KegareMax;
+        bool showMagicCircle = currentState == YokaiState.Purifying;
+        bool showStopPurify = currentState == YokaiState.Purifying;
+        bool showDangerOverlay = currentState == YokaiState.KegareMax;
+
+        if (actionPanel != null)
+            actionPanel.SetActive(showActionPanel);
+
+        if (emergencyPurifyButton != null)
+            emergencyPurifyButton.SetActive(showEmergency);
+
+        if (purifyStopButton != null)
+            purifyStopButton.SetActive(showStopPurify);
+
+        if (magicCircleOverlay != null)
+            magicCircleOverlay.SetActive(showMagicCircle);
+
+        if (dangerOverlay != null)
+        {
+            dangerOverlay.alpha = showDangerOverlay ? 1f : 0f;
+            dangerOverlay.blocksRaycasts = showDangerOverlay;
+            dangerOverlay.interactable = showDangerOverlay;
+        }
     }
 
 #if UNITY_EDITOR
