@@ -16,6 +16,9 @@ public class YokaiEvolutionController : MonoBehaviour
     YokaiStateController stateController;
 
     [SerializeField]
+    Transform characterRoot;
+
+    [SerializeField]
     string yokaiChildName = "YokaiChild";
 
     [SerializeField]
@@ -79,18 +82,28 @@ public class YokaiEvolutionController : MonoBehaviour
 
     void ResolveYokaiReferences()
     {
+        if (characterRoot == null)
+        {
+            Debug.LogWarning("[EVOLUTION] CharacterRoot is not assigned.");
+            return;
+        }
+
         if (currentYokaiPrefab == null)
         {
-            var childTransform = transform.Find(yokaiChildName);
+            var childTransform = characterRoot.Find(yokaiChildName);
             if (childTransform != null)
                 currentYokaiPrefab = childTransform.gameObject;
+            else
+                Debug.LogWarning($"[EVOLUTION] Child yokai not found under CharacterRoot: {yokaiChildName}");
         }
 
         if (nextYokaiPrefab == null)
         {
-            var adultTransform = transform.Find(yokaiAdultName);
+            var adultTransform = characterRoot.Find(yokaiAdultName);
             if (adultTransform != null)
                 nextYokaiPrefab = adultTransform.gameObject;
+            else
+                Debug.LogWarning($"[EVOLUTION] Adult yokai not found under CharacterRoot: {yokaiAdultName}");
         }
     }
 }

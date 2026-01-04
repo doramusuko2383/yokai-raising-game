@@ -2288,6 +2288,7 @@ MonoBehaviour:
   currentYokaiPrefab: {fileID: 6983624608841432944, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
   nextYokaiPrefab: {fileID: 135038339}
   stateController: {fileID: 1388627842}
+  characterRoot: {fileID: 1769568079}
 --- !u!4 &1251997608
 Transform:
   m_ObjectHideFlags: 0
