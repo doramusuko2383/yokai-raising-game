@@ -52,8 +52,6 @@ public class YokaiEvolutionController : MonoBehaviour
 
         if (currentYokaiPrefab == null)
             Debug.LogWarning("[EVOLUTION] Current yokai prefab is not assigned.");
-        else
-        nextYokaiPrefab.SetActive(true);
         // 見た目切り替え
         if (currentYokaiPrefab != null)
             currentYokaiPrefab.SetActive(false);
@@ -62,7 +60,14 @@ public class YokaiEvolutionController : MonoBehaviour
             nextYokaiPrefab.SetActive(true);
 
         // 成長リセット
-        growthController.ResetGrowthState();
+        if (nextYokaiPrefab != null)
+        {
+            var nextGrowthController = nextYokaiPrefab.GetComponent<YokaiGrowthController>();
+            if (nextGrowthController != null)
+                nextGrowthController.ResetGrowthState();
+            else if (growthController != null)
+                growthController.ResetGrowthState();
+        }
 
         // 完了
         stateController.CompleteEvolution();
