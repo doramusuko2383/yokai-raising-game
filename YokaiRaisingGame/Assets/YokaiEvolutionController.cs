@@ -35,13 +35,14 @@ public class YokaiEvolutionController : MonoBehaviour
     string yokaiAdultName = "YokaiAdult";
 
     bool isEvolving;
-    const float ChargeScaleMultiplier = 1.06f;
-    const float BurstScaleMultiplier = 1.18f;
-    const float ChargeDuration = 0.55f;
-    const float BurstDuration = 0.09f;
-    const float SettleDuration = 0.32f;
-    const float ChargeWobbleAmplitude = 0.015f;
-    const float ChargeWobbleFrequency = 5.5f;
+    const float ChargeScaleMultiplier = 0.95f;
+    const float FlashScaleMultiplier = 1.12f;
+    const float ChargeDurationMin = 0.5f;
+    const float ChargeDurationMax = 1.0f;
+    const float FlashDurationMin = 0.2f;
+    const float FlashDurationMax = 0.3f;
+    const float ChargeWobbleAmplitude = 0.02f;
+    const float ChargeWobbleFrequency = 7.5f;
     const float BurstRecoilTimeScale = 0.85f;
     const float BurstRecoilDuration = 0.12f;
 
@@ -53,6 +54,12 @@ public class YokaiEvolutionController : MonoBehaviour
         public YokaiDangerEffect effect;
         public bool wasBlinking;
         public bool wasEnabled;
+    }
+
+    struct UIElementState
+    {
+        public GameObject target;
+        public bool wasActive;
     }
 
     /// <summary>
@@ -114,12 +121,17 @@ public class YokaiEvolutionController : MonoBehaviour
             Debug.LogWarning("[EVOLUTION] Next yokai prefab is not assigned.");
 
         var dangerEffectStates = new List<DangerEffectState>();
+        var uiStates = new List<UIElementState>();
         PauseDangerEffects(dangerEffectStates);
+        PauseEvolutionUI(uiStates);
+
+        SEHub.Play(YokaiSE.Evolution_Charge);
+        Debug.Log($"{FormatEvolutionLog("Start")} Evolution start.");
 
         if (currentYokaiPrefab != null)
-            yield return PlayEvolutionStartEffect(currentYokaiPrefab.transform);
+            yield return PlayEvolutionCharge(currentYokaiPrefab.transform);
         else if (characterRoot != null)
-            yield return PlayEvolutionStartEffect(characterRoot);
+            yield return PlayEvolutionCharge(characterRoot);
 
         if (currentYokaiPrefab == null || nextYokaiPrefab == null)
         {
@@ -127,12 +139,22 @@ public class YokaiEvolutionController : MonoBehaviour
             isEvolving = false;
             stateController.CompleteEvolution();
             ResumeDangerEffects(dangerEffectStates);
+            ResumeEvolutionUI(uiStates);
             SetEvolutionInputEnabled(true);
             yield break;
         }
 
+        if (currentYokaiPrefab != null)
+            yield return PlayEvolutionFlash(currentYokaiPrefab.transform);
+        else if (characterRoot != null)
+            yield return PlayEvolutionFlash(characterRoot);
+
+        SEHub.Play(YokaiSE.Evolution_Burst);
+        Debug.Log($"{FormatEvolutionLog("Swap")} Evolution swap.");
+
         // 見た目切り替え
         SwitchYokaiVisibility(currentYokaiPrefab, nextYokaiPrefab);
+        EnsureFireBallHidden(nextYokaiPrefab);
 
         // 成長リセット
         if (nextYokaiPrefab != null)
@@ -161,6 +183,7 @@ public class YokaiEvolutionController : MonoBehaviour
         stateController.CompleteEvolution();
         LogYokaiActiveState("[EVOLUTION][After]");
         ResumeDangerEffects(dangerEffectStates);
+        ResumeEvolutionUI(uiStates);
         SetEvolutionInputEnabled(true);
         isEvolving = false;
     }
@@ -475,14 +498,50 @@ public class YokaiEvolutionController : MonoBehaviour
         Debug.Log($"{FormatEvolutionLog("DangerEffect:Resume:End")} Danger effects restored.");
     }
 
-    IEnumerator PlayEvolutionStartEffect(Transform target)
+    IEnumerator PlayEvolutionCharge(Transform target)
     {
         if (target == null)
             yield break;
 
         if (!EffectSettings.EnableEffects)
         {
-            EffectSettings.LogEffectsOff("[EVOLUTION] Start effect skipped.");
+            EffectSettings.LogEffectsOff("[EVOLUTION] Charge effect skipped.");
+            yield break;
+        }
+
+        Vector3 originalScale = target.localScale;
+        Vector3 originalLocalPosition = target.localPosition;
+        Vector3 chargeScale = originalScale * ChargeScaleMultiplier;
+        float timer = 0f;
+        float duration = Random.Range(ChargeDurationMin, ChargeDurationMax);
+
+        Debug.Log("[EVOLUTION] Charge start");
+        Debug.Log($"{FormatEvolutionLog("Phase:Charge")} Charging evolution energy.");
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+            float t = Mathf.Clamp01(timer / duration);
+            float eased = Mathf.SmoothStep(0f, 1f, t);
+            target.localScale = Vector3.Lerp(originalScale, chargeScale, eased);
+            float wobble = Mathf.Sin(Time.time * ChargeWobbleFrequency) * ChargeWobbleAmplitude * (0.3f + 0.7f * eased);
+            float wobbleSecondary = Mathf.Cos(Time.time * (ChargeWobbleFrequency * 0.8f)) * ChargeWobbleAmplitude * 0.6f;
+            target.localPosition = originalLocalPosition + new Vector3(wobble, wobbleSecondary, 0f);
+            yield return null;
+        }
+        Debug.Log($"{FormatEvolutionLog("Phase:Charge")} Charge phase complete.");
+
+        target.localScale = originalScale;
+        target.localPosition = originalLocalPosition;
+    }
+
+    IEnumerator PlayEvolutionFlash(Transform target)
+    {
+        if (target == null)
+            yield break;
+
+        if (!EffectSettings.EnableEffects)
+        {
+            EffectSettings.LogEffectsOff("[EVOLUTION] Flash effect skipped.");
             yield break;
         }
 
@@ -499,61 +558,27 @@ public class YokaiEvolutionController : MonoBehaviour
 
         Vector3 originalScale = target.localScale;
         Vector3 originalLocalPosition = target.localPosition;
-        Vector3 chargeScale = originalScale * ChargeScaleMultiplier;
-        Vector3 burstScale = originalScale * BurstScaleMultiplier;
+        Vector3 flashScale = originalScale * FlashScaleMultiplier;
         float timer = 0f;
-        Color flashColor = new Color(1f, 0.95f, 0.8f, 1f);
-        float flashIntensity = 0.92f;
-        float chargeFlashIntensity = 0.18f;
+        float duration = Random.Range(FlashDurationMin, FlashDurationMax);
+        Color flashColor = new Color(1f, 1f, 1f, 1f);
+        float flashIntensity = 0.95f;
 
-        Debug.Log("[EVOLUTION] Charge start");
-        SEHub.Play(YokaiSE.Evolution_Charge);
-        Debug.Log($"{FormatEvolutionLog("Phase:Charge")} Charging evolution energy.");
-        while (timer < ChargeDuration)
-        {
-            timer += Time.deltaTime;
-            float t = Mathf.Clamp01(timer / ChargeDuration);
-            float eased = Mathf.SmoothStep(0f, 1f, t);
-            target.localScale = Vector3.Lerp(originalScale, chargeScale, eased);
-            float wobble = Mathf.Sin(Time.time * ChargeWobbleFrequency) * ChargeWobbleAmplitude * (0.3f + 0.7f * eased);
-            float wobbleSecondary = Mathf.Cos(Time.time * (ChargeWobbleFrequency * 0.8f)) * ChargeWobbleAmplitude * 0.6f;
-            target.localPosition = originalLocalPosition + new Vector3(wobble, wobbleSecondary, 0f);
-            ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, chargeFlashIntensity, 1f);
-            yield return null;
-        }
-        Debug.Log($"{FormatEvolutionLog("Phase:Charge")} Charge phase complete.");
-
-        Debug.Log("[EVOLUTION] Burst");
+        Debug.Log("[EVOLUTION] Flash start");
         SEHub.Play(YokaiSE.Evolution_Burst);
         TriggerBurstRecoil();
-        Debug.Log($"{FormatEvolutionLog("Phase:Burst")} Burst flash triggered.");
-        timer = 0f;
-        while (timer < BurstDuration)
+        Debug.Log($"{FormatEvolutionLog("Phase:Flash")} Flash phase started.");
+        while (timer < duration)
         {
             timer += Time.deltaTime;
-            float t = Mathf.Clamp01(timer / BurstDuration);
+            float t = Mathf.Clamp01(timer / duration);
             float eased = Mathf.SmoothStep(0f, 1f, t);
-            target.localScale = Vector3.Lerp(chargeScale, burstScale, eased);
+            target.localScale = Vector3.Lerp(originalScale, flashScale, eased);
             target.localPosition = originalLocalPosition;
             ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, 0f);
             yield return null;
         }
-        Debug.Log($"{FormatEvolutionLog("Phase:Burst")} Burst flash complete.");
-
-        Debug.Log("[EVOLUTION] Settle");
-        Debug.Log($"{FormatEvolutionLog("Phase:Settle")} Settling back to normal.");
-        timer = 0f;
-        while (timer < SettleDuration)
-        {
-            timer += Time.deltaTime;
-            float t = Mathf.Clamp01(timer / SettleDuration);
-            float eased = Mathf.SmoothStep(0f, 1f, t);
-            target.localScale = Vector3.Lerp(burstScale, originalScale, eased);
-            target.localPosition = originalLocalPosition;
-            ApplyFlashColors(sprites, spriteColors, images, imageColors, flashColor, flashIntensity, t);
-            yield return null;
-        }
-        Debug.Log($"{FormatEvolutionLog("Phase:Settle")} Settle phase complete.");
+        Debug.Log($"{FormatEvolutionLog("Phase:Flash")} Flash phase complete.");
 
         target.localScale = originalScale;
         target.localPosition = originalLocalPosition;
@@ -579,6 +604,69 @@ public class YokaiEvolutionController : MonoBehaviour
             Color flash = Color.Lerp(imageColors[i], flashColor, intensity);
             images[i].color = Color.Lerp(flash, imageColors[i], returnT);
         }
+    }
+
+    void PauseEvolutionUI(List<UIElementState> states)
+    {
+        if (states == null)
+            return;
+
+        string[] targets =
+        {
+            "UI_Action",
+            "Button_MononokeHeal",
+            "Btn_StopPurify",
+            "MagicCircleImage",
+            "Overlay_Danger",
+            "Growth_Slider"
+        };
+
+        foreach (string targetName in targets)
+        {
+            if (string.IsNullOrEmpty(targetName))
+                continue;
+
+            GameObject target = GameObject.Find(targetName);
+            if (target == null)
+                continue;
+
+            states.Add(new UIElementState
+            {
+                target = target,
+                wasActive = target.activeSelf
+            });
+
+            target.SetActive(false);
+        }
+    }
+
+    void ResumeEvolutionUI(List<UIElementState> states)
+    {
+        if (states == null || states.Count == 0)
+            return;
+
+        foreach (var state in states)
+        {
+            if (state.target == null)
+                continue;
+
+            state.target.SetActive(state.wasActive);
+        }
+    }
+
+    void EnsureFireBallHidden(GameObject nextYokai)
+    {
+        if (string.IsNullOrEmpty(fireBallName))
+            return;
+
+        GameObject fireBall = FindYokaiByName(fireBallName);
+        if (fireBall == null)
+            return;
+
+        if (nextYokai != null && fireBall == nextYokai)
+            return;
+
+        fireBall.SetActive(false);
     }
 
     string FormatEvolutionLog(string phase)
