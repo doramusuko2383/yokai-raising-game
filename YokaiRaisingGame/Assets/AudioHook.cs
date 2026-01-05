@@ -18,6 +18,18 @@ using UnityEngine;
 // - 3D化が必要になった場合は位置引数を追加する
 public static class AudioHook
 {
-    // NOTE: ここに Play(YokaiSE se) を追加して SEHub から委譲する想定。
-    // 例: AudioManager.PlayOneShot(GetClip(se), GetVolume(se));
+    public static event System.Action<YokaiSE> PlayRequested;
+    public static System.Func<YokaiSE, AudioClip> ClipResolver;
+
+    public static void RequestPlay(YokaiSE se)
+    {
+        Debug.Log($"[SE][Hook] RequestPlay={se}");
+        PlayRequested?.Invoke(se);
+    }
+
+    public static bool TryResolveClip(YokaiSE se, out AudioClip clip)
+    {
+        clip = ClipResolver?.Invoke(se);
+        return clip != null;
+    }
 }

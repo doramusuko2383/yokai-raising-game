@@ -22,9 +22,20 @@ public class KegareManager : MonoBehaviour
     public float emergencyPurifyValue = 30f;
 
     bool isMononoke = false;
+    GameObject currentYokai;
 
     public event System.Action EmergencyPurifyRequested;
     public event System.Action<float, float> KegareChanged;
+
+    void OnEnable()
+    {
+        CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
+    }
+
+    void OnDisable()
+    {
+        CurrentYokaiContext.CurrentChanged -= BindCurrentYokai;
+    }
 
     void Awake()
     {
@@ -41,7 +52,14 @@ public class KegareManager : MonoBehaviour
 
     void Start()
     {
+        BindCurrentYokai(CurrentYokaiContext.Current);
         NotifyKegareChanged();
+    }
+
+    public void BindCurrentYokai(GameObject yokai)
+    {
+        currentYokai = yokai;
+        Debug.Log($"[KEGARE][Bind] currentYokai={(currentYokai != null ? currentYokai.name : "null")}");
     }
 
     public void AddKegare(float amount)
@@ -94,7 +112,7 @@ public class KegareManager : MonoBehaviour
     public void OnClickAdWatch()
     {
         if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
+            stateController = CurrentYokaiContext.ResolveStateController();
 
         if (stateController != null && stateController.currentState != YokaiState.KegareMax)
             return;
@@ -144,7 +162,15 @@ public class KegareManager : MonoBehaviour
 
     void NotifyKegareChanged()
     {
+        LogKegareStatus("Update");
         KegareChanged?.Invoke(kegare, maxKegare);
+    }
+
+    void LogKegareStatus(string label)
+    {
+        string yokaiName = currentYokai != null ? currentYokai.name : CurrentYokaiContext.CurrentName();
+        string stateName = stateController != null ? stateController.currentState.ToString() : "Unknown";
+        Debug.Log($"[KEGARE][{label}] yokai={yokaiName} state={stateName} value={kegare:0.##}/{maxKegare:0.##}");
     }
 
 }

@@ -5,6 +5,7 @@ public static class SEHub
 {
     static readonly HashSet<YokaiSE> PlayedThisFrame = new HashSet<YokaiSE>();
     static int lastFrame = -1;
+    static GameObject runtimeRoot;
 
     // SE設計メモ:
     // - 命名規則（将来の音ファイル名）: se_<category>_<action>.wav
@@ -43,6 +44,33 @@ public static class SEHub
             return;
 
         Debug.Log($"[SE] {se}");
-        // TODO: Replace with AudioManager hook when available.
+        AudioHook.RequestPlay(se);
+
+        if (AudioHook.TryResolveClip(se, out var clip))
+            PlayClip(se, clip);
+    }
+
+    static void PlayClip(YokaiSE se, AudioClip clip)
+    {
+        if (clip == null)
+            return;
+
+        EnsureRuntimeRoot();
+        var sourceObject = new GameObject($"SE_{se}");
+        sourceObject.transform.SetParent(runtimeRoot.transform, false);
+        var source = sourceObject.AddComponent<AudioSource>();
+        source.playOnAwake = false;
+        source.clip = clip;
+        source.Play();
+        Object.Destroy(sourceObject, clip.length + 0.1f);
+    }
+
+    static void EnsureRuntimeRoot()
+    {
+        if (runtimeRoot != null)
+            return;
+
+        runtimeRoot = new GameObject("SEHubRuntime");
+        Object.DontDestroyOnLoad(runtimeRoot);
     }
 }

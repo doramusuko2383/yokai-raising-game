@@ -6,13 +6,21 @@ public class PurifyButtonHandler : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
+    public void BindStateController(YokaiStateController controller)
+    {
+        if (controller == null)
+            return;
+
+        stateController = controller;
+    }
+
     public void OnClickPurify()
     {
         if (!IsState(YokaiState.Normal, "おきよめ"))
             return;
 
         if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
+            stateController = CurrentYokaiContext.ResolveStateController();
 
         if (stateController != null)
             stateController.BeginPurifying();
@@ -28,7 +36,7 @@ public class PurifyButtonHandler : MonoBehaviour
         ShowAd(() =>
         {
             if (stateController == null)
-                stateController = FindObjectOfType<YokaiStateController>();
+                stateController = CurrentYokaiContext.ResolveStateController();
 
             if (stateController != null)
                 stateController.ExecuteEmergencyPurify();
@@ -43,7 +51,7 @@ public class PurifyButtonHandler : MonoBehaviour
             return;
 
         if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
+            stateController = CurrentYokaiContext.ResolveStateController();
 
         if (stateController != null)
             stateController.StopPurifying();
@@ -52,7 +60,7 @@ public class PurifyButtonHandler : MonoBehaviour
     bool IsState(YokaiState state, string actionLabel)
     {
         if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
+            stateController = CurrentYokaiContext.ResolveStateController();
 
         if (stateController == null || stateController.currentState == state)
             return true;

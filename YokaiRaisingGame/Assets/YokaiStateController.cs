@@ -68,11 +68,13 @@ public class YokaiStateController : MonoBehaviour
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
     }
 
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        CurrentYokaiContext.CurrentChanged -= BindCurrentYokai;
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -228,6 +230,7 @@ public class YokaiStateController : MonoBehaviour
 
         HandleStateSeTransitions(previousState, currentState);
         ApplyStateUI();
+        LogStateContext("StateChange");
     }
 
     public void BeginPurifying()
@@ -265,6 +268,15 @@ public class YokaiStateController : MonoBehaviour
         RefreshState();
     }
 
+    public void BindCurrentYokai(GameObject activeYokai)
+    {
+        if (activeYokai == null)
+            return;
+
+        SetActiveYokai(activeYokai);
+        LogStateContext("Bind");
+    }
+
     public void SetActiveYokai(GameObject activeYokai)
     {
         if (activeYokai == null)
@@ -278,6 +290,7 @@ public class YokaiStateController : MonoBehaviour
         UpdateDangerEffects();
         if (currentState != YokaiState.Evolving)
             RefreshState();
+        LogStateContext("Active");
     }
 
     public void SetEvolutionReady()
@@ -300,7 +313,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         if (kegareManager == null)
-            kegareManager = FindObjectOfType<KegareManager>();
+            kegareManager = CurrentYokaiContext.ResolveKegareManager();
 
         if (kegareManager != null)
             kegareManager.ExecuteEmergencyPurify();
@@ -312,7 +325,7 @@ public class YokaiStateController : MonoBehaviour
     bool IsKegareMax()
     {
         if (kegareManager == null)
-            kegareManager = FindObjectOfType<KegareManager>();
+            kegareManager = CurrentYokaiContext.ResolveKegareManager();
 
         return kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
     }
@@ -326,7 +339,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         if (kegareManager == null)
-            kegareManager = FindObjectOfType<KegareManager>();
+            kegareManager = CurrentYokaiContext.ResolveKegareManager();
 
         if (kegareManager == null)
             return;
@@ -337,6 +350,7 @@ public class YokaiStateController : MonoBehaviour
 
         purifyTimer = 0f;
         kegareManager.AddKegare(-purifyTickAmount);
+        LogStateContext("PurifyTick");
     }
 
     void ApplyStateUI()
@@ -384,7 +398,7 @@ public class YokaiStateController : MonoBehaviour
 
             bool isEmergency = emergencyPurifyButton != null && button.gameObject == emergencyPurifyButton;
             bool shouldShow = !isKegareMax || isEmergency;
-            button.gameObject.SetActive(shouldShow || !isKegareMax);
+            button.gameObject.SetActive(shouldShow);
             button.interactable = shouldShow;
         }
     }
@@ -454,6 +468,14 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
+    void LogStateContext(string label)
+    {
+        string yokaiName = CurrentYokaiContext.CurrentName();
+        float currentKegare = kegareManager != null ? kegareManager.kegare : 0f;
+        float maxKegare = kegareManager != null ? kegareManager.maxKegare : 0f;
+        Debug.Log($"[STATE][{label}] yokai={yokaiName} state={currentState} kegare={currentKegare:0.##}/{maxKegare:0.##}");
+    }
+
 #if UNITY_EDITOR
     void HandleEditorDebugInput()
     {
@@ -476,7 +498,7 @@ public class YokaiStateController : MonoBehaviour
     void AdjustKegare(float amount)
     {
         if (kegareManager == null)
-            kegareManager = FindObjectOfType<KegareManager>();
+            kegareManager = CurrentYokaiContext.ResolveKegareManager();
 
         if (kegareManager != null)
             kegareManager.AddKegare(amount);
