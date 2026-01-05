@@ -21,6 +21,13 @@ public class YokaiEvolutionController : MonoBehaviour
     [SerializeField]
     Transform characterRoot;
 
+    [Header("Evolution Rules")]
+    [SerializeField]
+    List<EvolutionRule> evolutionRules = new List<EvolutionRule>();
+
+    [SerializeField]
+    string fireBallName = "FireBall";
+
     [SerializeField]
     string yokaiChildName = "YokaiChild";
 
@@ -53,12 +60,6 @@ public class YokaiEvolutionController : MonoBehaviour
     /// </summary>
     public void OnClickEvolve()
     {
-        if (growthController == null)
-        {
-            Debug.LogWarning("[EVOLUTION] GrowthController is null");
-            return;
-        }
-
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
@@ -80,6 +81,14 @@ public class YokaiEvolutionController : MonoBehaviour
             return;
         }
 
+        EnsureEvolutionRules();
+        ResolveYokaiReferences();
+
+        Debug.Log("[EVOLUTION] 進化開始");
+        Debug.Log($"[EVOLUTION] 進化前キャラ名={GetYokaiName(currentYokaiPrefab)}");
+        Debug.Log($"[EVOLUTION] 進化後キャラ名={GetYokaiName(nextYokaiPrefab)}");
+
+        stateController.BeginEvolution();
         Debug.Log($"{FormatEvolutionLog("Start")} Evolution triggered by tap");
         StartCoroutine(EvolutionSequence());
     }
@@ -88,6 +97,7 @@ public class YokaiEvolutionController : MonoBehaviour
     {
         isEvolving = true;
 
+        EnsureEvolutionRules();
         ResolveYokaiReferences();
         LogYokaiActiveState("[EVOLUTION][Before]");
 
@@ -104,8 +114,17 @@ public class YokaiEvolutionController : MonoBehaviour
         else if (characterRoot != null)
             yield return PlayEvolutionStartEffect(characterRoot);
 
+        if (currentYokaiPrefab == null || nextYokaiPrefab == null)
+        {
+            Debug.LogWarning("[EVOLUTION] Evolution aborted due to missing yokai references.");
+            isEvolving = false;
+            stateController.CompleteEvolution();
+            ResumeDangerEffects(dangerEffectStates);
+            yield break;
+        }
+
         // 見た目切り替え
-        SwitchYokaiVisibility();
+        SwitchYokaiVisibility(currentYokaiPrefab, nextYokaiPrefab);
 
         // 成長リセット
         if (nextYokaiPrefab != null)
@@ -123,6 +142,10 @@ public class YokaiEvolutionController : MonoBehaviour
                 stateController.SetActiveYokai(nextYokaiPrefab);
         }
 
+        currentYokaiPrefab = nextYokaiPrefab;
+        nextYokaiPrefab = FindNextYokaiPrefab(currentYokaiPrefab);
+        Debug.Log($"[EVOLUTION] currentYokaiPrefab 更新結果={GetYokaiName(currentYokaiPrefab)} next={GetYokaiName(nextYokaiPrefab)}");
+
         // 完了
         SEHub.Play(YokaiSE.Evolution_Complete);
         Debug.Log($"{FormatEvolutionLog("Complete")} Evolution completed. Switching to Normal state.");
@@ -134,10 +157,17 @@ public class YokaiEvolutionController : MonoBehaviour
 
     void ResolveYokaiReferences()
     {
+        EnsureEvolutionRules();
+
         if (characterRoot == null)
         {
             Debug.LogWarning("[EVOLUTION] CharacterRoot is not assigned.");
             return;
+        }
+
+        if (currentYokaiPrefab == null || !currentYokaiPrefab.activeInHierarchy)
+        {
+            currentYokaiPrefab = FindActiveYokai();
         }
 
         if (currentYokaiPrefab == null)
@@ -147,12 +177,7 @@ public class YokaiEvolutionController : MonoBehaviour
                 Debug.LogWarning($"[EVOLUTION] Child yokai not found under CharacterRoot: {yokaiChildName}");
         }
 
-        if (nextYokaiPrefab == null)
-        {
-            nextYokaiPrefab = FindYokaiByName(yokaiAdultName);
-            if (nextYokaiPrefab == null)
-                Debug.LogWarning($"[EVOLUTION] Adult yokai not found under CharacterRoot: {yokaiAdultName}");
-        }
+        nextYokaiPrefab = FindNextYokaiPrefab(currentYokaiPrefab);
     }
 
     GameObject FindYokaiByName(string targetName)
@@ -173,18 +198,92 @@ public class YokaiEvolutionController : MonoBehaviour
         return null;
     }
 
-    void SwitchYokaiVisibility()
+    GameObject FindActiveYokai()
     {
-        if (currentYokaiPrefab != null)
+        if (characterRoot == null)
+            return null;
+
+        foreach (Transform child in characterRoot)
         {
-            SetYokaiInteractivity(currentYokaiPrefab, false);
-            currentYokaiPrefab.SetActive(false);
+            if (child != null && child.gameObject.activeInHierarchy)
+                return child.gameObject;
         }
 
-        if (nextYokaiPrefab != null)
+        return null;
+    }
+
+    GameObject FindNextYokaiPrefab(GameObject current)
+    {
+        if (current == null)
+            return null;
+
+        string nextName = GetNextName(current.name);
+        if (string.IsNullOrEmpty(nextName))
         {
-            nextYokaiPrefab.SetActive(true);
-            SetYokaiInteractivity(nextYokaiPrefab, true);
+            Debug.LogWarning($"[EVOLUTION] No next evolution rule found for {current.name}");
+            return null;
+        }
+
+        GameObject next = FindYokaiByName(nextName);
+        if (next == null)
+            Debug.LogWarning($"[EVOLUTION] Next yokai not found under CharacterRoot: {nextName}");
+
+        return next;
+    }
+
+    string GetNextName(string currentName)
+    {
+        if (string.IsNullOrEmpty(currentName) || evolutionRules == null)
+            return null;
+
+        foreach (var rule in evolutionRules)
+        {
+            if (rule != null && rule.Matches(currentName))
+                return rule.nextName;
+        }
+
+        return null;
+    }
+
+    void EnsureEvolutionRules()
+    {
+        if (evolutionRules != null && evolutionRules.Count > 0)
+            return;
+
+        evolutionRules = new List<EvolutionRule>
+        {
+            new EvolutionRule { currentName = fireBallName, nextName = yokaiChildName },
+            new EvolutionRule { currentName = yokaiChildName, nextName = yokaiAdultName }
+        };
+    }
+
+    void SwitchYokaiVisibility(GameObject previous, GameObject next)
+    {
+        if (characterRoot != null)
+        {
+            foreach (Transform child in characterRoot)
+            {
+                if (child == null)
+                    continue;
+
+                bool shouldEnable = next != null && child.gameObject == next;
+                child.gameObject.SetActive(shouldEnable);
+                SetYokaiInteractivity(child.gameObject, shouldEnable);
+            }
+        }
+        else
+        {
+            if (previous != null)
+            {
+                SetYokaiInteractivity(previous, false);
+                previous.SetActive(false);
+            }
+
+            if (next != null)
+            {
+                next.SetActive(true);
+                SetYokaiInteractivity(next, true);
+            }
         }
     }
 
@@ -393,6 +492,11 @@ public class YokaiEvolutionController : MonoBehaviour
     string FormatEvolutionLog(string phase)
     {
         return $"[EVOLUTION][{Time.time:0.00}s][{phase}]";
+    }
+
+    string GetYokaiName(GameObject target)
+    {
+        return target != null ? target.name : "null";
     }
 
     void TriggerBurstRecoil()

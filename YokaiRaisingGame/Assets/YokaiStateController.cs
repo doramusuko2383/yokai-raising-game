@@ -45,6 +45,9 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     float purifyTickAmount = 2f;
 
+    [SerializeField]
+    bool enablePurifyTick = false;
+
     float purifyTimer;
     KegareManager registeredKegareManager;
     EnergyManager registeredEnergyManager;
@@ -206,6 +209,11 @@ public class YokaiStateController : MonoBehaviour
         if (currentState == YokaiState.Purifying)
             purifyTimer = 0f;
 
+        if (currentState == YokaiState.KegareMax && previousState != YokaiState.KegareMax)
+            Debug.Log("[KEGARE] 穢れMAX ON");
+        else if (previousState == YokaiState.KegareMax && currentState != YokaiState.KegareMax)
+            Debug.Log("[KEGARE] 穢れMAX OFF");
+
         HandleStateSeTransitions(previousState, currentState);
         ApplyStateUI();
     }
@@ -294,6 +302,9 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.Purifying)
             return;
 
+        if (!enablePurifyTick)
+            return;
+
         if (kegareManager == null)
             kegareManager = FindObjectOfType<KegareManager>();
 
@@ -314,7 +325,7 @@ public class YokaiStateController : MonoBehaviour
         bool showEmergency = currentState == YokaiState.KegareMax;
         bool showMagicCircle = currentState == YokaiState.Purifying;
         bool showStopPurify = currentState == YokaiState.Purifying;
-        bool showDangerOverlay = false;
+        bool showDangerOverlay = currentState == YokaiState.KegareMax;
 
         if (actionPanel != null)
             actionPanel.SetActive(showActionPanel);
@@ -344,6 +355,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         bool enableBlink = currentState == YokaiState.KegareMax;
+        int intensityLevel = currentState == YokaiState.KegareMax ? 2 : 1;
 
         foreach (var effect in dangerEffects)
         {
@@ -352,6 +364,7 @@ public class YokaiStateController : MonoBehaviour
 
             bool shouldBlink = enableBlink && effect.gameObject.activeInHierarchy;
             effect.SetBlinking(shouldBlink);
+            effect.SetIntensityLevel(intensityLevel);
         }
     }
 
