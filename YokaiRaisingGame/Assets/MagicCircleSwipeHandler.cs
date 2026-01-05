@@ -5,10 +5,7 @@ using Yokai;
 public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
     [SerializeField]
-    float requiredPathLength = 260f;
-
-    [SerializeField]
-    float requiredAngle = 300f;
+    float requiredAngle = 270f;
 
     [SerializeField]
     float minRadiusRatio = 0.55f;
@@ -18,6 +15,12 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
     [SerializeField]
     int minimumSamples = 12;
+
+    [SerializeField]
+    float maxAngleJump = 70f;
+
+    [SerializeField]
+    float minAngleDelta = 0.5f;
 
     [SerializeField]
     RectTransform circleRect;
@@ -30,11 +33,13 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
     bool isTracking;
     bool isCompleted;
+    bool hasAppliedPurify;
     bool hasInvalidRadius;
-    float totalLength;
+    bool hasInvalidPath;
     float totalAngle;
     float previousAngle;
-    Vector2 previousPosition;
+    float directionSign;
+    bool hasDirection;
     int sampleCount;
 
     public void OnPointerDown(PointerEventData eventData)
@@ -47,12 +52,19 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
         isTracking = true;
         isCompleted = false;
+        hasAppliedPurify = false;
         hasInvalidRadius = false;
-        totalLength = 0f;
+        hasInvalidPath = false;
         totalAngle = 0f;
         sampleCount = 0;
-        previousPosition = eventData.position;
         previousAngle = GetAngleFromCenter(eventData.position, eventData.pressEventCamera);
+        directionSign = 0f;
+        hasDirection = false;
+
+        if (!IsWithinRadius(eventData.position, eventData.pressEventCamera))
+        {
+            hasInvalidRadius = true;
+        }
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -60,15 +72,30 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         if (!isTracking || isCompleted)
             return;
 
-        float distance = Vector2.Distance(previousPosition, eventData.position);
-        totalLength += distance;
-        previousPosition = eventData.position;
-
         float angle = GetAngleFromCenter(eventData.position, eventData.pressEventCamera);
         float deltaAngle = Mathf.DeltaAngle(previousAngle, angle);
-        totalAngle += deltaAngle;
+        float absDelta = Mathf.Abs(deltaAngle);
         previousAngle = angle;
 
+        if (absDelta < minAngleDelta)
+            return;
+
+        if (!hasDirection)
+        {
+            directionSign = Mathf.Sign(deltaAngle);
+            hasDirection = true;
+        }
+        else if (Mathf.Sign(deltaAngle) != directionSign)
+        {
+            hasInvalidPath = true;
+        }
+
+        if (absDelta > maxAngleJump)
+        {
+            hasInvalidPath = true;
+        }
+
+        totalAngle += deltaAngle;
         sampleCount++;
         if (!IsWithinRadius(eventData.position, eventData.pressEventCamera))
             hasInvalidRadius = true;
@@ -108,6 +135,9 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
     void HandleSwipeSuccess()
     {
+        if (hasAppliedPurify)
+            return;
+
         if (kegareManager == null)
             kegareManager = FindObjectOfType<KegareManager>();
 
@@ -119,6 +149,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
         Debug.Log("[PURIFY] おきよめ成功");
         kegareManager.ApplyPurifyFromMagicCircle();
+        hasAppliedPurify = true;
         stateController.StopPurifying();
     }
 
@@ -127,13 +158,13 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         if (sampleCount < minimumSamples)
             return false;
 
-        if (totalLength < requiredPathLength)
-            return false;
-
         if (Mathf.Abs(totalAngle) < requiredAngle)
             return false;
 
         if (hasInvalidRadius)
+            return false;
+
+        if (hasInvalidPath)
             return false;
 
         return true;
@@ -145,12 +176,12 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
         if (sampleCount < minimumSamples)
             reason = "入力回数不足";
-        else if (totalLength < requiredPathLength)
-            reason = "軌跡長不足";
         else if (Mathf.Abs(totalAngle) < requiredAngle)
             reason = "角度不足";
         else if (hasInvalidRadius)
             reason = "円外の軌跡";
+        else if (hasInvalidPath)
+            reason = "連続スワイプ失敗";
         else
             reason = "条件未達";
 

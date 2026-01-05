@@ -93,6 +93,12 @@ public class YokaiEvolutionController : MonoBehaviour
         StartCoroutine(EvolutionSequence());
     }
 
+    void Start()
+    {
+        EnsureEvolutionRules();
+        InitializeActiveYokai();
+    }
+
     IEnumerator EvolutionSequence()
     {
         isEvolving = true;
@@ -153,6 +159,30 @@ public class YokaiEvolutionController : MonoBehaviour
         LogYokaiActiveState("[EVOLUTION][After]");
         ResumeDangerEffects(dangerEffectStates);
         isEvolving = false;
+    }
+
+    void InitializeActiveYokai()
+    {
+        ResolveYokaiReferences();
+
+        if (characterRoot == null)
+            return;
+
+        GameObject active = FindActiveYokai();
+        if (active == null)
+            active = FindYokaiByName(fireBallName) ?? FindYokaiByName(yokaiChildName);
+
+        if (active != null)
+        {
+            ActivateOnly(active);
+            currentYokaiPrefab = active;
+            nextYokaiPrefab = FindNextYokaiPrefab(currentYokaiPrefab);
+            growthController = currentYokaiPrefab.GetComponent<YokaiGrowthController>();
+            if (stateController == null)
+                stateController = FindObjectOfType<YokaiStateController>();
+            if (stateController != null)
+                stateController.SetActiveYokai(currentYokaiPrefab);
+        }
     }
 
     void ResolveYokaiReferences()
@@ -284,6 +314,29 @@ public class YokaiEvolutionController : MonoBehaviour
                 next.SetActive(true);
                 SetYokaiInteractivity(next, true);
             }
+        }
+    }
+
+    void ActivateOnly(GameObject target)
+    {
+        if (target == null)
+            return;
+
+        if (characterRoot == null)
+        {
+            target.SetActive(true);
+            SetYokaiInteractivity(target, true);
+            return;
+        }
+
+        foreach (Transform child in characterRoot)
+        {
+            if (child == null)
+                continue;
+
+            bool shouldEnable = child.gameObject == target;
+            child.gameObject.SetActive(shouldEnable);
+            SetYokaiInteractivity(child.gameObject, shouldEnable);
         }
     }
 

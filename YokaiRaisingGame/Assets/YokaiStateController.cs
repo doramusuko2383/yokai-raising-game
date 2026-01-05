@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace Yokai
 {
@@ -51,6 +52,7 @@ public class YokaiStateController : MonoBehaviour
     float purifyTimer;
     KegareManager registeredKegareManager;
     EnergyManager registeredEnergyManager;
+    bool evolutionReadyPending;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Initialize()
@@ -90,8 +92,12 @@ public class YokaiStateController : MonoBehaviour
 
     void ResolveDependencies()
     {
-        if (growthController == null)
-            growthController = FindObjectOfType<YokaiGrowthController>();
+        if (growthController == null || !growthController.gameObject.activeInHierarchy)
+        {
+            growthController = FindActiveGrowthController();
+            if (growthController != null)
+                SetActiveYokai(growthController.gameObject);
+        }
 
         if (kegareManager == null)
             kegareManager = FindObjectOfType<KegareManager>();
@@ -184,13 +190,19 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
-        if (currentState == YokaiState.Purifying)
+        if (evolutionReadyPending)
+        {
+            SetState(YokaiState.EvolutionReady);
+            return;
+        }
+
+        if (currentState == YokaiState.EvolutionReady)
         {
             ApplyStateUI();
             return;
         }
 
-        if (currentState == YokaiState.EvolutionReady)
+        if (currentState == YokaiState.Purifying)
         {
             ApplyStateUI();
             return;
@@ -241,11 +253,13 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.EvolutionReady)
             return;
 
+        evolutionReadyPending = false;
         SetState(YokaiState.Evolving);
     }
 
     public void CompleteEvolution()
     {
+        evolutionReadyPending = false;
         SetState(YokaiState.Normal);
         RefreshDangerEffectOriginalColors();
         RefreshState();
@@ -257,17 +271,23 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         growthController = activeYokai.GetComponent<YokaiGrowthController>();
+        if (growthController != null && growthController.isEvolutionReady)
+            evolutionReadyPending = true;
         dangerEffects = activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true);
         RefreshDangerEffectOriginalColors();
         UpdateDangerEffects();
+        if (currentState != YokaiState.Evolving)
+            RefreshState();
     }
 
     public void SetEvolutionReady()
     {
-        if (currentState != YokaiState.Normal)
+        if (currentState == YokaiState.Evolving)
             return;
 
-        currentState = YokaiState.EvolutionReady;
+        evolutionReadyPending = true;
+        if (!IsKegareMax())
+            currentState = YokaiState.EvolutionReady;
         // DEBUG: EvolutionReady になったことを明示してタップ可能を知らせる
         Debug.Log("[EVOLUTION] Ready. Tap the yokai to evolve.");
         ApplyStateUI();
@@ -321,11 +341,12 @@ public class YokaiStateController : MonoBehaviour
 
     void ApplyStateUI()
     {
-        bool showActionPanel = currentState == YokaiState.Normal || currentState == YokaiState.EvolutionReady;
-        bool showEmergency = currentState == YokaiState.KegareMax;
+        bool isKegareMax = currentState == YokaiState.KegareMax;
+        bool showActionPanel = currentState == YokaiState.Normal || currentState == YokaiState.EvolutionReady || isKegareMax;
+        bool showEmergency = isKegareMax;
         bool showMagicCircle = currentState == YokaiState.Purifying;
         bool showStopPurify = currentState == YokaiState.Purifying;
-        bool showDangerOverlay = currentState == YokaiState.KegareMax;
+        bool showDangerOverlay = isKegareMax;
 
         if (actionPanel != null)
             actionPanel.SetActive(showActionPanel);
@@ -346,7 +367,41 @@ public class YokaiStateController : MonoBehaviour
             dangerOverlay.interactable = showDangerOverlay;
         }
 
+        UpdateActionPanelButtons(isKegareMax);
         UpdateDangerEffects();
+    }
+
+    void UpdateActionPanelButtons(bool isKegareMax)
+    {
+        if (actionPanel == null)
+            return;
+
+        var buttons = actionPanel.GetComponentsInChildren<Button>(true);
+        foreach (var button in buttons)
+        {
+            if (button == null)
+                continue;
+
+            bool isEmergency = emergencyPurifyButton != null && button.gameObject == emergencyPurifyButton;
+            bool shouldShow = !isKegareMax || isEmergency;
+            button.gameObject.SetActive(shouldShow || !isKegareMax);
+            button.interactable = shouldShow;
+        }
+    }
+
+    YokaiGrowthController FindActiveGrowthController()
+    {
+        var controllers = FindObjectsOfType<YokaiGrowthController>(true);
+        foreach (var controller in controllers)
+        {
+            if (controller != null && controller.gameObject.activeInHierarchy)
+                return controller;
+        }
+
+        if (controllers.Length == 1)
+            return controllers[0];
+
+        return null;
     }
 
     void UpdateDangerEffects()
