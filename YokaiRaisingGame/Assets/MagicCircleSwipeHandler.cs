@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using Yokai;
 
 public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
@@ -23,7 +24,13 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     float minAngleDelta = 0.5f;
 
     [SerializeField]
+    float minTravelDistanceRatio = 0.75f;
+
+    [SerializeField]
     RectTransform circleRect;
+
+    [SerializeField]
+    Image magicCircleGuide;
 
     [SerializeField]
     YokaiStateController stateController;
@@ -37,10 +44,22 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     bool hasInvalidRadius;
     bool hasInvalidPath;
     float totalAngle;
+    float totalTravelDistance;
     float previousAngle;
+    Vector2 previousPoint;
     float directionSign;
     bool hasDirection;
     int sampleCount;
+
+    void OnEnable()
+    {
+        ToggleGuide(true);
+    }
+
+    void OnDisable()
+    {
+        ToggleGuide(false);
+    }
 
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -56,8 +75,10 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         hasInvalidRadius = false;
         hasInvalidPath = false;
         totalAngle = 0f;
+        totalTravelDistance = 0f;
         sampleCount = 0;
         previousAngle = GetAngleFromCenter(eventData.position, eventData.pressEventCamera);
+        previousPoint = GetLocalPoint(eventData.position, eventData.pressEventCamera);
         directionSign = 0f;
         hasDirection = false;
 
@@ -73,6 +94,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             return;
 
         float angle = GetAngleFromCenter(eventData.position, eventData.pressEventCamera);
+        Vector2 localPoint = GetLocalPoint(eventData.position, eventData.pressEventCamera);
         float deltaAngle = Mathf.DeltaAngle(previousAngle, angle);
         float absDelta = Mathf.Abs(deltaAngle);
         previousAngle = angle;
@@ -96,6 +118,8 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         }
 
         totalAngle += deltaAngle;
+        totalTravelDistance += Vector2.Distance(previousPoint, localPoint);
+        previousPoint = localPoint;
         sampleCount++;
         if (!IsWithinRadius(eventData.position, eventData.pressEventCamera))
             hasInvalidRadius = true;
@@ -122,7 +146,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     bool IsPurifying()
     {
         if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
+            stateController = CurrentYokaiContext.ResolveStateController();
 
         if (stateController == null)
         {
@@ -139,7 +163,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             return;
 
         if (kegareManager == null)
-            kegareManager = FindObjectOfType<KegareManager>();
+            kegareManager = CurrentYokaiContext.ResolveKegareManager();
 
         if (kegareManager == null)
         {
@@ -148,6 +172,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         }
 
         Debug.Log("[PURIFY] おきよめ成功");
+        SEHub.Play(YokaiSE.Purify_Success);
         kegareManager.ApplyPurifyFromMagicCircle();
         hasAppliedPurify = true;
         stateController.StopPurifying();
@@ -159,6 +184,9 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             return false;
 
         if (Mathf.Abs(totalAngle) < requiredAngle)
+            return false;
+
+        if (totalTravelDistance < GetRequiredTravelDistance())
             return false;
 
         if (hasInvalidRadius)
@@ -178,6 +206,8 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             reason = "入力回数不足";
         else if (Mathf.Abs(totalAngle) < requiredAngle)
             reason = "角度不足";
+        else if (totalTravelDistance < GetRequiredTravelDistance())
+            reason = "移動距離不足";
         else if (hasInvalidRadius)
             reason = "円外の軌跡";
         else if (hasInvalidPath)
@@ -204,6 +234,22 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         return Mathf.Atan2(localPoint.y, localPoint.x) * Mathf.Rad2Deg;
     }
 
+    Vector2 GetLocalPoint(Vector2 screenPosition, Camera eventCamera)
+    {
+        RectTransform targetRect = circleRect != null ? circleRect : transform as RectTransform;
+        if (targetRect == null)
+            return Vector2.zero;
+
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                targetRect,
+                screenPosition,
+                eventCamera,
+                out Vector2 localPoint))
+            return Vector2.zero;
+
+        return localPoint;
+    }
+
     bool IsWithinRadius(Vector2 screenPosition, Camera eventCamera)
     {
         RectTransform targetRect = circleRect != null ? circleRect : transform as RectTransform;
@@ -223,5 +269,29 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         float distance = localPoint.magnitude;
 
         return distance >= minRadius && distance <= maxRadius;
+    }
+
+    float GetRequiredTravelDistance()
+    {
+        RectTransform targetRect = circleRect != null ? circleRect : transform as RectTransform;
+        if (targetRect == null)
+            return 0f;
+
+        float radius = targetRect.rect.width * 0.5f;
+        float requiredArc = Mathf.Deg2Rad * requiredAngle * radius;
+        return Mathf.Abs(requiredArc) * Mathf.Clamp01(minTravelDistanceRatio);
+    }
+
+    void ToggleGuide(bool isVisible)
+    {
+        if (magicCircleGuide == null)
+        {
+            var guideObject = GameObject.Find("MagicCircleGuide");
+            if (guideObject != null)
+                magicCircleGuide = guideObject.GetComponent<Image>();
+        }
+
+        if (magicCircleGuide != null)
+            magicCircleGuide.gameObject.SetActive(isVisible);
     }
 }

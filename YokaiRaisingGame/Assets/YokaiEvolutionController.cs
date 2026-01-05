@@ -102,6 +102,7 @@ public class YokaiEvolutionController : MonoBehaviour
     IEnumerator EvolutionSequence()
     {
         isEvolving = true;
+        SetEvolutionInputEnabled(false);
 
         EnsureEvolutionRules();
         ResolveYokaiReferences();
@@ -126,6 +127,7 @@ public class YokaiEvolutionController : MonoBehaviour
             isEvolving = false;
             stateController.CompleteEvolution();
             ResumeDangerEffects(dangerEffectStates);
+            SetEvolutionInputEnabled(true);
             yield break;
         }
 
@@ -151,6 +153,7 @@ public class YokaiEvolutionController : MonoBehaviour
         currentYokaiPrefab = nextYokaiPrefab;
         nextYokaiPrefab = FindNextYokaiPrefab(currentYokaiPrefab);
         Debug.Log($"[EVOLUTION] currentYokaiPrefab 更新結果={GetYokaiName(currentYokaiPrefab)} next={GetYokaiName(nextYokaiPrefab)}");
+        UpdateCurrentYokai(currentYokaiPrefab, "EvolutionComplete");
 
         // 完了
         SEHub.Play(YokaiSE.Evolution_Complete);
@@ -158,6 +161,7 @@ public class YokaiEvolutionController : MonoBehaviour
         stateController.CompleteEvolution();
         LogYokaiActiveState("[EVOLUTION][After]");
         ResumeDangerEffects(dangerEffectStates);
+        SetEvolutionInputEnabled(true);
         isEvolving = false;
     }
 
@@ -182,6 +186,7 @@ public class YokaiEvolutionController : MonoBehaviour
                 stateController = FindObjectOfType<YokaiStateController>();
             if (stateController != null)
                 stateController.SetActiveYokai(currentYokaiPrefab);
+            UpdateCurrentYokai(currentYokaiPrefab, "Initialize");
         }
     }
 
@@ -208,6 +213,34 @@ public class YokaiEvolutionController : MonoBehaviour
         }
 
         nextYokaiPrefab = FindNextYokaiPrefab(currentYokaiPrefab);
+    }
+
+    void UpdateCurrentYokai(GameObject activeYokai, string reason)
+    {
+        CurrentYokaiContext.SetCurrent(activeYokai, reason);
+        RebindCurrentYokai(activeYokai);
+    }
+
+    void RebindCurrentYokai(GameObject activeYokai)
+    {
+        if (activeYokai == null)
+            return;
+
+        var kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (kegareManager != null)
+            kegareManager.BindCurrentYokai(activeYokai);
+
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+
+        if (stateController != null)
+            stateController.BindCurrentYokai(activeYokai);
+
+        foreach (var handler in FindObjectsOfType<PurifyButtonHandler>(true))
+            handler.BindStateController(stateController);
+
+        foreach (var effect in activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true))
+            effect.RefreshOriginalColor();
     }
 
     GameObject FindYokaiByName(string targetName)
@@ -359,6 +392,12 @@ public class YokaiEvolutionController : MonoBehaviour
 
         foreach (var effect in target.GetComponentsInChildren<YokaiDangerEffect>(true))
             effect.enabled = enabled;
+    }
+
+    void SetEvolutionInputEnabled(bool enabled)
+    {
+        if (currentYokaiPrefab != null)
+            SetYokaiInteractivity(currentYokaiPrefab, enabled);
     }
 
     void LogYokaiActiveState(string prefix)
