@@ -27,6 +27,12 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     float minTravelDistanceRatio = 0.75f;
 
     [SerializeField]
+    float timeLimitSeconds = 2.5f;
+
+    [SerializeField]
+    float guideFadeDuration = 0.25f;
+
+    [SerializeField]
     RectTransform circleRect;
 
     [SerializeField]
@@ -50,15 +56,39 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     float directionSign;
     bool hasDirection;
     int sampleCount;
+    float swipeStartTime;
+    bool wasPurifying;
+    CanvasGroup guideCanvasGroup;
+    Coroutine guideFadeCoroutine;
 
     void OnEnable()
     {
-        ToggleGuide(true);
+        SetupGuideCanvas();
+        ToggleGuide(IsPurifying(), immediate: true);
     }
 
     void OnDisable()
     {
-        ToggleGuide(false);
+        ToggleGuide(false, immediate: true);
+    }
+
+    void Update()
+    {
+        bool isPurifying = IsPurifying();
+        if (isPurifying != wasPurifying)
+        {
+            ToggleGuide(isPurifying, immediate: false);
+            wasPurifying = isPurifying;
+        }
+
+        if (isTracking && timeLimitSeconds > 0f)
+        {
+            float elapsed = Time.unscaledTime - swipeStartTime;
+            if (elapsed > timeLimitSeconds)
+            {
+                CancelSwipe("時間切れ");
+            }
+        }
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -81,10 +111,13 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         previousPoint = GetLocalPoint(eventData.position, eventData.pressEventCamera);
         directionSign = 0f;
         hasDirection = false;
+        swipeStartTime = Time.unscaledTime;
+
+        Debug.Log("[PURIFY] Swipe start");
 
         if (!IsWithinRadius(eventData.position, eventData.pressEventCamera))
         {
-            hasInvalidRadius = true;
+            CancelSwipe("円外開始");
         }
     }
 
@@ -122,7 +155,12 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         previousPoint = localPoint;
         sampleCount++;
         if (!IsWithinRadius(eventData.position, eventData.pressEventCamera))
-            hasInvalidRadius = true;
+        {
+            CancelSwipe("円外逸脱");
+            return;
+        }
+
+        Debug.Log($"[PURIFY] angle progress total={Mathf.Abs(totalAngle):F1} sample={sampleCount}");
 
         if (IsGestureComplete())
         {
@@ -140,7 +178,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         isTracking = false;
 
         if (!isCompleted)
-            LogSwipeFailure();
+            CancelSwipe("入力中断");
     }
 
     bool IsPurifying()
@@ -176,6 +214,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         kegareManager.ApplyPurifyFromMagicCircle();
         hasAppliedPurify = true;
         stateController.StopPurifying();
+        ToggleGuide(false, immediate: false);
     }
 
     bool IsGestureComplete()
@@ -216,6 +255,20 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             reason = "条件未達";
 
         Debug.Log($"[PURIFY] おきよめ失敗 reason={reason}");
+    }
+
+    void CancelSwipe(string reason)
+    {
+        if (!isTracking)
+            return;
+
+        isTracking = false;
+        isCompleted = false;
+        Debug.Log($"[PURIFY] Swipe cancel reason={reason}");
+        LogSwipeFailure();
+        if (IsPurifying())
+            stateController.StopPurifying();
+        ToggleGuide(false, immediate: false);
     }
 
     float GetAngleFromCenter(Vector2 screenPosition, Camera eventCamera)
@@ -284,6 +337,11 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
     void ToggleGuide(bool isVisible)
     {
+        ToggleGuide(isVisible, immediate: false);
+    }
+
+    void ToggleGuide(bool isVisible, bool immediate)
+    {
         if (magicCircleGuide == null)
         {
             var guideObject = GameObject.Find("MagicCircleGuide");
@@ -291,7 +349,63 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
                 magicCircleGuide = guideObject.GetComponent<Image>();
         }
 
-        if (magicCircleGuide != null)
+        if (magicCircleGuide == null)
+            return;
+
+        SetupGuideCanvas();
+
+        if (guideCanvasGroup == null)
+        {
             magicCircleGuide.gameObject.SetActive(isVisible);
+            return;
+        }
+
+        if (guideFadeCoroutine != null)
+            StopCoroutine(guideFadeCoroutine);
+
+        guideFadeCoroutine = StartCoroutine(FadeGuide(isVisible, immediate));
+    }
+
+    void SetupGuideCanvas()
+    {
+        if (magicCircleGuide == null)
+            return;
+
+        if (guideCanvasGroup != null)
+            return;
+
+        guideCanvasGroup = magicCircleGuide.GetComponent<CanvasGroup>();
+        if (guideCanvasGroup == null)
+            guideCanvasGroup = magicCircleGuide.gameObject.AddComponent<CanvasGroup>();
+    }
+
+    System.Collections.IEnumerator FadeGuide(bool isVisible, bool immediate)
+    {
+        magicCircleGuide.gameObject.SetActive(true);
+
+        float startAlpha = guideCanvasGroup.alpha;
+        float targetAlpha = isVisible ? 1f : 0f;
+        float duration = immediate ? 0f : Mathf.Max(0.01f, guideFadeDuration);
+        float elapsed = 0f;
+
+        if (duration <= 0f)
+        {
+            guideCanvasGroup.alpha = targetAlpha;
+            if (!isVisible)
+                magicCircleGuide.gameObject.SetActive(false);
+            yield break;
+        }
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            guideCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
+            yield return null;
+        }
+
+        guideCanvasGroup.alpha = targetAlpha;
+        if (!isVisible)
+            magicCircleGuide.gameObject.SetActive(false);
     }
 }
