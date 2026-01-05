@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class FireBallIdle : MonoBehaviour
 {
@@ -25,6 +24,9 @@ public class FireBallIdle : MonoBehaviour
 
     GameManager gameManager;
     SpriteRenderer sr;
+    Yokai.YokaiStateController stateController;
+    YokaiEvolutionController evolutionController;
+    bool evolutionReady;
 
     void Start()
     {
@@ -35,6 +37,8 @@ public class FireBallIdle : MonoBehaviour
 
         gameManager = FindObjectOfType<GameManager>();
         sr = GetComponent<SpriteRenderer>();
+        stateController = FindObjectOfType<Yokai.YokaiStateController>();
+        evolutionController = FindObjectOfType<YokaiEvolutionController>();
     }
 
     void Update()
@@ -53,48 +57,41 @@ public class FireBallIdle : MonoBehaviour
             gameManager.UpdateGauge(baseScale / evolveScale);
         }
 
-        if (baseScale >= evolveScale)
-        {
-            StartCoroutine(EvolveEffect());
-        }
+        if (!evolutionReady && baseScale >= evolveScale)
+            SetEvolutionReady();
     }
 
     void OnMouseDown()
     {
+        if (evolutionReady)
+        {
+            if (evolutionController != null)
+            {
+                evolutionController.OnClickEvolve();
+            }
+            else
+            {
+                Debug.LogWarning("[EVOLUTION] YokaiEvolutionController not found. Evolution request ignored.");
+            }
+            return;
+        }
+
         tapCount++;
         tapBoost += tapBoostAmount;
     }
 
-    IEnumerator EvolveEffect()
+    void SetEvolutionReady()
     {
+        evolutionReady = true;
         evolved = true;
+        baseScale = evolveScale;
+        transform.localScale = Vector3.one * baseScale;
+        if (sr != null)
+            sr.color = Color.white;
 
-        Vector3 originalScale = transform.localScale;
-        transform.localScale = originalScale * popScale;
-        if (sr != null) sr.color = Color.white;
+        if (stateController != null)
+            stateController.SetEvolutionReady();
 
-        yield return new WaitForSeconds(popDuration);
-
-        if (gameManager == null)
-        {
-            Debug.LogWarning("[EVOLUTION] GameManager not found. Evolution aborted.");
-            yield break;
-        }
-
-        GameObject evolvedInstance = gameManager.SpawnEvolved(
-            tapCount,
-            lifeTime,
-            bornHour,
-            transform.position
-        );
-        GameObject fireBallInstance = gameManager.SpawnFireBall();
-
-        if (evolvedInstance == null || fireBallInstance == null)
-        {
-            Debug.LogWarning("[EVOLUTION] Spawn failed. Keeping current yokai.");
-            yield break;
-        }
-
-        Destroy(gameObject);
+        Debug.Log("[EVOLUTION READY] FireBall is ready to evolve.");
     }
 }

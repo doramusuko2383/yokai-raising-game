@@ -1,7 +1,16 @@
+using UnityEngine;
+
 [System.Serializable]
 public class EvolutionRule
 {
-    public int minTap;
-    public int maxTap;
-    public int evolutionIndex;
+    [SerializeField]
+    public string currentName;
+
+    [SerializeField]
+    public string nextName;
+
+    public bool Matches(string name)
+    {
+        return !string.IsNullOrEmpty(currentName) && currentName == name;
+    }
 }
