@@ -76,6 +76,19 @@ public class KegareManager : MonoBehaviour
         NotifyKegareChanged();
     }
 
+    public void SetKegare(float value, string reason = null)
+    {
+        kegare = Mathf.Clamp(value, 0f, maxKegare);
+
+        if (kegare >= maxKegare && !isMononoke)
+            isMononoke = true;
+        else if (kegare < maxKegare && isMononoke)
+            isMononoke = false;
+
+        Debug.Log($"[KEGARE][Set] value={kegare:0.##}/{maxKegare:0.##} reason={reason ?? "unspecified"}");
+        NotifyKegareChanged();
+    }
+
     public void ApplyPurify(float purifyRatio = 0.7f)
     {
         ApplyPurifyInternal(purifyRatio, allowWhenCritical: false, logContext: "おきよめ");

@@ -87,9 +87,6 @@ public class YokaiStateController : MonoBehaviour
     void Update()
     {
         HandlePurifyTick();
-#if UNITY_EDITOR
-        HandleEditorDebugInput();
-#endif
     }
 
     void ResolveDependencies()
@@ -501,42 +498,5 @@ public class YokaiStateController : MonoBehaviour
         Debug.Log($"[STATE][{label}] yokai={yokaiName} state={currentState} kegare={currentKegare:0.##}/{maxKegare:0.##}");
     }
 
-#if UNITY_EDITOR
-    void HandleEditorDebugInput()
-    {
-        if (Input.GetKeyDown(KeyCode.K))
-            AdjustKegare(10f);
-
-        if (Input.GetKeyDown(KeyCode.J))
-            AdjustKegare(-10f);
-
-        if (Input.GetKeyDown(KeyCode.R))
-            AdjustEnergy(10f);
-
-        if (Input.GetKeyDown(KeyCode.F))
-            AdjustEnergy(-10f);
-
-        if (Input.GetKeyDown(KeyCode.E))
-            SetState(YokaiState.EvolutionReady);
-    }
-
-    void AdjustKegare(float amount)
-    {
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
-
-        if (kegareManager != null)
-            kegareManager.AddKegare(amount);
-    }
-
-    void AdjustEnergy(float amount)
-    {
-        if (energyManager == null)
-            energyManager = FindObjectOfType<EnergyManager>();
-
-        if (energyManager != null)
-            energyManager.ChangeEnergy(amount);
-    }
-#endif
 }
 }
