@@ -4,6 +4,12 @@ using UnityEngine.SceneManagement;
 public class MagicCircleActivator : MonoBehaviour
 {
     MagicCircleSwipeController controller;
+    [SerializeField]
+    Yokai.YokaiStateController stateController;
+
+    [SerializeField]
+    KegareManager kegareManager;
+
     PurifyRequestType pendingRequest = PurifyRequestType.None;
 
     public event System.Action SuccessSeRequested;
@@ -33,8 +39,7 @@ public class MagicCircleActivator : MonoBehaviour
 
     void SetupForScene()
     {
-        controller = FindObjectOfType<MagicCircleSwipeController>(true);
-
+        controller = EnsureController();
         if (controller == null)
         {
             Debug.LogWarning("[PURIFY] MagicCircleSwipeController が見つかりません。");
@@ -43,7 +48,9 @@ public class MagicCircleActivator : MonoBehaviour
 
         controller.HealRequested -= OnHealRequested;
         controller.HealRequested += OnHealRequested;
+#if UNITY_EDITOR
         Debug.Log("[PURIFY] MagicCircleSwipeUI を初期化しました。");
+#endif
     }
 
     public void RequestNormalPurify()
@@ -71,7 +78,11 @@ public class MagicCircleActivator : MonoBehaviour
         }
 
         pendingRequest = requestType;
+        controller.gameObject.SetActive(true);
+        controller.Show();
+#if UNITY_EDITOR
         Debug.Log($"[PURIFY] Request received: type={requestType}");
+#endif
     }
 
     void OnHealRequested()
@@ -85,6 +96,7 @@ public class MagicCircleActivator : MonoBehaviour
         else
             Debug.LogWarning("[PURIFY] Success route: request が未指定です。");
 
+        ApplyPurifySuccess();
         pendingRequest = PurifyRequestType.None;
     }
 
@@ -92,5 +104,66 @@ public class MagicCircleActivator : MonoBehaviour
     {
         SuccessSeRequested?.Invoke();
         SuccessEffectRequested?.Invoke();
+    }
+
+    MagicCircleSwipeController EnsureController()
+    {
+        var resolved = FindObjectOfType<MagicCircleSwipeController>(true);
+        if (resolved != null)
+            return resolved;
+
+        var magicCircleRoot = FindMagicCircleRoot();
+        if (magicCircleRoot == null)
+            return null;
+
+        var legacyHandler = magicCircleRoot.GetComponent<MagicCircleSwipeHandler>();
+        if (legacyHandler != null)
+            legacyHandler.enabled = false;
+
+        var created = magicCircleRoot.GetComponent<MagicCircleSwipeController>();
+        if (created == null)
+            created = magicCircleRoot.gameObject.AddComponent<MagicCircleSwipeController>();
+
+        return created;
+    }
+
+    Transform FindMagicCircleRoot()
+    {
+        var rects = FindObjectsOfType<RectTransform>(true);
+        foreach (var rect in rects)
+        {
+            if (rect != null && rect.name == "MagicCircleImage")
+                return rect;
+        }
+
+        return null;
+    }
+
+    void ApplyPurifySuccess()
+    {
+        if (kegareManager == null)
+            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+
+        if (kegareManager != null)
+        {
+            kegareManager.ApplyPurifyFromMagicCircle();
+            Debug.Log("[PURIFY] おきよめ成功");
+        }
+        else
+        {
+            Debug.LogWarning("[PURIFY] KegareManager が見つからないため穢れを減らせません。");
+        }
+
+        if (stateController == null)
+            stateController = CurrentYokaiContext.ResolveStateController();
+
+        if (stateController != null)
+        {
+            stateController.StopPurifyingForSuccess();
+        }
+        else
+        {
+            Debug.LogWarning("[PURIFY] StateController が見つからないため状態更新できません。");
+        }
     }
 }

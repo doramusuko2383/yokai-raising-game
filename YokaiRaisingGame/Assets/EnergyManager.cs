@@ -46,6 +46,7 @@ public class EnergyManager : MonoBehaviour
 
     void Start()
     {
+        energy = Mathf.Clamp(maxEnergy, 0f, maxEnergy);
         if (energy <= 0f)
         {
             EnterWeakState();

@@ -27,6 +27,7 @@ public class PurifyButtonHandler : MonoBehaviour
         {
             stateController.BeginPurifying();
             TutorialManager.NotifyPurifyUsed();
+            RequestMagicCircle(PurifyRequestType.Normal);
         }
         else
         {
@@ -84,5 +85,26 @@ public class PurifyButtonHandler : MonoBehaviour
     void ShowAd(System.Action onCompleted)
     {
         onCompleted?.Invoke();
+    }
+
+    void RequestMagicCircle(PurifyRequestType requestType)
+    {
+        var activator = FindObjectOfType<MagicCircleActivator>();
+        if (activator == null)
+        {
+            Debug.LogWarning("[PURIFY] MagicCircleActivator が見つからないため魔法陣を起動できません。");
+            return;
+        }
+
+        if (requestType == PurifyRequestType.Emergency)
+            activator.RequestEmergencyPurify();
+        else
+            activator.RequestNormalPurify();
+    }
+
+    enum PurifyRequestType
+    {
+        Normal,
+        Emergency
     }
 }
