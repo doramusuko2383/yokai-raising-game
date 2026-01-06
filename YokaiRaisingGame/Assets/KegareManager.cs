@@ -111,6 +111,7 @@ public class KegareManager : MonoBehaviour
 
     public void OnClickAdWatch()
     {
+        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (stateController == null)
             stateController = CurrentYokaiContext.ResolveStateController();
 

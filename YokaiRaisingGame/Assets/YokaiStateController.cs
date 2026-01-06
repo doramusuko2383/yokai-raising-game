@@ -238,14 +238,28 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.Normal)
             return;
 
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
         SetState(YokaiState.Purifying);
         RefreshState();
     }
 
     public void StopPurifying()
     {
+        StopPurifyingInternal(playCancelSe: true);
+    }
+
+    public void StopPurifyingForSuccess()
+    {
+        StopPurifyingInternal(playCancelSe: false);
+    }
+
+    void StopPurifyingInternal(bool playCancelSe)
+    {
         if (currentState != YokaiState.Purifying)
             return;
+
+        if (playCancelSe)
+            AudioHook.RequestPlay(YokaiSE.SE_PURIFY_CANCEL);
 
         SetState(YokaiState.Normal);
         RefreshState();
@@ -441,14 +455,13 @@ public class YokaiStateController : MonoBehaviour
     {
         if (newState == YokaiState.KegareMax && previousState != YokaiState.KegareMax)
         {
-            SEHub.Play(YokaiSE.Danger_Start);
+            AudioHook.RequestPlay(YokaiSE.SE_KEGARE_MAX_ENTER);
             return;
         }
 
         if (previousState == YokaiState.KegareMax && newState != YokaiState.KegareMax)
         {
-            SEHub.Play(YokaiSE.Purify_Success);
-            SEHub.Play(YokaiSE.Danger_End);
+            AudioHook.RequestPlay(YokaiSE.SE_KEGARE_MAX_RELEASE);
         }
     }
 

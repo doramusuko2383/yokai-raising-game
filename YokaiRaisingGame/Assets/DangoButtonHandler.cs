@@ -14,6 +14,7 @@ public class DangoButtonHandler : MonoBehaviour
 
     public void OnClickDango()
     {
+        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (!IsState(YokaiState.Normal, "だんご"))
             return;
 
