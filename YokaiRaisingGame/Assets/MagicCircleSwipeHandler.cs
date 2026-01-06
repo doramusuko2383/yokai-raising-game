@@ -210,10 +210,10 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         }
 
         Debug.Log("[PURIFY] おきよめ成功");
-        SEHub.Play(YokaiSE.Purify_Success);
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
         kegareManager.ApplyPurifyFromMagicCircle();
         hasAppliedPurify = true;
-        stateController.StopPurifying();
+        stateController.StopPurifyingForSuccess();
         ToggleGuide(false, immediate: false);
     }
 

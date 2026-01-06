@@ -127,6 +127,7 @@ public class EnergyManager : MonoBehaviour
     // 📺 広告を見る（仮）
     public void OnClickAdWatch()
     {
+        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 

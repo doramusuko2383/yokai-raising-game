@@ -16,6 +16,7 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickPurify()
     {
+        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (!IsState(YokaiState.Normal, "おきよめ"))
             return;
 
@@ -30,6 +31,7 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickEmergencyPurify()
     {
+        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (!IsState(YokaiState.KegareMax, "緊急お祓い"))
             return;
 
@@ -47,6 +49,7 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickStopPurify()
     {
+        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (!IsState(YokaiState.Purifying, "おきよめ停止"))
             return;
 

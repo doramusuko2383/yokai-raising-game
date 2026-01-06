@@ -67,6 +67,7 @@ public class YokaiEvolutionController : MonoBehaviour
     /// </summary>
     public void OnClickEvolve()
     {
+        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
@@ -115,6 +116,7 @@ public class YokaiEvolutionController : MonoBehaviour
         ResolveYokaiReferences();
         LogYokaiActiveState("[EVOLUTION][Before]");
 
+        AudioHook.RequestPlay(YokaiSE.SE_EVOLUTION_START);
         if (currentYokaiPrefab == null)
             Debug.LogWarning("[EVOLUTION] Current yokai prefab is not assigned.");
         if (nextYokaiPrefab == null)
@@ -125,7 +127,7 @@ public class YokaiEvolutionController : MonoBehaviour
         PauseDangerEffects(dangerEffectStates);
         PauseEvolutionUI(uiStates);
 
-        SEHub.Play(YokaiSE.Evolution_Charge);
+        AudioHook.RequestPlay(YokaiSE.SE_EVOLUTION_CHARGE);
         Debug.Log($"{FormatEvolutionLog("Start")} Evolution start.");
 
         if (currentYokaiPrefab != null)
@@ -149,7 +151,7 @@ public class YokaiEvolutionController : MonoBehaviour
         else if (characterRoot != null)
             yield return PlayEvolutionFlash(characterRoot);
 
-        SEHub.Play(YokaiSE.Evolution_Burst);
+        AudioHook.RequestPlay(YokaiSE.SE_EVOLUTION_SWAP);
         Debug.Log($"{FormatEvolutionLog("Swap")} Evolution swap.");
 
         // 見た目切り替え
@@ -178,7 +180,7 @@ public class YokaiEvolutionController : MonoBehaviour
         UpdateCurrentYokai(currentYokaiPrefab, "EvolutionComplete");
 
         // 完了
-        SEHub.Play(YokaiSE.Evolution_Complete);
+        AudioHook.RequestPlay(YokaiSE.SE_EVOLUTION_COMPLETE);
         Debug.Log($"{FormatEvolutionLog("Complete")} Evolution completed. Switching to Normal state.");
         stateController.CompleteEvolution();
         LogYokaiActiveState("[EVOLUTION][After]");
@@ -539,6 +541,7 @@ public class YokaiEvolutionController : MonoBehaviour
         if (target == null)
             yield break;
 
+        AudioHook.RequestPlay(YokaiSE.SE_EVOLUTION_FLASH);
         if (!EffectSettings.EnableEffects)
         {
             EffectSettings.LogEffectsOff("[EVOLUTION] Flash effect skipped.");
@@ -565,7 +568,6 @@ public class YokaiEvolutionController : MonoBehaviour
         float flashIntensity = 0.95f;
 
         Debug.Log("[EVOLUTION] Flash start");
-        SEHub.Play(YokaiSE.Evolution_Burst);
         TriggerBurstRecoil();
         Debug.Log($"{FormatEvolutionLog("Phase:Flash")} Flash phase started.");
         while (timer < duration)

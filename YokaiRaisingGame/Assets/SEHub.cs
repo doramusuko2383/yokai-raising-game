@@ -3,29 +3,39 @@ using UnityEngine;
 
 public static class SEHub
 {
-    static readonly HashSet<YokaiSE> PlayedThisFrame = new HashSet<YokaiSE>();
-    static int lastFrame = -1;
+    enum SEPriority
+    {
+        Low = 0,
+        Normal = 1,
+        High = 2
+    }
+
+    struct SEPlaybackPolicy
+    {
+        public float cooldownSeconds;
+        public float blockLowerSeconds;
+        public SEPriority priority;
+    }
+
+    static readonly Dictionary<YokaiSE, float> LastPlayedAt = new Dictionary<YokaiSE, float>();
+    static float highPriorityUntil;
     static GameObject runtimeRoot;
+    static AudioSource runtimeSource;
 
     // SE設計メモ:
     // - 命名規則（将来の音ファイル名）: se_<category>_<action>.wav
-    //   例: se_evolution_charge.wav / se_evolution_burst.wav / se_purify_success.wav
-    // - 推奨音量は 0.6〜0.9 の範囲で調整（ゲーム内SFXの基準音量）
-    // - 推奨長さは 0.2s〜0.7s を目安（演出テンポを崩さない短尺）
-    //
-    // YokaiSE ↔ 期待する音素材:
-    // - Evolution_Charge   : se_evolution_charge.wav  | 溜めのふわっと音 | 0.7 | 0.4s
-    // - Evolution_Burst    : se_evolution_burst.wav   | 魔法破裂音        | 0.8 | 0.2s
-    // - Evolution_Complete : se_evolution_complete.wav| 完了きらめき      | 0.85| 0.6s
-    // - Danger_Start       : se_danger_start.wav      | 低い警告音        | 0.75| 0.35s
-    // - Danger_End         : se_danger_end.wav        | 短い安堵音        | 0.7 | 0.25s
-    // - Purify_Success     : se_purify_success.wav    | 清らかな成功音    | 0.8 | 0.5s
-    //
-    // 将来の実装メモ:
-    // - AudioManager への差し替え場所: Debug.Log の直後（PlayOneShot へ移行）
-    // - 実装時は 1フレーム重複抑制を維持し、同SEの多重再生を防ぐ
+    //   例: se_evolution_charge.wav / se_purify_start.wav / se_kegare_max_enter.wav
+    // - AudioSource は SEHubRuntime に一元管理する
     // - ミュート/親AudioGroup設定は AudioManager 側で一元管理
-    public static void Play(YokaiSE se)
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void Initialize()
+    {
+        AudioHook.PlayRequested -= HandlePlayRequested;
+        AudioHook.PlayRequested += HandlePlayRequested;
+    }
+
+    static void HandlePlayRequested(YokaiSE se)
     {
         if (!EffectSettings.EnableEffects)
         {
@@ -33,44 +43,99 @@ public static class SEHub
             return;
         }
 
-        int frame = Time.frameCount;
-        if (frame != lastFrame)
+        var policy = GetPolicy(se);
+        if (!CanPlay(se, policy))
+            return;
+
+        if (!AudioHook.TryResolveClip(se, out var clip))
+            return;
+
+        EnsureRuntimeSource();
+        runtimeSource.PlayOneShot(clip);
+
+        float now = Time.unscaledTime;
+        LastPlayedAt[se] = now;
+        if (policy.priority == SEPriority.High)
+            highPriorityUntil = Mathf.Max(highPriorityUntil, now + policy.blockLowerSeconds);
+
+        Debug.Log($"[SE] Play: {se}");
+    }
+
+    static bool CanPlay(YokaiSE se, SEPlaybackPolicy policy)
+    {
+        float now = Time.unscaledTime;
+
+        if (policy.priority != SEPriority.High && now < highPriorityUntil)
+            return false;
+
+        if (LastPlayedAt.TryGetValue(se, out float lastTime) && now - lastTime < policy.cooldownSeconds)
+            return false;
+
+        return true;
+    }
+
+    static SEPlaybackPolicy GetPolicy(YokaiSE se)
+    {
+        switch (se)
         {
-            lastFrame = frame;
-            PlayedThisFrame.Clear();
+            case YokaiSE.SE_UI_CLICK:
+                return new SEPlaybackPolicy
+                {
+                    cooldownSeconds = 0.08f,
+                    blockLowerSeconds = 0f,
+                    priority = SEPriority.Low
+                };
+            case YokaiSE.SE_PURIFY_START:
+            case YokaiSE.SE_PURIFY_SUCCESS:
+            case YokaiSE.SE_PURIFY_CANCEL:
+                return new SEPlaybackPolicy
+                {
+                    cooldownSeconds = 0.25f,
+                    blockLowerSeconds = 0f,
+                    priority = SEPriority.Normal
+                };
+            case YokaiSE.SE_KEGARE_MAX_ENTER:
+            case YokaiSE.SE_KEGARE_MAX_RELEASE:
+                return new SEPlaybackPolicy
+                {
+                    cooldownSeconds = 0.4f,
+                    blockLowerSeconds = 0.6f,
+                    priority = SEPriority.High
+                };
+            case YokaiSE.SE_EVOLUTION_START:
+            case YokaiSE.SE_EVOLUTION_CHARGE:
+            case YokaiSE.SE_EVOLUTION_FLASH:
+            case YokaiSE.SE_EVOLUTION_SWAP:
+            case YokaiSE.SE_EVOLUTION_COMPLETE:
+                return new SEPlaybackPolicy
+                {
+                    cooldownSeconds = 0.3f,
+                    blockLowerSeconds = 0.5f,
+                    priority = SEPriority.High
+                };
+            default:
+                return new SEPlaybackPolicy
+                {
+                    cooldownSeconds = 0.2f,
+                    blockLowerSeconds = 0.3f,
+                    priority = SEPriority.Normal
+                };
+        }
+    }
+
+    static void EnsureRuntimeSource()
+    {
+        if (runtimeRoot == null)
+        {
+            runtimeRoot = new GameObject("SEHubRuntime");
+            Object.DontDestroyOnLoad(runtimeRoot);
         }
 
-        if (!PlayedThisFrame.Add(se))
+        if (runtimeSource != null)
             return;
 
-        Debug.Log($"[SE] {se}");
-        AudioHook.RequestPlay(se);
-
-        if (AudioHook.TryResolveClip(se, out var clip))
-            PlayClip(se, clip);
-    }
-
-    static void PlayClip(YokaiSE se, AudioClip clip)
-    {
-        if (clip == null)
-            return;
-
-        EnsureRuntimeRoot();
-        var sourceObject = new GameObject($"SE_{se}");
-        sourceObject.transform.SetParent(runtimeRoot.transform, false);
-        var source = sourceObject.AddComponent<AudioSource>();
-        source.playOnAwake = false;
-        source.clip = clip;
-        source.Play();
-        Object.Destroy(sourceObject, clip.length + 0.1f);
-    }
-
-    static void EnsureRuntimeRoot()
-    {
-        if (runtimeRoot != null)
-            return;
-
-        runtimeRoot = new GameObject("SEHubRuntime");
-        Object.DontDestroyOnLoad(runtimeRoot);
+        runtimeSource = runtimeRoot.AddComponent<AudioSource>();
+        runtimeSource.playOnAwake = false;
+        runtimeSource.loop = false;
     }
 }
