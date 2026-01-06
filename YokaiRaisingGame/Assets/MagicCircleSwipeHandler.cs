@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -38,6 +39,29 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     [SerializeField]
     Image magicCircleGuide;
 
+    [Header("Trail")]
+    [SerializeField]
+    LineRenderer swipeTrail;
+
+    [SerializeField]
+    Color trailColor = new Color(0.8f, 0.95f, 1f, 0.9f);
+
+    [SerializeField]
+    float trailWidth = 8f;
+
+    [SerializeField]
+    float trailFadeDuration = 0.25f;
+
+    [SerializeField]
+    float trailMinPointDistance = 2f;
+
+    [Header("Success")]
+    [SerializeField]
+    float successPulseScale = 1.1f;
+
+    [SerializeField]
+    float successPulseDuration = 0.2f;
+
     [SerializeField]
     YokaiStateController stateController;
 
@@ -60,16 +84,22 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     bool wasPurifying;
     CanvasGroup guideCanvasGroup;
     Coroutine guideFadeCoroutine;
+    Coroutine trailFadeCoroutine;
+    Coroutine successPulseCoroutine;
+    readonly List<Vector3> trailPoints = new List<Vector3>();
 
     void OnEnable()
     {
         SetupGuideCanvas();
+        SetupTrailRenderer();
+        ClearTrail(immediate: true);
         ToggleGuide(IsPurifying(), immediate: true);
     }
 
     void OnDisable()
     {
         ToggleGuide(false, immediate: true);
+        ClearTrail(immediate: true);
     }
 
     void Update()
@@ -79,6 +109,12 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         {
             ToggleGuide(isPurifying, immediate: false);
             wasPurifying = isPurifying;
+            if (!isPurifying)
+            {
+                isTracking = false;
+                isCompleted = false;
+                ClearTrail(immediate: true);
+            }
         }
 
         if (isTracking && timeLimitSeconds > 0f)
@@ -114,6 +150,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         swipeStartTime = Time.unscaledTime;
 
         Debug.Log("[PURIFY] Swipe start");
+        StartTrail(eventData.position, eventData.pressEventCamera);
 
         if (!IsWithinRadius(eventData.position, eventData.pressEventCamera))
         {
@@ -125,6 +162,8 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     {
         if (!isTracking || isCompleted)
             return;
+
+        AddTrailPoint(eventData.position, eventData.pressEventCamera);
 
         float angle = GetAngleFromCenter(eventData.position, eventData.pressEventCamera);
         Vector2 localPoint = GetLocalPoint(eventData.position, eventData.pressEventCamera);
@@ -175,8 +214,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         if (!isTracking)
             return;
 
-        isTracking = false;
-
         if (!isCompleted)
             CancelSwipe("入力中断");
     }
@@ -210,6 +247,9 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         }
 
         Debug.Log("[PURIFY] おきよめ成功");
+        Debug.Log("[PURIFY] Trail success");
+        ClearTrail(immediate: true);
+        PulseMagicCircle();
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
         kegareManager.ApplyPurifyFromMagicCircle();
         hasAppliedPurify = true;
@@ -266,6 +306,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         isCompleted = false;
         Debug.Log($"[PURIFY] Swipe cancel reason={reason}");
         LogSwipeFailure();
+        ClearTrail(immediate: false);
         if (IsPurifying())
             stateController.StopPurifying();
         ToggleGuide(false, immediate: false);
@@ -377,6 +418,163 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         guideCanvasGroup = magicCircleGuide.GetComponent<CanvasGroup>();
         if (guideCanvasGroup == null)
             guideCanvasGroup = magicCircleGuide.gameObject.AddComponent<CanvasGroup>();
+    }
+
+    void SetupTrailRenderer()
+    {
+        if (swipeTrail == null)
+            swipeTrail = GetComponent<LineRenderer>();
+
+        if (swipeTrail == null)
+            swipeTrail = gameObject.AddComponent<LineRenderer>();
+
+        swipeTrail.useWorldSpace = false;
+        swipeTrail.alignment = LineAlignment.View;
+        swipeTrail.textureMode = LineTextureMode.Stretch;
+        swipeTrail.widthMultiplier = trailWidth;
+        swipeTrail.positionCount = 0;
+        swipeTrail.enabled = false;
+
+        if (swipeTrail.material == null)
+        {
+            var shader = Shader.Find("Sprites/Default");
+            if (shader != null)
+                swipeTrail.material = new Material(shader);
+        }
+
+        ApplyTrailColor(1f);
+    }
+
+    void StartTrail(Vector2 screenPosition, Camera eventCamera)
+    {
+        SetupTrailRenderer();
+        if (swipeTrail == null)
+            return;
+
+        if (trailFadeCoroutine != null)
+            StopCoroutine(trailFadeCoroutine);
+
+        trailPoints.Clear();
+        swipeTrail.positionCount = 0;
+        swipeTrail.enabled = true;
+        ApplyTrailColor(1f);
+        AddTrailPoint(screenPosition, eventCamera, force: true);
+        Debug.Log("[PURIFY] Trail start");
+    }
+
+    void AddTrailPoint(Vector2 screenPosition, Camera eventCamera, bool force = false)
+    {
+        if (swipeTrail == null || !swipeTrail.enabled)
+            return;
+
+        Vector2 localPoint = GetLocalPoint(screenPosition, eventCamera);
+        Vector3 point = new Vector3(localPoint.x, localPoint.y, 0f);
+
+        if (!force && trailPoints.Count > 0)
+        {
+            float distance = Vector3.Distance(trailPoints[trailPoints.Count - 1], point);
+            if (distance < trailMinPointDistance)
+                return;
+        }
+
+        trailPoints.Add(point);
+        swipeTrail.positionCount = trailPoints.Count;
+        swipeTrail.SetPositions(trailPoints.ToArray());
+    }
+
+    void ClearTrail(bool immediate)
+    {
+        if (swipeTrail == null)
+            return;
+
+        if (!swipeTrail.enabled && swipeTrail.positionCount == 0)
+            return;
+
+        if (trailFadeCoroutine != null)
+            StopCoroutine(trailFadeCoroutine);
+
+        if (immediate)
+        {
+            swipeTrail.positionCount = 0;
+            swipeTrail.enabled = false;
+            ApplyTrailColor(1f);
+            Debug.Log("[PURIFY] Trail cleared");
+            return;
+        }
+
+        trailFadeCoroutine = StartCoroutine(FadeTrail());
+    }
+
+    System.Collections.IEnumerator FadeTrail()
+    {
+        float duration = Mathf.Clamp(trailFadeDuration, 0.2f, 0.3f);
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            ApplyTrailColor(1f - t);
+            yield return null;
+        }
+
+        swipeTrail.positionCount = 0;
+        swipeTrail.enabled = false;
+        ApplyTrailColor(1f);
+        Debug.Log("[PURIFY] Trail cleared");
+        trailFadeCoroutine = null;
+    }
+
+    void ApplyTrailColor(float alphaMultiplier)
+    {
+        if (swipeTrail == null)
+            return;
+
+        Color color = trailColor;
+        color.a *= Mathf.Clamp01(alphaMultiplier);
+        swipeTrail.startColor = color;
+        swipeTrail.endColor = color;
+    }
+
+    void PulseMagicCircle()
+    {
+        if (successPulseCoroutine != null)
+            StopCoroutine(successPulseCoroutine);
+
+        Transform target = magicCircleGuide != null ? magicCircleGuide.transform : circleRect;
+        if (target == null)
+            return;
+
+        successPulseCoroutine = StartCoroutine(PulseScale(target));
+    }
+
+    System.Collections.IEnumerator PulseScale(Transform target)
+    {
+        Vector3 startScale = target.localScale;
+        Vector3 peakScale = startScale * Mathf.Max(1f, successPulseScale);
+        float duration = Mathf.Max(0.05f, successPulseDuration);
+        float half = duration * 0.5f;
+        float elapsed = 0f;
+
+        while (elapsed < half)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / half);
+            target.localScale = Vector3.Lerp(startScale, peakScale, t);
+            yield return null;
+        }
+
+        elapsed = 0f;
+        while (elapsed < half)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / half);
+            target.localScale = Vector3.Lerp(peakScale, startScale, t);
+            yield return null;
+        }
+
+        target.localScale = startScale;
+        successPulseCoroutine = null;
     }
 
     System.Collections.IEnumerator FadeGuide(bool isVisible, bool immediate)
