@@ -189,7 +189,7 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
-        if (evolutionReadyPending)
+        if (evolutionReadyPending && !IsEvolutionBlocked(out _))
         {
             SetState(YokaiState.EvolutionReady);
             return;
@@ -310,6 +310,13 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         evolutionReadyPending = true;
+        if (IsEvolutionBlocked(out string reason))
+        {
+            Debug.Log($"[EVOLUTION] Ready blocked. reason={reason}");
+            RefreshState();
+            return;
+        }
+
         if (!IsKegareMax())
             currentState = YokaiState.EvolutionReady;
         // DEBUG: EvolutionReady になったことを明示してタップ可能を知らせる
@@ -339,6 +346,34 @@ public class YokaiStateController : MonoBehaviour
             kegareManager = CurrentYokaiContext.ResolveKegareManager();
 
         return kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
+    }
+
+    bool IsEnergyZero()
+    {
+        if (energyManager == null)
+            energyManager = FindObjectOfType<EnergyManager>();
+
+        return energyManager != null && energyManager.energy <= 0f;
+    }
+
+    bool IsEvolutionBlocked(out string reason)
+    {
+        bool isKegareMax = IsKegareMax();
+        bool isEnergyZero = IsEnergyZero();
+        if (!isKegareMax && !isEnergyZero)
+        {
+            reason = string.Empty;
+            return false;
+        }
+
+        if (isKegareMax && isEnergyZero)
+            reason = "穢れMAX / 霊力0";
+        else if (isKegareMax)
+            reason = "穢れMAX";
+        else
+            reason = "霊力0";
+
+        return true;
     }
 
     void HandlePurifyTick()

@@ -83,6 +83,12 @@ public class YokaiEvolutionController : MonoBehaviour
             return;
         }
 
+        if (IsEvolutionBlocked(out string reason))
+        {
+            Debug.Log($"[EVOLUTION] Tap blocked. reason={reason}");
+            return;
+        }
+
         if (isEvolving)
         {
             Debug.Log("[EVOLUTION] Tap ignored. Evolution already in progress.");
@@ -216,6 +222,29 @@ public class YokaiEvolutionController : MonoBehaviour
             UpdateCurrentYokai(currentYokaiPrefab, "Initialize");
             RegisterEncyclopediaDiscovery(currentYokaiPrefab);
         }
+    }
+
+    bool IsEvolutionBlocked(out string reason)
+    {
+        var kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        var energyManager = FindObjectOfType<EnergyManager>();
+
+        bool isKegareMax = kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
+        bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
+        if (!isKegareMax && !isEnergyZero)
+        {
+            reason = string.Empty;
+            return false;
+        }
+
+        if (isKegareMax && isEnergyZero)
+            reason = "穢れMAX / 霊力0";
+        else if (isKegareMax)
+            reason = "穢れMAX";
+        else
+            reason = "霊力0";
+
+        return true;
     }
 
     void ResolveYokaiReferences()

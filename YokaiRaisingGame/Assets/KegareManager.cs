@@ -7,6 +7,13 @@ public class KegareManager : MonoBehaviour
     public float kegare = 0f;
     public float maxKegare = 100f;
 
+    [Header("自然増加")]
+    [SerializeField]
+    float naturalIncreasePerMinute = 2f;
+
+    [SerializeField]
+    float increaseIntervalSeconds = 60f;
+
     [Header("World")]
     [SerializeField]
     WorldConfig worldConfig;
@@ -23,6 +30,7 @@ public class KegareManager : MonoBehaviour
 
     bool isMononoke = false;
     GameObject currentYokai;
+    float increaseTimer;
 
     public event System.Action EmergencyPurifyRequested;
     public event System.Action<float, float> KegareChanged;
@@ -54,6 +62,11 @@ public class KegareManager : MonoBehaviour
     {
         BindCurrentYokai(CurrentYokaiContext.Current);
         NotifyKegareChanged();
+    }
+
+    void Update()
+    {
+        HandleNaturalIncrease();
     }
 
     public void BindCurrentYokai(GameObject yokai)
@@ -89,7 +102,7 @@ public class KegareManager : MonoBehaviour
         NotifyKegareChanged();
     }
 
-    public void ApplyPurify(float purifyRatio = 0.7f)
+    public void ApplyPurify(float purifyRatio = 0.25f)
     {
         ApplyPurifyInternal(purifyRatio, allowWhenCritical: false, logContext: "おきよめ");
     }
@@ -99,7 +112,7 @@ public class KegareManager : MonoBehaviour
         ApplyPurify();
     }
 
-    public void ApplyPurifyFromMagicCircle(float purifyRatio = 0.7f)
+    public void ApplyPurifyFromMagicCircle(float purifyRatio = 0.45f)
     {
         ApplyPurifyInternal(purifyRatio, allowWhenCritical: true, logContext: "magic circle");
     }
@@ -119,6 +132,7 @@ public class KegareManager : MonoBehaviour
         if (kegare < maxKegare && isMononoke)
             isMononoke = false;
 
+        Debug.Log($"[PURIFY] {logContext} amount={purifyAmount:0.##} kegare={kegare:0.##}/{maxKegare:0.##}");
         NotifyKegareChanged();
     }
 
@@ -172,6 +186,25 @@ public class KegareManager : MonoBehaviour
             isMononoke = false;
 
         NotifyKegareChanged();
+    }
+
+    void HandleNaturalIncrease()
+    {
+        if (naturalIncreasePerMinute <= 0f)
+            return;
+
+        if (kegare >= maxKegare)
+            return;
+
+        increaseTimer += Time.deltaTime;
+        if (increaseTimer < increaseIntervalSeconds)
+            return;
+
+        int ticks = Mathf.FloorToInt(increaseTimer / increaseIntervalSeconds);
+        increaseTimer -= ticks * increaseIntervalSeconds;
+        float increaseAmount = naturalIncreasePerMinute * ticks;
+        AddKegare(increaseAmount);
+        Debug.Log($"[KEGARE][Increase] +{increaseAmount:0.##} value={kegare:0.##}/{maxKegare:0.##}");
     }
 
     void NotifyKegareChanged()

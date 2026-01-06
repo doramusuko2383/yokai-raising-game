@@ -10,7 +10,7 @@ public class DangoButtonHandler : MonoBehaviour
     EnergyManager energyManager;
 
     [SerializeField]
-    float dangoAmount = 40f;
+    float dangoAmount = 30f;
 
     public void OnClickDango()
     {
@@ -24,6 +24,7 @@ public class DangoButtonHandler : MonoBehaviour
         if (energyManager != null)
         {
             energyManager.AddEnergy(dangoAmount);
+            Debug.Log($"[DANGO] +{dangoAmount:0.##} energy={energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}");
             TutorialManager.NotifyDangoUsed();
         }
         else

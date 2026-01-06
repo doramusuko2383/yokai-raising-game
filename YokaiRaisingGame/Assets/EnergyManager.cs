@@ -7,6 +7,13 @@ public class EnergyManager : MonoBehaviour
     public float energy = 100f;
     public float maxEnergy = 100f;
 
+    [Header("自然減少")]
+    [SerializeField]
+    float naturalDecayPerMinute = 2.5f;
+
+    [SerializeField]
+    float decayIntervalSeconds = 60f;
+
     [Header("World")]
     [SerializeField]
     WorldConfig worldConfig;
@@ -19,6 +26,7 @@ public class EnergyManager : MonoBehaviour
     YokaiStateController stateController;
 
     bool isWeak;
+    float decayTimer;
 
     public event System.Action<float, float> EnergyChanged;
     public event System.Action<bool> WeakStateChanged;
@@ -48,6 +56,11 @@ public class EnergyManager : MonoBehaviour
         }
 
         NotifyEnergyChanged();
+    }
+
+    void Update()
+    {
+        HandleNaturalDecay();
     }
 
     public void ChangeEnergy(float amount)
@@ -104,6 +117,25 @@ public class EnergyManager : MonoBehaviour
         ChangeEnergy(healAmount);
     }
 
+    void HandleNaturalDecay()
+    {
+        if (naturalDecayPerMinute <= 0f)
+            return;
+
+        if (energy <= 0f)
+            return;
+
+        decayTimer += Time.deltaTime;
+        if (decayTimer < decayIntervalSeconds)
+            return;
+
+        int ticks = Mathf.FloorToInt(decayTimer / decayIntervalSeconds);
+        decayTimer -= ticks * decayIntervalSeconds;
+        float decayAmount = naturalDecayPerMinute * ticks;
+        ChangeEnergy(-decayAmount);
+        Debug.Log($"[ENERGY][Decay] -{decayAmount:0.##} energy={energy:0.##}/{maxEnergy:0.##}");
+    }
+
     void EnterWeakState()
     {
         isWeak = true;
@@ -141,9 +173,10 @@ public class EnergyManager : MonoBehaviour
             Debug.Log(worldConfig.recoveredMessage);
         }
 
-        energy = maxEnergy;
+        energy = Mathf.Clamp(100f, 0f, maxEnergy);
         RecoverFromWeak();
         NotifyEnergyChanged();
+        Debug.Log($"[ENERGY][Ad] set=100 energy={energy:0.##}/{maxEnergy:0.##}");
     }
 
     bool TryGetRecoveryBlockReason(out string reason)
