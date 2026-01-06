@@ -42,6 +42,7 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
 
     void Awake()
     {
+        ResolveReferences();
         EnsureGuideVisuals();
     }
 
@@ -158,6 +159,22 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
         }
 
         UpdateProgress();
+    }
+
+    void ResolveReferences()
+    {
+        if (circleRect == null)
+            circleRect = GetComponent<RectTransform>();
+
+        if (canvasGroup == null)
+        {
+            canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+                canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        }
+
+        if (instructionText == null)
+            instructionText = GetComponentInChildren<TMP_Text>(true);
     }
 
     Image CreateRing(string name, bool filled, Color color)

@@ -177,6 +177,13 @@ public class YokaiStateController : MonoBehaviour
 
     public void RefreshState()
     {
+        if (CurrentYokaiContext.Current == null)
+        {
+            currentState = YokaiState.Normal;
+            ApplyStateUI();
+            return;
+        }
+
         if (currentState == YokaiState.Evolving)
         {
             ApplyStateUI();
@@ -546,7 +553,9 @@ public class YokaiStateController : MonoBehaviour
         float maxKegare = kegareManager != null ? kegareManager.maxKegare : 0f;
         float currentEnergy = energyManager != null ? energyManager.energy : 0f;
         float maxEnergy = energyManager != null ? energyManager.maxEnergy : 0f;
+#if UNITY_EDITOR
         Debug.Log($"[STATE][{label}] yokai={yokaiName} state={currentState} kegare={currentKegare:0.##}/{maxKegare:0.##} energy={currentEnergy:0.##}/{maxEnergy:0.##}");
+#endif
     }
 
 }

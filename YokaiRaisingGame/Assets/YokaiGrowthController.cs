@@ -143,6 +143,28 @@ public class YokaiGrowthController : MonoBehaviour
         return isKegareMax || isEnergyZero;
     }
 
+    void LogGrowthStoppedReason()
+    {
+        string reason = "unknown";
+
+        if (isEvolutionReady)
+        {
+            reason = "evolution-ready";
+        }
+        else if (kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare)
+        {
+            reason = "kegare-max";
+        }
+        else if (energyManager != null && energyManager.energy <= 0f)
+        {
+            reason = "energy-empty";
+        }
+
+#if UNITY_EDITOR
+        Debug.Log($"[GROWTH] Growth stopped. reason={reason}");
+#endif
+    }
+
     void ApplyScale()
     {
         transform.localScale = Vector3.one * currentScale;
