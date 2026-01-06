@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Yokai;
 
 public class FireBallIdle : MonoBehaviour
 {
@@ -39,6 +40,8 @@ public class FireBallIdle : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         stateController = FindObjectOfType<Yokai.YokaiStateController>();
         evolutionController = FindObjectOfType<YokaiEvolutionController>();
+
+        YokaiEncyclopedia.RegisterDiscovery(YokaiId.FireBall);
     }
 
     void Update()

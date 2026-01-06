@@ -178,6 +178,7 @@ public class YokaiEvolutionController : MonoBehaviour
         nextYokaiPrefab = FindNextYokaiPrefab(currentYokaiPrefab);
         Debug.Log($"[EVOLUTION] currentYokaiPrefab 更新結果={GetYokaiName(currentYokaiPrefab)} next={GetYokaiName(nextYokaiPrefab)}");
         UpdateCurrentYokai(currentYokaiPrefab, "EvolutionComplete");
+        RegisterEncyclopediaEvolution(currentYokaiPrefab);
 
         // 完了
         AudioHook.RequestPlay(YokaiSE.SE_EVOLUTION_COMPLETE);
@@ -212,6 +213,7 @@ public class YokaiEvolutionController : MonoBehaviour
             if (stateController != null)
                 stateController.SetActiveYokai(currentYokaiPrefab);
             UpdateCurrentYokai(currentYokaiPrefab, "Initialize");
+            RegisterEncyclopediaDiscovery(currentYokaiPrefab);
         }
     }
 
@@ -266,6 +268,24 @@ public class YokaiEvolutionController : MonoBehaviour
 
         foreach (var effect in activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true))
             effect.RefreshOriginalColor();
+    }
+
+    void RegisterEncyclopediaDiscovery(GameObject yokaiObject)
+    {
+        if (yokaiObject == null)
+            return;
+
+        if (YokaiEncyclopedia.TryResolveYokaiId(yokaiObject.name, out var yokaiId, out _))
+            YokaiEncyclopedia.RegisterDiscovery(yokaiId);
+    }
+
+    void RegisterEncyclopediaEvolution(GameObject yokaiObject)
+    {
+        if (yokaiObject == null)
+            return;
+
+        if (YokaiEncyclopedia.TryResolveYokaiId(yokaiObject.name, out var yokaiId, out var stage))
+            YokaiEncyclopedia.RegisterEvolution(yokaiId, stage);
     }
 
     GameObject FindYokaiByName(string targetName)
