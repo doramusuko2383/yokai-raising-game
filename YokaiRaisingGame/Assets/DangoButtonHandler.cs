@@ -22,9 +22,14 @@ public class DangoButtonHandler : MonoBehaviour
             energyManager = FindObjectOfType<EnergyManager>();
 
         if (energyManager != null)
+        {
             energyManager.AddEnergy(dangoAmount);
+            TutorialManager.NotifyDangoUsed();
+        }
         else
+        {
             Debug.LogWarning("[DANGO] EnergyManager が見つからないためだんごが使えません。");
+        }
     }
 
     bool IsState(YokaiState state, string actionLabel)

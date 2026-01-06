@@ -24,9 +24,14 @@ public class PurifyButtonHandler : MonoBehaviour
             stateController = CurrentYokaiContext.ResolveStateController();
 
         if (stateController != null)
+        {
             stateController.BeginPurifying();
+            TutorialManager.NotifyPurifyUsed();
+        }
         else
+        {
             Debug.LogWarning("[PURIFY] StateController が見つからないためおきよめできません。");
+        }
     }
 
     public void OnClickEmergencyPurify()
@@ -41,9 +46,14 @@ public class PurifyButtonHandler : MonoBehaviour
                 stateController = CurrentYokaiContext.ResolveStateController();
 
             if (stateController != null)
+            {
                 stateController.ExecuteEmergencyPurify();
+                TutorialManager.NotifyPurifyUsed();
+            }
             else
+            {
                 Debug.LogWarning("[PURIFY] StateController が見つからないため緊急お祓いできません。");
+            }
         });
     }
 
