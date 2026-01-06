@@ -104,7 +104,6 @@ public class YokaiGrowthController : MonoBehaviour
         {
             if (!wasGrowthStopped && isGrowthStopped)
             {
-                LogGrowthStoppedReason();
             }
             return;
         }
