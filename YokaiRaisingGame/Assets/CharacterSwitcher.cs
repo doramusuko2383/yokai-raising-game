@@ -33,7 +33,7 @@ public class CharacterSwitcher : MonoBehaviour
     {
         if (prefab == null)
         {
-            Debug.LogWarning("CharacterSwitcher: Prefab is not assigned.");
+            Debug.LogWarning("[STATE] Prefab is not assigned.");
             return;
         }
 

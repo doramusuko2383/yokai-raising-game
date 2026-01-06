@@ -15,7 +15,7 @@ public class DangoButtonHandler : MonoBehaviour
     public void OnClickDango()
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
-        if (!IsState(YokaiState.Normal, "だんご"))
+        if (!IsState(YokaiState.Normal))
             return;
 
         if (energyManager == null)
@@ -24,16 +24,16 @@ public class DangoButtonHandler : MonoBehaviour
         if (energyManager != null)
         {
             energyManager.AddEnergy(dangoAmount);
-            Debug.Log($"[DANGO] +{dangoAmount:0.##} energy={energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}");
+            Debug.Log($"[ENERGY] Dango +{dangoAmount:0.##} energy={energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}");
             TutorialManager.NotifyDangoUsed();
         }
         else
         {
-            Debug.LogWarning("[DANGO] EnergyManager が見つからないためだんごが使えません。");
+            Debug.LogWarning("[ENERGY] EnergyManager が見つからないためだんごが使えません。");
         }
     }
 
-    bool IsState(YokaiState state, string actionLabel)
+    bool IsState(YokaiState state)
     {
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
@@ -41,8 +41,6 @@ public class DangoButtonHandler : MonoBehaviour
         if (stateController == null || stateController.currentState == state)
             return true;
 
-        // DEBUG: 状態不一致で処理が止まった理由を明示する
-        Debug.Log($"[ACTION BLOCK] {actionLabel} blocked. state={stateController.currentState}");
         return false;
     }
 }

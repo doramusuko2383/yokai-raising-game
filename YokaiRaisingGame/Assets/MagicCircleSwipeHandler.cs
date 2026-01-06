@@ -199,8 +199,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             return;
         }
 
-        Debug.Log($"[PURIFY] angle progress total={Mathf.Abs(totalAngle):F1} sample={sampleCount}");
-
         if (IsGestureComplete())
         {
             isCompleted = true;

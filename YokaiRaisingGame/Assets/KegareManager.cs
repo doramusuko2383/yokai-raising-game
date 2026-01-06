@@ -53,7 +53,7 @@ public class KegareManager : MonoBehaviour
 
             if (worldConfig == null)
             {
-                Debug.LogWarning("WorldConfig が見つかりません: Resources/WorldConfig_Yokai");
+                Debug.LogWarning("[PURIFY] WorldConfig が見つかりません: Resources/WorldConfig_Yokai");
             }
         }
     }
@@ -72,7 +72,6 @@ public class KegareManager : MonoBehaviour
     public void BindCurrentYokai(GameObject yokai)
     {
         currentYokai = yokai;
-        Debug.Log($"[KEGARE][Bind] currentYokai={(currentYokai != null ? currentYokai.name : "null")}");
     }
 
     public void AddKegare(float amount)
@@ -98,7 +97,6 @@ public class KegareManager : MonoBehaviour
         else if (kegare < maxKegare && isMononoke)
             isMononoke = false;
 
-        Debug.Log($"[KEGARE][Set] value={kegare:0.##}/{maxKegare:0.##} reason={reason ?? "unspecified"}");
         NotifyKegareChanged();
     }
 
@@ -119,10 +117,8 @@ public class KegareManager : MonoBehaviour
 
     void ApplyPurifyInternal(float purifyRatio, bool allowWhenCritical, string logContext)
     {
-        if (!allowWhenCritical && TryGetRecoveryBlockReason(out string blockReason))
+        if (!allowWhenCritical && TryGetRecoveryBlockReason(out _))
         {
-            // DEBUG: ブロック理由を明確にログ出力する
-            Debug.Log($"[RECOVERY BLOCK] {logContext} purify blocked. reason={blockReason}");
             return;
         }
 
@@ -147,7 +143,7 @@ public class KegareManager : MonoBehaviour
 
         if (worldConfig != null)
         {
-            Debug.Log(worldConfig.recoveredMessage);
+            Debug.Log($"[PURIFY] {worldConfig.recoveredMessage}");
         }
 
         EmergencyPurifyRequested?.Invoke();
@@ -204,20 +200,11 @@ public class KegareManager : MonoBehaviour
         increaseTimer -= ticks * increaseIntervalSeconds;
         float increaseAmount = naturalIncreasePerMinute * ticks;
         AddKegare(increaseAmount);
-        Debug.Log($"[KEGARE][Increase] +{increaseAmount:0.##} value={kegare:0.##}/{maxKegare:0.##}");
     }
 
     void NotifyKegareChanged()
     {
-        LogKegareStatus("Update");
         KegareChanged?.Invoke(kegare, maxKegare);
-    }
-
-    void LogKegareStatus(string label)
-    {
-        string yokaiName = currentYokai != null ? currentYokai.name : CurrentYokaiContext.CurrentName();
-        string stateName = stateController != null ? stateController.currentState.ToString() : "Unknown";
-        Debug.Log($"[KEGARE][{label}] yokai={yokaiName} state={stateName} value={kegare:0.##}/{maxKegare:0.##}");
     }
 
 }

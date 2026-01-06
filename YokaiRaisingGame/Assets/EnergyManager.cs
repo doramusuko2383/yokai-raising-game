@@ -39,7 +39,7 @@ public class EnergyManager : MonoBehaviour
 
             if (worldConfig == null)
             {
-                Debug.LogWarning("WorldConfig が見つかりません: Resources/WorldConfig_Yokai");
+                Debug.LogWarning("[ENERGY] WorldConfig が見つかりません: Resources/WorldConfig_Yokai");
             }
         }
     }
@@ -101,15 +101,11 @@ public class EnergyManager : MonoBehaviour
 
         if (stateController != null && stateController.currentState != YokaiState.Normal)
         {
-            // DEBUG: 状態不一致で処理が止まった理由を明示する
-            Debug.Log($"[RECOVERY BLOCK] {logContext} heal blocked. state={stateController.currentState}");
             return;
         }
 
-        if (!allowWhenCritical && TryGetRecoveryBlockReason(out string blockReason))
+        if (!allowWhenCritical && TryGetRecoveryBlockReason(out _))
         {
-            // DEBUG: ブロック理由を明確にログ出力する
-            Debug.Log($"[RECOVERY BLOCK] {logContext} heal blocked. reason={blockReason}");
             return;
         }
 
@@ -133,7 +129,6 @@ public class EnergyManager : MonoBehaviour
         decayTimer -= ticks * decayIntervalSeconds;
         float decayAmount = naturalDecayPerMinute * ticks;
         ChangeEnergy(-decayAmount);
-        Debug.Log($"[ENERGY][Decay] -{decayAmount:0.##} energy={energy:0.##}/{maxEnergy:0.##}");
     }
 
     void EnterWeakState()
@@ -142,7 +137,7 @@ public class EnergyManager : MonoBehaviour
         WeakStateChanged?.Invoke(true);
         if (worldConfig != null)
         {
-            Debug.Log(worldConfig.weakMessage);
+            Debug.Log($"[ENERGY] {worldConfig.weakMessage}");
         }
     }
 
@@ -152,7 +147,7 @@ public class EnergyManager : MonoBehaviour
         WeakStateChanged?.Invoke(false);
         if (worldConfig != null)
         {
-            Debug.Log(worldConfig.normalMessage);
+            Debug.Log($"[ENERGY] {worldConfig.normalMessage}");
         }
     }
 
@@ -163,20 +158,14 @@ public class EnergyManager : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        if (stateController != null && stateController.currentState != YokaiState.Normal)
+        if (stateController != null && stateController.currentState != YokaiState.EnergyEmpty)
         {
             return;
         }
 
-        if (worldConfig != null)
-        {
-            Debug.Log(worldConfig.recoveredMessage);
-        }
-
-        energy = Mathf.Clamp(100f, 0f, maxEnergy);
-        RecoverFromWeak();
-        NotifyEnergyChanged();
-        Debug.Log($"[ENERGY][Ad] set=100 energy={energy:0.##}/{maxEnergy:0.##}");
+        float recoveryAmount = Random.Range(30f, 40f);
+        ChangeEnergy(recoveryAmount);
+        Debug.Log($"[ENERGY] Emergency dango +{recoveryAmount:0.##} energy={energy:0.##}/{maxEnergy:0.##}");
     }
 
     bool TryGetRecoveryBlockReason(out string reason)

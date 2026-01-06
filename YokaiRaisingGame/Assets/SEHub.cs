@@ -58,7 +58,6 @@ public static class SEHub
         if (policy.priority == SEPriority.High)
             highPriorityUntil = Mathf.Max(highPriorityUntil, now + policy.blockLowerSeconds);
 
-        Debug.Log($"[SE] Play: {se}");
     }
 
     static bool CanPlay(YokaiSE se, SEPlaybackPolicy policy)

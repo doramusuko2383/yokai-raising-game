@@ -17,7 +17,7 @@ public class PurifyButtonHandler : MonoBehaviour
     public void OnClickPurify()
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
-        if (!IsState(YokaiState.Normal, "おきよめ"))
+        if (!IsState(YokaiState.Normal))
             return;
 
         if (stateController == null)
@@ -37,7 +37,7 @@ public class PurifyButtonHandler : MonoBehaviour
     public void OnClickEmergencyPurify()
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
-        if (!IsState(YokaiState.KegareMax, "緊急お祓い"))
+        if (!IsState(YokaiState.KegareMax))
             return;
 
         ShowAd(() =>
@@ -60,7 +60,7 @@ public class PurifyButtonHandler : MonoBehaviour
     public void OnClickStopPurify()
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
-        if (!IsState(YokaiState.Purifying, "おきよめ停止"))
+        if (!IsState(YokaiState.Purifying))
             return;
 
         if (stateController == null)
@@ -70,7 +70,7 @@ public class PurifyButtonHandler : MonoBehaviour
             stateController.StopPurifying();
     }
 
-    bool IsState(YokaiState state, string actionLabel)
+    bool IsState(YokaiState state)
     {
         if (stateController == null)
             stateController = CurrentYokaiContext.ResolveStateController();
@@ -78,14 +78,11 @@ public class PurifyButtonHandler : MonoBehaviour
         if (stateController == null || stateController.currentState == state)
             return true;
 
-        // DEBUG: 状態不一致で処理が止まった理由を明示する
-        Debug.Log($"[ACTION BLOCK] {actionLabel} blocked. state={stateController.currentState}");
         return false;
     }
 
     void ShowAd(System.Action onCompleted)
     {
-        Debug.Log("[AD] Showing rewarded ad before emergency purify.");
         onCompleted?.Invoke();
     }
 }

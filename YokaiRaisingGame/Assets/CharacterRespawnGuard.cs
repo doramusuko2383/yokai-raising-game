@@ -20,7 +20,7 @@ public class CharacterRespawnGuard : MonoBehaviour
 
         if (characterRoot == null)
         {
-            Debug.LogWarning("[RESPAWN] CharacterRoot is not assigned.");
+            Debug.LogWarning("[STATE] CharacterRoot is not assigned.");
             return;
         }
 
@@ -36,7 +36,7 @@ public class CharacterRespawnGuard : MonoBehaviour
 
         if (fireBallPrefab == null)
         {
-            Debug.LogWarning("[RESPAWN] FireBall prefab is not assigned.");
+            Debug.LogWarning("[STATE] FireBall prefab is not assigned.");
             return;
         }
 

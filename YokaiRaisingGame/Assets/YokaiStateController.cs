@@ -183,9 +183,17 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
-        if (IsKegareMax())
+        bool isKegareMax = IsKegareMax();
+        bool isEnergyZero = IsEnergyZero();
+        if (isKegareMax || isEnergyZero)
         {
-            SetState(YokaiState.KegareMax);
+            if (isKegareMax && isEnergyZero && currentState == YokaiState.EnergyEmpty)
+            {
+                ApplyStateUI();
+                return;
+            }
+
+            SetState(isKegareMax ? YokaiState.KegareMax : YokaiState.EnergyEmpty);
             return;
         }
 
@@ -221,9 +229,14 @@ public class YokaiStateController : MonoBehaviour
             purifyTimer = 0f;
 
         if (currentState == YokaiState.KegareMax && previousState != YokaiState.KegareMax)
-            Debug.Log("[KEGARE] 穢れMAX ON");
+            Debug.Log("[STATE] 穢れMAX ON");
         else if (previousState == YokaiState.KegareMax && currentState != YokaiState.KegareMax)
-            Debug.Log("[KEGARE] 穢れMAX OFF");
+            Debug.Log("[STATE] 穢れMAX OFF");
+
+        if (currentState == YokaiState.EnergyEmpty && previousState != YokaiState.EnergyEmpty)
+            Debug.Log("[ENERGY] 霊力0 ON");
+        else if (previousState == YokaiState.EnergyEmpty && currentState != YokaiState.EnergyEmpty)
+            Debug.Log("[ENERGY] 霊力0 OFF");
 
         HandleStateSeTransitions(previousState, currentState);
         ApplyStateUI();
@@ -402,13 +415,14 @@ public class YokaiStateController : MonoBehaviour
     void ApplyStateUI()
     {
         bool isKegareMax = currentState == YokaiState.KegareMax;
+        bool isEnergyEmpty = currentState == YokaiState.EnergyEmpty;
         bool showActionPanel = currentState == YokaiState.Normal || currentState == YokaiState.EvolutionReady || isKegareMax;
         bool showEmergency = isKegareMax;
         bool showMagicCircle = currentState == YokaiState.Purifying;
         bool showStopPurify = currentState == YokaiState.Purifying;
         bool showDangerOverlay = false;
 
-        ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
+        ApplyCanvasGroup(actionPanel, showActionPanel && !isEnergyEmpty, showActionPanel && !isEnergyEmpty);
         ApplyCanvasGroup(emergencyPurifyButton, showEmergency, showEmergency);
         ApplyCanvasGroup(purifyStopButton, showStopPurify, showStopPurify);
         ApplyCanvasGroup(magicCircleOverlay, showMagicCircle, showMagicCircle);
@@ -420,11 +434,11 @@ public class YokaiStateController : MonoBehaviour
             dangerOverlay.interactable = showDangerOverlay;
         }
 
-        UpdateActionPanelButtons(isKegareMax);
+        UpdateActionPanelButtons(isKegareMax, isEnergyEmpty);
         UpdateDangerEffects();
     }
 
-    void UpdateActionPanelButtons(bool isKegareMax)
+    void UpdateActionPanelButtons(bool isKegareMax, bool isEnergyEmpty)
     {
         if (actionPanel == null)
             return;
@@ -436,7 +450,7 @@ public class YokaiStateController : MonoBehaviour
                 continue;
 
             bool isEmergency = emergencyPurifyButton != null && button.gameObject == emergencyPurifyButton;
-            bool shouldShow = isEmergency ? isKegareMax : !isKegareMax;
+            bool shouldShow = !isEnergyEmpty && (isEmergency ? isKegareMax : !isKegareMax);
             ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
             button.interactable = shouldShow;
             button.enabled = shouldShow;
@@ -530,7 +544,9 @@ public class YokaiStateController : MonoBehaviour
         string yokaiName = CurrentYokaiContext.CurrentName();
         float currentKegare = kegareManager != null ? kegareManager.kegare : 0f;
         float maxKegare = kegareManager != null ? kegareManager.maxKegare : 0f;
-        Debug.Log($"[STATE][{label}] yokai={yokaiName} state={currentState} kegare={currentKegare:0.##}/{maxKegare:0.##}");
+        float currentEnergy = energyManager != null ? energyManager.energy : 0f;
+        float maxEnergy = energyManager != null ? energyManager.maxEnergy : 0f;
+        Debug.Log($"[STATE][{label}] yokai={yokaiName} state={currentState} kegare={currentKegare:0.##}/{maxKegare:0.##} energy={currentEnergy:0.##}/{maxEnergy:0.##}");
     }
 
 }
