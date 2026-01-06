@@ -374,19 +374,12 @@ public class YokaiStateController : MonoBehaviour
         bool showEmergency = isKegareMax;
         bool showMagicCircle = currentState == YokaiState.Purifying;
         bool showStopPurify = currentState == YokaiState.Purifying;
-        bool showDangerOverlay = isKegareMax;
+        bool showDangerOverlay = false;
 
-        if (actionPanel != null)
-            actionPanel.SetActive(showActionPanel);
-
-        if (emergencyPurifyButton != null)
-            emergencyPurifyButton.SetActive(showEmergency);
-
-        if (purifyStopButton != null)
-            purifyStopButton.SetActive(showStopPurify);
-
-        if (magicCircleOverlay != null)
-            magicCircleOverlay.SetActive(showMagicCircle);
+        ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
+        ApplyCanvasGroup(emergencyPurifyButton, showEmergency, showEmergency);
+        ApplyCanvasGroup(purifyStopButton, showStopPurify, showStopPurify);
+        ApplyCanvasGroup(magicCircleOverlay, showMagicCircle, showMagicCircle);
 
         if (dangerOverlay != null)
         {
@@ -411,10 +404,29 @@ public class YokaiStateController : MonoBehaviour
                 continue;
 
             bool isEmergency = emergencyPurifyButton != null && button.gameObject == emergencyPurifyButton;
-            bool shouldShow = !isKegareMax || isEmergency;
-            button.gameObject.SetActive(shouldShow);
+            bool shouldShow = isEmergency ? isKegareMax : !isKegareMax;
+            ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
             button.interactable = shouldShow;
+            button.enabled = shouldShow;
         }
+    }
+
+    void ApplyCanvasGroup(GameObject target, bool visible, bool interactable)
+    {
+        if (target == null)
+            return;
+
+        CanvasGroup group = target.GetComponent<CanvasGroup>();
+        if (group == null)
+            group = target.AddComponent<CanvasGroup>();
+
+        group.alpha = visible ? 1f : 0f;
+        group.interactable = interactable;
+        group.blocksRaycasts = interactable;
+
+        var selectable = target.GetComponent<Selectable>();
+        if (selectable != null)
+            selectable.interactable = interactable;
     }
 
     YokaiGrowthController FindActiveGrowthController()
