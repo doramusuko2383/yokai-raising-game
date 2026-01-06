@@ -15,7 +15,7 @@ public static class CurrentYokaiContext
             return;
 
         currentYokai = yokai;
-        Debug.Log($"[YOKAI][Current] name={(currentYokai != null ? currentYokai.name : "null")} reason={reason ?? "unspecified"}");
+        Debug.Log($"[STATE][Current] name={(currentYokai != null ? currentYokai.name : "null")} reason={reason ?? "unspecified"}");
         CurrentChanged?.Invoke(currentYokai);
     }
 

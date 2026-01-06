@@ -14,15 +14,9 @@ public static class EffectSettings
             return;
 
         enableEffects = enable;
-        if (string.IsNullOrEmpty(reason))
-            Debug.Log($"[EFFECTS {(enable ? "ON" : "OFF")}]");
-        else
-            Debug.Log($"[EFFECTS {(enable ? "ON" : "OFF")}] {reason}");
     }
 
     public static void LogEffectsOff(string context)
     {
-        if (!enableEffects)
-            Debug.Log($"[EFFECTS OFF] {context}");
     }
 }

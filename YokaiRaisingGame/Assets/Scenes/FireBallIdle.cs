@@ -95,6 +95,6 @@ public class FireBallIdle : MonoBehaviour
         if (stateController != null)
             stateController.SetEvolutionReady();
 
-        Debug.Log("[EVOLUTION READY] FireBall is ready to evolve.");
+        Debug.Log("[EVOLUTION] FireBall is ready to evolve.");
     }
 }

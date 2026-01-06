@@ -23,7 +23,6 @@ public static class AudioHook
 
     public static void RequestPlay(YokaiSE se)
     {
-        Debug.Log($"[SE][Hook] RequestPlay={se}");
         PlayRequested?.Invoke(se);
     }
 

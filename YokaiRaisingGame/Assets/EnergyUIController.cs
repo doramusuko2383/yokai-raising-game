@@ -25,6 +25,9 @@ public class EnergyUIController : MonoBehaviour
     [SerializeField]
     float weakAlpha = 0.4f;
 
+    [SerializeField]
+    float weakBrightness = 0.6f;
+
     Vector3 originalScale;
     Color originalColor;
     bool hasCachedOriginal;
@@ -101,9 +104,9 @@ public class EnergyUIController : MonoBehaviour
         {
             yokaiSprite.transform.localScale = originalScale * weakScale;
             yokaiSprite.color = new Color(
-                originalColor.r,
-                originalColor.g,
-                originalColor.b,
+                originalColor.r * weakBrightness,
+                originalColor.g * weakBrightness,
+                originalColor.b * weakBrightness,
                 weakAlpha
             );
         }

@@ -10,8 +10,6 @@ public class YokaiGrowthController : MonoBehaviour
     string LastUpdateTimeKey => $"{SavePrefix}_Growth_LastUpdateTime";
     string EvolutionReadyKey => $"{SavePrefix}_Growth_EvolutionReady";
 
-    const float GrowthLogIntervalSeconds = 5f;
-
     [Header("Scale")]
     [SerializeField]
     float initialScale = 1.0f;
@@ -40,7 +38,6 @@ public class YokaiGrowthController : MonoBehaviour
     EnergyManager energyManager;
 
     DateTime lastUpdateTime;
-    float growthLogElapsed;
 
     void Awake()
     {
@@ -50,7 +47,6 @@ public class YokaiGrowthController : MonoBehaviour
         ApplyScale();
         SaveState();
         isGrowthStopped = ShouldStopGrowth();
-        Debug.Log($"[GROWTH][Awake] {gameObject.name} initialScale={initialScale:F2} currentScale={currentScale:F2} isGrowthStopped={isGrowthStopped} isEvolutionReady={isEvolutionReady}");
     }
 
     void Update()
@@ -116,8 +112,6 @@ public class YokaiGrowthController : MonoBehaviour
         float growthAmount = elapsedSeconds * growthRatePerSecond * growthMultiplier;
         currentScale = Mathf.Clamp(currentScale + growthAmount, initialScale, maxScale);
 
-        Debug.Log($"[GROWTH][UpdateGrowth] {gameObject.name} elapsedSeconds={elapsedSeconds:F2} growthAmount={growthAmount:F4} currentScale={currentScale:F4}");
-
         if (currentScale >= maxScale)
         {
             currentScale = maxScale;
@@ -126,18 +120,15 @@ public class YokaiGrowthController : MonoBehaviour
             isGrowthStopped = true;
             if (!wasEvolutionReady)
             {
-                Debug.Log($"[EVOLUTION READY] {gameObject.name} is ready to evolve");
                 if (stateController == null)
                     stateController = FindObjectOfType<YokaiStateController>();
 
                 if (stateController != null)
                     stateController.SetEvolutionReady();
             }
-            LogGrowthStoppedReason();
         }
 
         ApplyScale();
-        LogGrowthProgress(elapsedSeconds);
     }
 
     bool ShouldStopGrowth()
@@ -151,48 +142,6 @@ public class YokaiGrowthController : MonoBehaviour
         bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
 
         return isKegareMax || isEnergyZero;
-    }
-
-    void LogGrowthStoppedReason()
-    {
-        if (isEvolutionReady)
-        {
-            Debug.Log($"[GROWTH STOP] {gameObject.name} reason=進化待ち");
-            return;
-        }
-
-        bool isKegareMax = kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
-        bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
-        string reason = string.Empty;
-
-        if (isKegareMax)
-        {
-            reason = "穢れMAX";
-        }
-
-        if (isEnergyZero)
-        {
-            reason = string.IsNullOrEmpty(reason) ? "霊力0" : $"{reason}, 霊力0";
-        }
-
-        if (string.IsNullOrEmpty(reason))
-        {
-            reason = "不明";
-        }
-
-        Debug.Log($"[GROWTH STOP] {gameObject.name} reason={reason}");
-    }
-
-    void LogGrowthProgress(float elapsedSeconds)
-    {
-        growthLogElapsed += Mathf.Max(0f, elapsedSeconds);
-        if (growthLogElapsed < GrowthLogIntervalSeconds)
-        {
-            return;
-        }
-
-        growthLogElapsed = 0f;
-        Debug.Log($"[GROWTH] {gameObject.name} scale = {currentScale:F2} / {maxScale:F2}");
     }
 
     void ApplyScale()
@@ -253,7 +202,6 @@ public class YokaiGrowthController : MonoBehaviour
         lastUpdateTime = DateTime.Now;
         ApplyScale();
         SaveState();
-        Debug.Log($"[GROWTH][Reset] {gameObject.name} ResetGrowthState called.");
     }
 
     [ContextMenu("DEBUG / Reset Growth State")]
@@ -269,7 +217,6 @@ public class YokaiGrowthController : MonoBehaviour
         PlayerPrefs.DeleteKey(LastUpdateTimeKey);
         PlayerPrefs.DeleteKey(EvolutionReadyKey);
         PlayerPrefs.Save();
-        Debug.Log($"[GROWTH][Reset] {gameObject.name} PlayerPrefs cleared for this yokai.");
     }
 
 #if UNITY_EDITOR

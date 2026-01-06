@@ -37,13 +37,13 @@ public class MagicCircleActivator : MonoBehaviour
 
         if (controller == null)
         {
-            Debug.LogWarning("MagicCircleActivator: MagicCircleSwipeController が見つかりません。");
+            Debug.LogWarning("[PURIFY] MagicCircleSwipeController が見つかりません。");
             return;
         }
 
         controller.HealRequested -= OnHealRequested;
         controller.HealRequested += OnHealRequested;
-        Debug.Log("MagicCircleActivator: MagicCircleSwipeUI を初期化しました。");
+        Debug.Log("[PURIFY] MagicCircleSwipeUI を初期化しました。");
     }
 
     public void RequestNormalPurify()
@@ -60,18 +60,18 @@ public class MagicCircleActivator : MonoBehaviour
     {
         if (controller == null)
         {
-            Debug.LogWarning("MagicCircleActivator: controller が未初期化なので再セットアップします。");
+            Debug.LogWarning("[PURIFY] controller が未初期化なので再セットアップします。");
             SetupForScene();
         }
 
         if (controller == null)
         {
-            Debug.LogWarning("MagicCircleActivator: MagicCircleSwipeUI が見つからないため表示できません。");
+            Debug.LogWarning("[PURIFY] MagicCircleSwipeUI が見つからないため表示できません。");
             return;
         }
 
         pendingRequest = requestType;
-        Debug.Log($"[MAGIC CIRCLE] Request received: type={requestType}");
+        Debug.Log($"[PURIFY] Request received: type={requestType}");
     }
 
     void OnHealRequested()
@@ -79,11 +79,11 @@ public class MagicCircleActivator : MonoBehaviour
         NotifySuccessHooks();
 
         if (pendingRequest == PurifyRequestType.Normal)
-            Debug.Log("[MAGIC CIRCLE] Success route: 通常おきよめ");
+            Debug.Log("[PURIFY] Success route: 通常おきよめ");
         else if (pendingRequest == PurifyRequestType.Emergency)
-            Debug.Log("[MAGIC CIRCLE] Success route: 緊急お祓い");
+            Debug.Log("[PURIFY] Success route: 緊急お祓い");
         else
-            Debug.LogWarning("[MAGIC CIRCLE] Success route: request が未指定です。");
+            Debug.LogWarning("[PURIFY] Success route: request が未指定です。");
 
         pendingRequest = PurifyRequestType.None;
     }

@@ -110,7 +110,7 @@ public class DebugOverlay : MonoBehaviour
 
         EnsureStyles();
 
-        float panelHeight = 220f;
+        float panelHeight = 200f;
         panelRect = new Rect(PanelPadding, PanelPadding, PanelWidth, panelHeight);
         GUI.Box(panelRect, "DEBUG", GUI.skin.box);
 
@@ -146,16 +146,13 @@ public class DebugOverlay : MonoBehaviour
     {
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("穢れ +", buttonStyle, GUILayout.Height(ButtonHeight)))
-            AdjustKegare(10f, "Button +");
+            AdjustKegare(10f);
         if (GUILayout.Button("穢れ -", buttonStyle, GUILayout.Height(ButtonHeight)))
-            AdjustKegare(-10f, "Button -");
+            AdjustKegare(-10f);
         GUILayout.EndHorizontal();
 
-        if (GUILayout.Button("穢れMAX", buttonStyle, GUILayout.Height(ButtonHeight)))
-            SetKegareMax();
-
-        if (GUILayout.Button("緊急おきよめ", buttonStyle, GUILayout.Height(ButtonHeight)))
-            ExecuteEmergencyPurify();
+        if (GUILayout.Button("Energy -", buttonStyle, GUILayout.Height(ButtonHeight)))
+            AdjustEnergy(-10f);
 
         if (GUILayout.Button("進化Ready", buttonStyle, GUILayout.Height(ButtonHeight)))
             SetEvolutionReady();
@@ -168,16 +165,10 @@ public class DebugOverlay : MonoBehaviour
     void HandleEditorShortcuts()
     {
         if (Input.GetKeyDown(KeyCode.K))
-            AdjustKegare(10f, "Key K");
+            AdjustKegare(10f);
 
         if (Input.GetKeyDown(KeyCode.J))
-            AdjustKegare(-10f, "Key J");
-
-        if (Input.GetKeyDown(KeyCode.M))
-            SetKegareMax();
-
-        if (Input.GetKeyDown(KeyCode.P))
-            ExecuteEmergencyPurify();
+            AdjustKegare(-10f);
 
         if (Input.GetKeyDown(KeyCode.E))
             SetEvolutionReady();
@@ -187,7 +178,7 @@ public class DebugOverlay : MonoBehaviour
     }
 #endif
 
-    void AdjustKegare(float amount, string reason)
+    void AdjustKegare(float amount)
     {
         if (kegareManager == null)
             kegareManager = CurrentYokaiContext.ResolveKegareManager();
@@ -196,40 +187,17 @@ public class DebugOverlay : MonoBehaviour
             return;
 
         kegareManager.AddKegare(amount);
-        Debug.Log($"[DEBUG][KEGARE] Adjust {amount:0.##} reason={reason}");
     }
 
-    void SetKegareMax()
+    void AdjustEnergy(float amount)
     {
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (energyManager == null)
+            energyManager = FindObjectOfType<EnergyManager>();
 
-        if (kegareManager == null)
+        if (energyManager == null)
             return;
 
-        kegareManager.SetKegare(kegareManager.maxKegare, "Debug KegareMax");
-    }
-
-    void ExecuteEmergencyPurify()
-    {
-        if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
-
-        if (stateController != null)
-        {
-            Debug.Log("[DEBUG][PURIFY] Execute emergency purify");
-            stateController.ExecuteEmergencyPurify();
-            return;
-        }
-
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
-
-        if (kegareManager != null)
-        {
-            Debug.Log("[DEBUG][PURIFY] Execute emergency purify (fallback)");
-            kegareManager.ExecuteEmergencyPurify();
-        }
+        energyManager.ChangeEnergy(amount);
     }
 
     void SetEvolutionReady()
@@ -239,14 +207,12 @@ public class DebugOverlay : MonoBehaviour
 
         if (stateController != null)
         {
-            Debug.Log("[DEBUG][EVOLUTION] Force ready");
             stateController.SetEvolutionReady();
         }
     }
 
     void ResetScene()
     {
-        Debug.Log("[DEBUG][SCENE] Reload active scene");
         var scene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(scene.name);
     }

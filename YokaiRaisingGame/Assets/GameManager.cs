@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
     {
         if (fireBallPrefab == null)
         {
-            Debug.LogWarning("[SPAWN] FireBall prefab is not assigned.");
+            Debug.LogWarning("[STATE] FireBall prefab is not assigned.");
             return null;
         }
 
@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour
     {
         if (evolutionPrefabs == null || evolutionPrefabs.Length == 0)
         {
-            Debug.LogWarning("[SPAWN] Evolution prefabs are not assigned.");
+            Debug.LogWarning("[STATE] Evolution prefabs are not assigned.");
             return null;
         }
 
@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
 
         if (evolutionPrefabs[index] == null)
         {
-            Debug.LogWarning($"[SPAWN] Evolution prefab at index {index} is null.");
+            Debug.LogWarning($"[STATE] Evolution prefab at index {index} is null.");
             return null;
         }
 

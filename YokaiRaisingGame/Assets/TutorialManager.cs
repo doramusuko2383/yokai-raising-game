@@ -229,7 +229,6 @@ public class TutorialManager : MonoBehaviour
             canvasGroup.interactable = false;
         }
 
-        Debug.Log($"[TUTORIAL] Show step={step}");
     }
 
     void Hide()
@@ -268,7 +267,6 @@ public class TutorialManager : MonoBehaviour
         if (currentStep != step)
             return;
 
-        Debug.Log($"[TUTORIAL] Complete step={step}");
         currentStep = GetNextStep(step);
         SaveStep();
         UpdateDisplay(force: true);
