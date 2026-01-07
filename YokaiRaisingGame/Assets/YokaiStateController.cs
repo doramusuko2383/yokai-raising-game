@@ -9,6 +9,7 @@ public class YokaiStateController : MonoBehaviour
 {
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
+    public bool isPurifying;
 
     [Header("Dependencies")]
     [SerializeField]
@@ -95,6 +96,7 @@ public class YokaiStateController : MonoBehaviour
     {
         ResolveDependencies();
         currentState = YokaiState.Normal;
+        isPurifying = false;
         RefreshState();
     }
 
@@ -249,6 +251,10 @@ public class YokaiStateController : MonoBehaviour
         YokaiState previousState = currentState;
         currentState = newState;
         if (currentState == YokaiState.Purifying)
+            isPurifying = true;
+        if (previousState == YokaiState.Purifying && currentState != YokaiState.Purifying)
+            isPurifying = false;
+        if (currentState == YokaiState.Purifying)
             purifyTimer = 0f;
 
         if (enableStateLogs)
@@ -274,6 +280,7 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.Normal)
             return;
 
+        isPurifying = true;
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
         SetState(YokaiState.Purifying);
         RefreshState();
@@ -297,6 +304,7 @@ public class YokaiStateController : MonoBehaviour
         if (playCancelSe)
             AudioHook.RequestPlay(YokaiSE.SE_PURIFY_CANCEL);
 
+        isPurifying = false;
         SetState(YokaiState.Normal);
         RefreshState();
     }
@@ -419,7 +427,7 @@ public class YokaiStateController : MonoBehaviour
 
     void HandlePurifyTick()
     {
-        if (currentState != YokaiState.Purifying)
+        if (!isPurifying)
             return;
 
         if (!enablePurifyTick)
@@ -446,8 +454,8 @@ public class YokaiStateController : MonoBehaviour
         bool isEnergyEmpty = currentState == YokaiState.EnergyEmpty;
         bool showActionPanel = currentState == YokaiState.Normal || currentState == YokaiState.EvolutionReady || isKegareMax || isEnergyEmpty;
         bool showEmergency = isKegareMax;
-        bool showMagicCircle = currentState == YokaiState.Purifying;
-        bool showStopPurify = currentState == YokaiState.Purifying;
+        bool showMagicCircle = isPurifying;
+        bool showStopPurify = isPurifying;
         bool showDangerOverlay = false;
 
         ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);

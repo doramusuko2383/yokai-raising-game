@@ -736,7 +736,7 @@ public class YokaiEvolutionController : MonoBehaviour
         if (isRecoilActive)
             return;
 
-        if (!isEvolving && (stateController == null || stateController.currentState != YokaiState.Purifying))
+        if (!isEvolving && (stateController == null || !stateController.isPurifying))
             return;
 
         if (!EffectSettings.EnableEffects)

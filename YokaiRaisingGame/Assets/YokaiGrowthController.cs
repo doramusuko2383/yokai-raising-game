@@ -9,6 +9,7 @@ public class YokaiGrowthController : MonoBehaviour
     string CurrentScaleKey => $"{SavePrefix}_Growth_CurrentScale";
     string LastUpdateTimeKey => $"{SavePrefix}_Growth_LastUpdateTime";
     string EvolutionReadyKey => $"{SavePrefix}_Growth_EvolutionReady";
+    string HasEvolvedKey => $"{SavePrefix}_Growth_HasEvolved";
 
     [Header("Scale")]
     [SerializeField]
@@ -26,6 +27,7 @@ public class YokaiGrowthController : MonoBehaviour
     public float growthRatePerSecond;
     public bool isGrowthStopped;
     public bool isEvolutionReady;
+    public bool hasEvolved;
 
     [Header("Dependencies")]
     [SerializeField]
@@ -111,31 +113,22 @@ public class YokaiGrowthController : MonoBehaviour
         float growthAmount = elapsedSeconds * growthRatePerSecond * growthMultiplier;
         currentScale = Mathf.Clamp(currentScale + growthAmount, initialScale, maxScale);
 
-        if (currentScale >= maxScale)
-        {
-            currentScale = maxScale;
-            bool wasEvolutionReady = isEvolutionReady;
-            isEvolutionReady = true;
-            isGrowthStopped = true;
-            if (!wasEvolutionReady)
-            {
-                if (stateController == null)
-                    stateController = FindObjectOfType<YokaiStateController>();
-
-                if (stateController != null)
-                    stateController.SetEvolutionReady();
-            }
-        }
-
         ApplyScale();
+        TryMarkEvolutionReady();
     }
 
     bool ShouldStopGrowth()
     {
-        if (isEvolutionReady)
+        if (hasEvolved)
         {
             return true;
         }
+
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+
+        if (stateController != null && stateController.isPurifying)
+            return true;
 
         bool isKegareMax = kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
         bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
@@ -147,7 +140,7 @@ public class YokaiGrowthController : MonoBehaviour
     {
         string reason = "unknown";
 
-        if (isEvolutionReady)
+        if (hasEvolved)
         {
             reason = "evolution-ready";
         }
@@ -199,12 +192,9 @@ public class YokaiGrowthController : MonoBehaviour
         }
 
         isEvolutionReady = PlayerPrefs.GetInt(EvolutionReadyKey, 0) == 1;
-
-        if (currentScale >= maxScale)
-        {
-            currentScale = maxScale;
+        hasEvolved = PlayerPrefs.GetInt(HasEvolvedKey, isEvolutionReady ? 1 : 0) == 1;
+        if (hasEvolved)
             isEvolutionReady = true;
-        }
     }
 
     void SaveState()
@@ -212,6 +202,7 @@ public class YokaiGrowthController : MonoBehaviour
         PlayerPrefs.SetFloat(CurrentScaleKey, currentScale);
         PlayerPrefs.SetString(LastUpdateTimeKey, lastUpdateTime.ToBinary().ToString());
         PlayerPrefs.SetInt(EvolutionReadyKey, isEvolutionReady ? 1 : 0);
+        PlayerPrefs.SetInt(HasEvolvedKey, hasEvolved ? 1 : 0);
         PlayerPrefs.Save();
     }
 
@@ -219,6 +210,7 @@ public class YokaiGrowthController : MonoBehaviour
     {
         currentScale = initialScale;
         isEvolutionReady = false;
+        hasEvolved = false;
         isGrowthStopped = false;
         lastUpdateTime = DateTime.Now;
         ApplyScale();
@@ -237,7 +229,32 @@ public class YokaiGrowthController : MonoBehaviour
         PlayerPrefs.DeleteKey(CurrentScaleKey);
         PlayerPrefs.DeleteKey(LastUpdateTimeKey);
         PlayerPrefs.DeleteKey(EvolutionReadyKey);
+        PlayerPrefs.DeleteKey(HasEvolvedKey);
         PlayerPrefs.Save();
+    }
+
+    void TryMarkEvolutionReady()
+    {
+        if (hasEvolved)
+            return;
+
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+
+        if (stateController != null && stateController.isPurifying)
+            return;
+
+        if (transform.localScale.x < 2.0f)
+            return;
+
+        hasEvolved = true;
+        isEvolutionReady = true;
+        isGrowthStopped = true;
+        currentScale = Mathf.Clamp(currentScale, initialScale, maxScale);
+        ApplyScale();
+
+        if (stateController != null)
+            stateController.SetEvolutionReady();
     }
 
 #if UNITY_EDITOR
