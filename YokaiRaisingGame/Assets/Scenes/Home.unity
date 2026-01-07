@@ -250,6 +250,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   energy: 0
   maxEnergy: 100
+  naturalDecayPerMinute: 2.5
+  decayIntervalSeconds: 60
   worldConfig: {fileID: 0}
   kegareManager: {fileID: 604884281}
   stateController: {fileID: 152328533}
@@ -287,6 +289,7 @@ MonoBehaviour:
   yokaiSprite: {fileID: 0}
   weakScale: 0.8
   weakAlpha: 0.4
+  weakBrightness: 0.6
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -570,6 +573,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   kegare: 0
   maxKegare: 100
+  naturalIncreasePerMinute: 2
+  increaseIntervalSeconds: 60
   worldConfig: {fileID: 0}
   energyManager: {fileID: 515532832}
   stateController: {fileID: 152328533}
@@ -1004,6 +1009,81 @@ Transform:
   m_Children: []
   m_Father: {fileID: 543276398}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1213610521
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1213610522}
+  - component: {fileID: 1213610524}
+  - component: {fileID: 1213610523}
+  m_Layer: 5
+  m_Name: ProgressRing
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1213610522
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213610521}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1803633756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 980, y: 980}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1213610523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213610521}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.84313726, g: 0.6088438, b: 0, a: 0.62352943}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: dec0097d94758684bbbd48a27e4ea27c, type: 3}
+  m_Type: 3
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 0
+  m_FillClockwise: 1
+  m_FillOrigin: 2
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1213610524
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213610521}
+  m_CullTransparentMesh: 1
 --- !u!1 &1390311716
 GameObject:
   m_ObjectHideFlags: 0
@@ -1118,7 +1198,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 540}
+  m_AnchoredPosition: {x: 339, y: 752}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1478606783
@@ -1150,7 +1230,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294436742
   m_fontColor: {r: 0.5251619, g: 0.9057549, b: 0.96981126, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1163,7 +1243,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -1204,7 +1284,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: -669.30743, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1308,7 +1388,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0.89741373, b: 1, a: 0.69411767}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1316,7 +1396,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: dec0097d94758684bbbd48a27e4ea27c, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -1332,6 +1412,67 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1641745051}
   m_CullTransparentMesh: 1
+--- !u!1 &1763312155
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1763312156}
+  - component: {fileID: 1763312157}
+  m_Layer: 5
+  m_Name: MagicCircleInput
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1763312156
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1763312155}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1803633756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1763312157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1763312155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7495bc890ea4c248d3016af6ff8fa4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  circleRect: {fileID: 0}
+  canvasGroup: {fileID: 0}
+  instructionText: {fileID: 0}
+  guideRing: {fileID: 0}
+  progressRing: {fileID: 0}
+  guideRingColor: {r: 1, g: 1, b: 1, a: 0.15}
+  progressRingColor: {r: 0.3, g: 0.9, b: 1, a: 0.6}
+  requiredAngle: 270
+  innerRadiusRatio: 0.55
+  outerRadiusRatio: 1.05
+  maxAngleJump: 70
+  minAngleDelta: 0.5
+  minimumSamples: 12
 --- !u!1 &1796825459 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5481682468745329004, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
@@ -1355,7 +1496,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1803633756
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1368,8 +1509,11 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1478606782}
   - {fileID: 1641745052}
+  - {fileID: 1478606782}
+  - {fileID: 1763312156}
+  - {fileID: 2067172417}
+  - {fileID: 1213610522}
   m_Father: {fileID: 543276398}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -1433,7 +1577,18 @@ MonoBehaviour:
   minimumSamples: 12
   maxAngleJump: 70
   minAngleDelta: 0.5
+  minTravelDistanceRatio: 0.75
+  timeLimitSeconds: 2.5
+  guideFadeDuration: 0.25
   circleRect: {fileID: 0}
+  magicCircleGuide: {fileID: 0}
+  swipeTrail: {fileID: 0}
+  trailColor: {r: 0.8, g: 0.95, b: 1, a: 0.9}
+  trailWidth: 8
+  trailFadeDuration: 0.25
+  trailMinPointDistance: 2
+  successPulseScale: 1.1
+  successPulseDuration: 0.2
   stateController: {fileID: 152328533}
   kegareManager: {fileID: 604884281}
 --- !u!1 &1905322486
@@ -1465,6 +1620,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f4b40857ddc4d45b86ef2f1e845b6da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  stateController: {fileID: 152328533}
+  kegareManager: {fileID: 604884281}
 --- !u!4 &1905322488
 Transform:
   m_ObjectHideFlags: 0
@@ -1682,6 +1839,74 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2067172416
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2067172417}
+  - component: {fileID: 2067172418}
+  m_Layer: 5
+  m_Name: MagicCircleSwipeHandler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2067172417
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2067172416}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1803633756}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2067172418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2067172416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f99a90c4f2d4f5c9b8e1c94f2ebd70d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  requiredAngle: 270
+  minRadiusRatio: 0.55
+  maxRadiusRatio: 1.05
+  minimumSamples: 12
+  maxAngleJump: 70
+  minAngleDelta: 0.5
+  minTravelDistanceRatio: 0.75
+  timeLimitSeconds: 2.5
+  guideFadeDuration: 0.25
+  circleRect: {fileID: 1641745052}
+  magicCircleGuide: {fileID: 0}
+  swipeTrail: {fileID: 0}
+  trailColor: {r: 0.8, g: 0.95, b: 1, a: 0.9}
+  trailWidth: 8
+  trailFadeDuration: 0.25
+  trailMinPointDistance: 2
+  successPulseScale: 1.1
+  successPulseDuration: 0.2
+  stateController: {fileID: 0}
+  kegareManager: {fileID: 0}
 --- !u!1001 &664355983866959897
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2549,9 +2774,9 @@ MonoBehaviour:
   initialScale: 1
   currentScale: 1
   maxScale: 2
-  growthDurationHours: 0.01
+  growthDurationHours: 0.1
   growthMultiplier: 1
-  growthRatePerSecond: 0.027777778
+  growthRatePerSecond: 0.0027777778
   isGrowthStopped: 0
   isEvolutionReady: 0
   stateController: {fileID: 152328533}
