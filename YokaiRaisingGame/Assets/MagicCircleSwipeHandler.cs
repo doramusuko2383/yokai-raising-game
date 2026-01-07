@@ -402,6 +402,13 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         if (guideFadeCoroutine != null)
             StopCoroutine(guideFadeCoroutine);
 
+        if (!CanStartCoroutine())
+        {
+            guideCanvasGroup.alpha = isVisible ? 1f : 0f;
+            magicCircleGuide.gameObject.SetActive(isVisible);
+            return;
+        }
+
         guideFadeCoroutine = StartCoroutine(FadeGuide(isVisible, immediate));
     }
 
@@ -500,6 +507,15 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             return;
         }
 
+        if (!CanStartCoroutine())
+        {
+            swipeTrail.positionCount = 0;
+            swipeTrail.enabled = false;
+            ApplyTrailColor(1f);
+            Debug.Log("[PURIFY] Trail cleared");
+            return;
+        }
+
         trailFadeCoroutine = StartCoroutine(FadeTrail());
     }
 
@@ -543,7 +559,15 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         if (target == null)
             return;
 
+        if (!CanStartCoroutine())
+            return;
+
         successPulseCoroutine = StartCoroutine(PulseScale(target));
+    }
+
+    bool CanStartCoroutine()
+    {
+        return isActiveAndEnabled && gameObject.activeInHierarchy;
     }
 
     System.Collections.IEnumerator PulseScale(Transform target)
