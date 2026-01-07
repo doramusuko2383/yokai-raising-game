@@ -227,7 +227,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             return false;
         }
 
-        return stateController.currentState == YokaiState.Purifying;
+        return stateController.isPurifying;
     }
 
     void HandleSwipeSuccess()

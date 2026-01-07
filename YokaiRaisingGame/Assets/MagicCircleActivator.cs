@@ -102,6 +102,7 @@ public class MagicCircleActivator : MonoBehaviour
 
     void NotifySuccessHooks()
     {
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
         SuccessSeRequested?.Invoke();
         SuccessEffectRequested?.Invoke();
     }
