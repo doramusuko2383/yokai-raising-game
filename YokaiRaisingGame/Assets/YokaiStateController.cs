@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -27,6 +28,9 @@ public class YokaiStateController : MonoBehaviour
     GameObject emergencyPurifyButton;
 
     [SerializeField]
+    GameObject emergencyDangoButton;
+
+    [SerializeField]
     GameObject purifyStopButton;
 
     [SerializeField]
@@ -49,10 +53,20 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     bool enablePurifyTick = false;
 
+    [Header("Energy Empty Visuals")]
+    [SerializeField]
+    float energyEmptyAlpha = 0.45f;
+
+    [SerializeField]
+    bool enableStateLogs = false;
+
     float purifyTimer;
     KegareManager registeredKegareManager;
     EnergyManager registeredEnergyManager;
     bool evolutionReadyPending;
+    GameObject energyEmptyTargetRoot;
+    readonly Dictionary<SpriteRenderer, Color> energyEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
+    readonly Dictionary<Image, Color> energyEmptyImageColors = new Dictionary<Image, Color>();
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Initialize()
@@ -111,8 +125,10 @@ public class YokaiStateController : MonoBehaviour
             actionPanel = GameObject.Find("UI_Action");
 
         if (emergencyPurifyButton == null)
-            emergencyPurifyButton = GameObject.Find("Button_MononokeHeal")
-                ?? GameObject.Find("Btn_AdWatch");
+            emergencyPurifyButton = GameObject.Find("Button_MononokeHeal");
+
+        if (emergencyDangoButton == null)
+            emergencyDangoButton = GameObject.Find("Btn_AdWatch");
 
         if (purifyStopButton == null)
             purifyStopButton = GameObject.Find("Btn_StopPurify");
@@ -235,15 +251,18 @@ public class YokaiStateController : MonoBehaviour
         if (currentState == YokaiState.Purifying)
             purifyTimer = 0f;
 
-        if (currentState == YokaiState.KegareMax && previousState != YokaiState.KegareMax)
-            Debug.Log("[STATE] 穢れMAX ON");
-        else if (previousState == YokaiState.KegareMax && currentState != YokaiState.KegareMax)
-            Debug.Log("[STATE] 穢れMAX OFF");
+        if (enableStateLogs)
+        {
+            if (currentState == YokaiState.KegareMax && previousState != YokaiState.KegareMax)
+                Debug.Log("[STATE] 穢れMAX ON");
+            else if (previousState == YokaiState.KegareMax && currentState != YokaiState.KegareMax)
+                Debug.Log("[STATE] 穢れMAX OFF");
 
-        if (currentState == YokaiState.EnergyEmpty && previousState != YokaiState.EnergyEmpty)
-            Debug.Log("[ENERGY] 霊力0 ON");
-        else if (previousState == YokaiState.EnergyEmpty && currentState != YokaiState.EnergyEmpty)
-            Debug.Log("[ENERGY] 霊力0 OFF");
+            if (currentState == YokaiState.EnergyEmpty && previousState != YokaiState.EnergyEmpty)
+                Debug.Log("[ENERGY] 霊力0 ON");
+            else if (previousState == YokaiState.EnergyEmpty && currentState != YokaiState.EnergyEmpty)
+                Debug.Log("[ENERGY] 霊力0 OFF");
+        }
 
         HandleStateSeTransitions(previousState, currentState);
         ApplyStateUI();
@@ -313,12 +332,14 @@ public class YokaiStateController : MonoBehaviour
         if (activeYokai == null)
             return;
 
+        ResetEnergyEmptyVisuals();
         growthController = activeYokai.GetComponent<YokaiGrowthController>();
         if (growthController != null && growthController.isEvolutionReady)
             evolutionReadyPending = true;
         dangerEffects = activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true);
         RefreshDangerEffectOriginalColors();
         UpdateDangerEffects();
+        CacheEnergyEmptyTargets(activeYokai);
         if (currentState != YokaiState.Evolving)
             RefreshState();
         LogStateContext("Active");
@@ -423,13 +444,13 @@ public class YokaiStateController : MonoBehaviour
     {
         bool isKegareMax = currentState == YokaiState.KegareMax;
         bool isEnergyEmpty = currentState == YokaiState.EnergyEmpty;
-        bool showActionPanel = currentState == YokaiState.Normal || currentState == YokaiState.EvolutionReady || isKegareMax;
+        bool showActionPanel = currentState == YokaiState.Normal || currentState == YokaiState.EvolutionReady || isKegareMax || isEnergyEmpty;
         bool showEmergency = isKegareMax;
         bool showMagicCircle = currentState == YokaiState.Purifying;
         bool showStopPurify = currentState == YokaiState.Purifying;
         bool showDangerOverlay = false;
 
-        ApplyCanvasGroup(actionPanel, showActionPanel && !isEnergyEmpty, showActionPanel && !isEnergyEmpty);
+        ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
         ApplyCanvasGroup(emergencyPurifyButton, showEmergency, showEmergency);
         ApplyCanvasGroup(purifyStopButton, showStopPurify, showStopPurify);
         ApplyCanvasGroup(magicCircleOverlay, showMagicCircle, showMagicCircle);
@@ -443,6 +464,7 @@ public class YokaiStateController : MonoBehaviour
 
         UpdateActionPanelButtons(isKegareMax, isEnergyEmpty);
         UpdateDangerEffects();
+        UpdateEnergyEmptyVisuals(isEnergyEmpty);
     }
 
     void UpdateActionPanelButtons(bool isKegareMax, bool isEnergyEmpty)
@@ -457,7 +479,10 @@ public class YokaiStateController : MonoBehaviour
                 continue;
 
             bool isEmergency = emergencyPurifyButton != null && button.gameObject == emergencyPurifyButton;
-            bool shouldShow = !isEnergyEmpty && (isEmergency ? isKegareMax : !isKegareMax);
+            bool isEmergencyDango = emergencyDangoButton != null && button.gameObject == emergencyDangoButton;
+            bool shouldShow = isEnergyEmpty
+                ? isEmergencyDango
+                : (isEmergency ? isKegareMax : !isKegareMax);
             ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
             button.interactable = shouldShow;
             button.enabled = shouldShow;
@@ -546,8 +571,91 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
+    void CacheEnergyEmptyTargets(GameObject targetRoot)
+    {
+        energyEmptyTargetRoot = targetRoot;
+        energyEmptySpriteColors.Clear();
+        energyEmptyImageColors.Clear();
+
+        if (energyEmptyTargetRoot == null)
+            return;
+
+        foreach (var sprite in energyEmptyTargetRoot.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            if (sprite == null)
+                continue;
+
+            energyEmptySpriteColors[sprite] = sprite.color;
+        }
+
+        foreach (var image in energyEmptyTargetRoot.GetComponentsInChildren<Image>(true))
+        {
+            if (image == null)
+                continue;
+
+            energyEmptyImageColors[image] = image.color;
+        }
+    }
+
+    void UpdateEnergyEmptyVisuals(bool isEnergyEmpty)
+    {
+        if (energyEmptyTargetRoot == null || CurrentYokaiContext.Current != energyEmptyTargetRoot)
+        {
+            CacheEnergyEmptyTargets(CurrentYokaiContext.Current);
+        }
+
+        if (isEnergyEmpty)
+        {
+            foreach (var pair in energyEmptySpriteColors)
+            {
+                if (pair.Key == null)
+                    continue;
+
+                Color color = pair.Value;
+                color.a *= Mathf.Clamp01(energyEmptyAlpha);
+                pair.Key.color = color;
+            }
+
+            foreach (var pair in energyEmptyImageColors)
+            {
+                if (pair.Key == null)
+                    continue;
+
+                Color color = pair.Value;
+                color.a *= Mathf.Clamp01(energyEmptyAlpha);
+                pair.Key.color = color;
+            }
+        }
+        else
+        {
+            ResetEnergyEmptyVisuals();
+        }
+    }
+
+    void ResetEnergyEmptyVisuals()
+    {
+        foreach (var pair in energyEmptySpriteColors)
+        {
+            if (pair.Key == null)
+                continue;
+
+            pair.Key.color = pair.Value;
+        }
+
+        foreach (var pair in energyEmptyImageColors)
+        {
+            if (pair.Key == null)
+                continue;
+
+            pair.Key.color = pair.Value;
+        }
+    }
+
     void LogStateContext(string label)
     {
+        if (!enableStateLogs)
+            return;
+
         string yokaiName = CurrentYokaiContext.CurrentName();
         float currentKegare = kegareManager != null ? kegareManager.kegare : 0f;
         float maxKegare = kegareManager != null ? kegareManager.maxKegare : 0f;

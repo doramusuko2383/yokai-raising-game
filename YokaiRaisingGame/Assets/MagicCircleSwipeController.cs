@@ -147,15 +147,33 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
             return;
 
         if (guideRing == null)
-            guideRing = CreateRing("MagicCircleGuide", false, guideRingColor);
+            guideRing = FindRing("MagicCircleGuide") ?? CreateRing("MagicCircleGuide", false, guideRingColor);
 
         if (progressRing == null)
-            progressRing = CreateRing("MagicCircleProgress", true, progressRingColor);
+            progressRing = FindRing("ProgressRing") ?? FindRing("MagicCircleProgress") ?? CreateRing("ProgressRing", true, progressRingColor);
 
-        if (guideRing != null && progressRing != null)
+        if (progressRing != null)
+            ConfigureProgressRing(progressRing);
+
+        if (guideRing != null || progressRing != null)
         {
-            guideRing.transform.SetSiblingIndex(0);
-            progressRing.transform.SetAsLastSibling();
+            var parent = circleRect.parent;
+            if (parent != null)
+            {
+                if (guideRing != null)
+                {
+                    guideRing.transform.SetParent(parent, false);
+                    MatchRectTransform(circleRect, guideRing.rectTransform);
+                }
+
+                if (progressRing != null)
+                {
+                    progressRing.transform.SetParent(parent, false);
+                    MatchRectTransform(circleRect, progressRing.rectTransform);
+                }
+            }
+
+            ArrangeRingLayers();
         }
 
         UpdateProgress();
@@ -180,9 +198,10 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
     Image CreateRing(string name, bool filled, Color color)
     {
         var ringObject = new GameObject(name);
-        ringObject.transform.SetParent(circleRect, false);
+        var parent = circleRect.parent != null ? circleRect.parent : circleRect;
+        ringObject.transform.SetParent(parent, false);
         var image = ringObject.AddComponent<Image>();
-        image.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+        image.sprite = ResolveRingSprite();
         image.color = color;
         image.raycastTarget = false;
         image.type = filled ? Image.Type.Filled : Image.Type.Simple;
@@ -193,15 +212,93 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
             image.fillOrigin = (int)Image.Origin360.Top;
             image.fillClockwise = true;
             image.fillAmount = 0f;
+            image.fillCenter = false;
         }
 
-        var rect = image.rectTransform;
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = Vector2.zero;
-        rect.offsetMax = Vector2.zero;
+        MatchRectTransform(circleRect, image.rectTransform);
 
         return image;
+    }
+
+    void ConfigureProgressRing(Image ring)
+    {
+        if (ring == null)
+            return;
+
+        ring.type = Image.Type.Filled;
+        ring.fillMethod = Image.FillMethod.Radial360;
+        ring.fillOrigin = (int)Image.Origin360.Top;
+        ring.fillClockwise = true;
+        ring.fillCenter = false;
+    }
+
+    void ArrangeRingLayers()
+    {
+        if (circleRect == null)
+            return;
+
+        var parent = circleRect.parent;
+        if (parent == null)
+            return;
+
+        int circleIndex = circleRect.GetSiblingIndex();
+        if (guideRing != null)
+            guideRing.transform.SetSiblingIndex(Mathf.Max(0, circleIndex));
+
+        circleRect.SetSiblingIndex(Mathf.Min(parent.childCount - 1, (guideRing != null ? guideRing.transform.GetSiblingIndex() : circleIndex) + 1));
+
+        if (progressRing != null)
+            progressRing.transform.SetSiblingIndex(Mathf.Min(parent.childCount - 1, circleRect.GetSiblingIndex() + 1));
+    }
+
+    Image FindRing(string name)
+    {
+        var ringObject = GameObject.Find(name);
+        if (ringObject == null)
+            return null;
+
+        return ringObject.GetComponent<Image>();
+    }
+
+    Sprite ResolveRingSprite()
+    {
+        if (guideRing != null && guideRing.sprite != null)
+            return guideRing.sprite;
+
+        if (progressRing != null && progressRing.sprite != null)
+            return progressRing.sprite;
+
+        var guideObject = GameObject.Find("MagicCircleGuide");
+        if (guideObject != null)
+        {
+            var guideImage = guideObject.GetComponent<Image>();
+            if (guideImage != null && guideImage.sprite != null)
+                return guideImage.sprite;
+        }
+
+        var progressObject = GameObject.Find("ProgressRing");
+        if (progressObject != null)
+        {
+            var progressImage = progressObject.GetComponent<Image>();
+            if (progressImage != null && progressImage.sprite != null)
+                return progressImage.sprite;
+        }
+
+        return Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+    }
+
+    void MatchRectTransform(RectTransform source, RectTransform target)
+    {
+        if (source == null || target == null)
+            return;
+
+        target.anchorMin = source.anchorMin;
+        target.anchorMax = source.anchorMax;
+        target.anchoredPosition = source.anchoredPosition;
+        target.sizeDelta = source.sizeDelta;
+        target.pivot = source.pivot;
+        target.localRotation = Quaternion.identity;
+        target.localScale = Vector3.one;
     }
 
     void UpdateProgress()
