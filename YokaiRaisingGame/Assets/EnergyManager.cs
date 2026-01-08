@@ -20,9 +20,6 @@ public class EnergyManager : MonoBehaviour
 
     [Header("Dependencies")]
     [SerializeField]
-    KegareManager kegareManager;
-
-    [SerializeField]
     YokaiStateController stateController;
 
     bool isWeak;
@@ -100,12 +97,12 @@ public class EnergyManager : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        if (stateController != null && stateController.currentState != YokaiState.Normal)
+        if (stateController != null && (stateController.isPurifying || stateController.isSpiritEmpty))
         {
             return;
         }
 
-        if (!allowWhenCritical && TryGetRecoveryBlockReason(out _))
+        if (!allowWhenCritical && stateController != null && stateController.isSpiritEmpty)
         {
             return;
         }
@@ -135,6 +132,10 @@ public class EnergyManager : MonoBehaviour
     void EnterWeakState()
     {
         isWeak = true;
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+        if (stateController != null)
+            stateController.EnterSpiritEmptyState();
         WeakStateChanged?.Invoke(true);
         AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
         if (worldConfig != null)
@@ -146,6 +147,10 @@ public class EnergyManager : MonoBehaviour
     void RecoverFromWeak()
     {
         isWeak = false;
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+        if (stateController != null)
+            stateController.ExitSpiritEmptyState();
         WeakStateChanged?.Invoke(false);
         if (worldConfig != null)
         {
@@ -172,31 +177,6 @@ public class EnergyManager : MonoBehaviour
 
         if (wasEmpty && energy > 0f)
             AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
-    }
-
-    bool TryGetRecoveryBlockReason(out string reason)
-    {
-        if (kegareManager == null)
-        {
-            kegareManager = FindObjectOfType<KegareManager>();
-        }
-
-        bool isKegareMax = kegareManager != null && kegareManager.isKegareMax;
-        bool isEnergyZero = energy <= 0f;
-        if (!isKegareMax && !isEnergyZero)
-        {
-            reason = string.Empty;
-            return false;
-        }
-
-        if (isKegareMax && isEnergyZero)
-            reason = "穢れMAX / 霊力0";
-        else if (isKegareMax)
-            reason = "穢れMAX";
-        else
-            reason = "霊力0";
-
-        return true;
     }
 
     void NotifyEnergyChanged()

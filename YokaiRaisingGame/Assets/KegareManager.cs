@@ -20,9 +20,6 @@ public class KegareManager : MonoBehaviour
 
     [Header("Dependencies")]
     [SerializeField]
-    EnergyManager energyManager;
-
-    [SerializeField]
     YokaiStateController stateController;
 
     [Header("演出")]
@@ -143,23 +140,21 @@ public class KegareManager : MonoBehaviour
 
     bool TryGetRecoveryBlockReason(out string reason)
     {
-        if (energyManager == null)
-        {
-            energyManager = FindObjectOfType<EnergyManager>();
-        }
+        if (stateController == null)
+            stateController = CurrentYokaiContext.ResolveStateController();
 
-        bool isKegareMax = this.isKegareMax;
-        bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
-        if (!isKegareMax && !isEnergyZero)
+        bool isPurifying = stateController != null && stateController.isPurifying;
+        bool isSpiritEmpty = stateController != null && stateController.isSpiritEmpty;
+        if (!isPurifying && !isSpiritEmpty)
         {
             reason = string.Empty;
             return false;
         }
 
-        if (isKegareMax && isEnergyZero)
-            reason = "穢れMAX / 霊力0";
-        else if (isKegareMax)
-            reason = "穢れMAX";
+        if (isPurifying && isSpiritEmpty)
+            reason = "魔法陣 / 霊力0";
+        else if (isPurifying)
+            reason = "魔法陣";
         else
             reason = "霊力0";
 
