@@ -28,7 +28,7 @@ public class KegareManager : MonoBehaviour
     [Header("演出")]
     public float emergencyPurifyValue = 30f;
 
-    bool isMononoke = false;
+    public bool isKegareMax { get; private set; }
     GameObject currentYokai;
     float increaseTimer;
 
@@ -61,6 +61,7 @@ public class KegareManager : MonoBehaviour
     void Start()
     {
         BindCurrentYokai(CurrentYokaiContext.Current);
+        SyncKegareMaxState(isKegareMax, requestRelease: false);
         NotifyKegareChanged();
     }
 
@@ -76,26 +77,18 @@ public class KegareManager : MonoBehaviour
 
     public void AddKegare(float amount)
     {
-        if (isMononoke) return;
-
+        bool wasKegareMax = isKegareMax;
         kegare = Mathf.Clamp(kegare + amount, 0, maxKegare);
-
-        if (kegare >= maxKegare && !isMononoke)
-        {
-            isMononoke = true;
-        }
+        SyncKegareMaxState(wasKegareMax, requestRelease: true);
 
         NotifyKegareChanged();
     }
 
     public void SetKegare(float value, string reason = null)
     {
+        bool wasKegareMax = isKegareMax;
         kegare = Mathf.Clamp(value, 0f, maxKegare);
-
-        if (kegare >= maxKegare && !isMononoke)
-            isMononoke = true;
-        else if (kegare < maxKegare && isMononoke)
-            isMononoke = false;
+        SyncKegareMaxState(wasKegareMax, requestRelease: true);
 
         NotifyKegareChanged();
     }
@@ -122,11 +115,10 @@ public class KegareManager : MonoBehaviour
             return;
         }
 
+        bool wasKegareMax = isKegareMax;
         float purifyAmount = maxKegare * purifyRatio;
         kegare = Mathf.Clamp(kegare - purifyAmount, 0f, maxKegare);
-
-        if (kegare < maxKegare && isMononoke)
-            isMononoke = false;
+        SyncKegareMaxState(wasKegareMax, requestRelease: true);
 
         Debug.Log($"[PURIFY] {logContext} amount={purifyAmount:0.##} kegare={kegare:0.##}/{maxKegare:0.##}");
         NotifyKegareChanged();
@@ -156,7 +148,7 @@ public class KegareManager : MonoBehaviour
             energyManager = FindObjectOfType<EnergyManager>();
         }
 
-        bool isKegareMax = kegare >= maxKegare;
+        bool isKegareMax = this.isKegareMax;
         bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
         if (!isKegareMax && !isEnergyZero)
         {
@@ -176,10 +168,9 @@ public class KegareManager : MonoBehaviour
 
     public void ExecuteEmergencyPurify()
     {
+        bool wasKegareMax = isKegareMax;
         kegare = Mathf.Clamp(emergencyPurifyValue, 0f, maxKegare);
-
-        if (kegare < maxKegare && isMononoke)
-            isMononoke = false;
+        SyncKegareMaxState(wasKegareMax, requestRelease: true);
 
         NotifyKegareChanged();
     }
@@ -189,7 +180,7 @@ public class KegareManager : MonoBehaviour
         if (naturalIncreasePerMinute <= 0f)
             return;
 
-        if (kegare >= maxKegare)
+        if (isKegareMax)
             return;
 
         increaseTimer += Time.deltaTime;
@@ -200,6 +191,39 @@ public class KegareManager : MonoBehaviour
         increaseTimer -= ticks * increaseIntervalSeconds;
         float increaseAmount = naturalIncreasePerMinute * ticks;
         AddKegare(increaseAmount);
+    }
+
+    void SyncKegareMaxState(bool wasKegareMax, bool requestRelease, bool triggerEnter = true)
+    {
+        bool isNowMax = kegare >= maxKegare;
+        isKegareMax = isNowMax;
+
+        if (isNowMax && !wasKegareMax && triggerEnter)
+        {
+            EnterKegareMax();
+        }
+        else if (!isNowMax && wasKegareMax && requestRelease)
+        {
+            ExitKegareMax();
+        }
+    }
+
+    void EnterKegareMax()
+    {
+        if (stateController == null)
+            stateController = CurrentYokaiContext.ResolveStateController();
+
+        if (stateController != null)
+            stateController.EnterKegareMax();
+    }
+
+    void ExitKegareMax()
+    {
+        if (stateController == null)
+            stateController = CurrentYokaiContext.ResolveStateController();
+
+        if (stateController != null)
+            stateController.RequestReleaseKegareMax();
     }
 
     void NotifyKegareChanged()
