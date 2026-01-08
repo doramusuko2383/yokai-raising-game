@@ -138,6 +138,7 @@ public class EnergyManager : MonoBehaviour
             stateController.EnterSpiritEmptyState();
         WeakStateChanged?.Invoke(true);
         AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
+        MentorMessageService.NotifySpiritEmpty();
         if (worldConfig != null)
         {
             Debug.Log($"[ENERGY] {worldConfig.weakMessage}");
@@ -176,7 +177,10 @@ public class EnergyManager : MonoBehaviour
         Debug.Log($"[ENERGY] Emergency dango +{recoveryAmount:0.##} energy={energy:0.##}/{maxEnergy:0.##}");
 
         if (wasEmpty && energy > 0f)
+        {
             AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
+            MentorMessageService.NotifyRecovered();
+        }
     }
 
     void NotifyEnergyChanged()
