@@ -229,7 +229,7 @@ public class YokaiEvolutionController : MonoBehaviour
         var kegareManager = CurrentYokaiContext.ResolveKegareManager();
         var energyManager = FindObjectOfType<EnergyManager>();
 
-        bool isKegareMax = kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
+        bool isKegareMax = kegareManager != null && kegareManager.isKegareMax;
         bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
         if (!isKegareMax && !isEnergyZero)
         {

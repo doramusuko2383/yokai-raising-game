@@ -130,7 +130,7 @@ public class YokaiGrowthController : MonoBehaviour
         if (stateController != null && stateController.isPurifying)
             return true;
 
-        bool isKegareMax = kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
+        bool isKegareMax = kegareManager != null && kegareManager.isKegareMax;
         bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
 
         return isKegareMax || isEnergyZero;
@@ -144,7 +144,7 @@ public class YokaiGrowthController : MonoBehaviour
         {
             reason = "evolution-ready";
         }
-        else if (kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare)
+        else if (kegareManager != null && kegareManager.isKegareMax)
         {
             reason = "kegare-max";
         }
