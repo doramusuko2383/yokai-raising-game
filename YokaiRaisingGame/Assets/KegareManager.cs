@@ -25,9 +25,14 @@ public class KegareManager : MonoBehaviour
     [Header("演出")]
     public float emergencyPurifyValue = 30f;
 
+    [Header("Mentor Message")]
+    [SerializeField]
+    float dangerThresholdRatio = 0.7f;
+
     public bool isKegareMax { get; private set; }
     GameObject currentYokai;
     float increaseTimer;
+    bool isInDanger;
 
     public event System.Action EmergencyPurifyRequested;
     public event System.Action<float, float> KegareChanged;
@@ -59,6 +64,7 @@ public class KegareManager : MonoBehaviour
     {
         BindCurrentYokai(CurrentYokaiContext.Current);
         SyncKegareMaxState(isKegareMax, requestRelease: false);
+        CacheDangerState();
         NotifyKegareChanged();
     }
 
@@ -210,6 +216,8 @@ public class KegareManager : MonoBehaviour
 
         if (stateController != null)
             stateController.EnterKegareMax();
+
+        MentorMessageService.NotifyMononokeEntered();
     }
 
     void ExitKegareMax()
@@ -219,11 +227,37 @@ public class KegareManager : MonoBehaviour
 
         if (stateController != null)
             stateController.RequestReleaseKegareMax();
+
+        MentorMessageService.NotifyMononokeReleased();
     }
 
     void NotifyKegareChanged()
     {
+        UpdateDangerState();
         KegareChanged?.Invoke(kegare, maxKegare);
+    }
+
+    void CacheDangerState()
+    {
+        isInDanger = IsDangerState();
+    }
+
+    void UpdateDangerState()
+    {
+        bool isDanger = IsDangerState();
+        if (isDanger && !isInDanger)
+            MentorMessageService.NotifyDangerEntered();
+
+        isInDanger = isDanger;
+    }
+
+    bool IsDangerState()
+    {
+        if (isKegareMax)
+            return false;
+
+        float threshold = maxKegare * Mathf.Clamp01(dangerThresholdRatio);
+        return kegare >= threshold;
     }
 
 }
