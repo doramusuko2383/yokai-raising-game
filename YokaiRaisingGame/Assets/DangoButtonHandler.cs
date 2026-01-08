@@ -15,7 +15,7 @@ public class DangoButtonHandler : MonoBehaviour
     public void OnClickDango()
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
-        if (!IsState(YokaiState.Normal))
+        if (IsActionBlocked())
             return;
 
         if (energyManager == null)
@@ -33,14 +33,11 @@ public class DangoButtonHandler : MonoBehaviour
         }
     }
 
-    bool IsState(YokaiState state)
+    bool IsActionBlocked()
     {
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        if (stateController == null || stateController.currentState == state)
-            return true;
-
-        return false;
+        return stateController != null && (stateController.isPurifying || stateController.isSpiritEmpty);
     }
 }

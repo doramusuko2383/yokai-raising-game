@@ -10,6 +10,7 @@ public class YokaiStateController : MonoBehaviour
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
     public bool isPurifying;
+    public bool isSpiritEmpty { get; private set; }
 
     [Header("Dependencies")]
     [SerializeField]
@@ -127,6 +128,7 @@ public class YokaiStateController : MonoBehaviour
         ResolveDependencies();
         currentState = YokaiState.Normal;
         isPurifying = false;
+        isSpiritEmpty = false;
         isKegareMaxVisualsActive = false;
         RefreshState();
     }
@@ -238,6 +240,10 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
+        bool isEnergyZero = IsEnergyZero();
+        if (isSpiritEmpty != isEnergyZero)
+            isSpiritEmpty = isEnergyZero;
+
         if (currentState == YokaiState.Evolving)
         {
             ApplyStateUI();
@@ -245,7 +251,6 @@ public class YokaiStateController : MonoBehaviour
         }
 
         bool isKegareMax = IsKegareMax();
-        bool isEnergyZero = IsEnergyZero();
         if (isKegareMax || isEnergyZero)
         {
             if (isKegareMax && isEnergyZero && currentState == YokaiState.EnergyEmpty)
@@ -309,6 +314,24 @@ public class YokaiStateController : MonoBehaviour
         HandleStateSeTransitions(previousState, currentState);
         ApplyStateUI();
         LogStateContext("StateChange");
+    }
+
+    public void EnterSpiritEmptyState()
+    {
+        if (isSpiritEmpty)
+            return;
+
+        isSpiritEmpty = true;
+        ApplyStateUI();
+    }
+
+    public void ExitSpiritEmptyState()
+    {
+        if (!isSpiritEmpty)
+            return;
+
+        isSpiritEmpty = false;
+        ApplyStateUI();
     }
 
     public void BeginPurifying()
@@ -492,7 +515,7 @@ public class YokaiStateController : MonoBehaviour
     {
         bool isKegareMax = currentState == YokaiState.KegareMax;
         bool showKegareMaxVisuals = isKegareMaxVisualsActive;
-        bool isEnergyEmpty = currentState == YokaiState.EnergyEmpty;
+        bool isEnergyEmpty = isSpiritEmpty;
         bool showActionPanel = currentState == YokaiState.Normal || currentState == YokaiState.EvolutionReady || isKegareMax || isEnergyEmpty;
         bool showEmergency = isKegareMax;
         bool showMagicCircle = isPurifying;
@@ -531,7 +554,7 @@ public class YokaiStateController : MonoBehaviour
             bool isEmergency = emergencyPurifyButton != null && button.gameObject == emergencyPurifyButton;
             bool isEmergencyDango = emergencyDangoButton != null && button.gameObject == emergencyDangoButton;
             bool shouldShow = isEnergyEmpty
-                ? isEmergencyDango
+                ? (isEmergencyDango || (isEmergency && isKegareMax))
                 : (isEmergency ? isKegareMax : !isKegareMax);
             ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
             button.interactable = shouldShow;
@@ -643,14 +666,13 @@ public class YokaiStateController : MonoBehaviour
         kegareMaxSpriteColors.Clear();
         kegareMaxImageColors.Clear();
         kegareMaxBasePosition = Vector3.zero;
-        kegareMaxBaseScale = Vector3.one;
+        kegareMaxBaseScale = Vector3.zero;
         kegareMaxNoiseSeed = Random.value * 10f;
 
         if (kegareMaxTargetRoot == null)
             return;
 
-        kegareMaxBasePosition = kegareMaxTargetRoot.transform.localPosition;
-        kegareMaxBaseScale = kegareMaxTargetRoot.transform.localScale;
+        CaptureKegareMaxBaseTransform();
 
         foreach (var sprite in kegareMaxTargetRoot.GetComponentsInChildren<SpriteRenderer>(true))
         {
@@ -826,6 +848,12 @@ public class YokaiStateController : MonoBehaviour
         if (isKegareMaxVisualsActive)
             return;
 
+        if (kegareMaxTargetRoot == null || CurrentYokaiContext.Current != kegareMaxTargetRoot)
+        {
+            CacheKegareMaxTargets(CurrentYokaiContext.Current);
+        }
+
+        CaptureKegareMaxBaseTransform();
         isKegareMaxVisualsActive = true;
         ApplyStateUI();
         RefreshDangerEffectOriginalColors();
@@ -855,6 +883,15 @@ public class YokaiStateController : MonoBehaviour
         RefreshDangerEffectOriginalColors();
         AudioHook.RequestPlay(YokaiSE.SE_KEGARE_MAX_RELEASE);
         kegareMaxReleaseRoutine = null;
+    }
+
+    void CaptureKegareMaxBaseTransform()
+    {
+        if (kegareMaxTargetRoot == null)
+            return;
+
+        kegareMaxBasePosition = kegareMaxTargetRoot.transform.localPosition;
+        kegareMaxBaseScale = kegareMaxTargetRoot.transform.localScale;
     }
 
     void LogStateContext(string label)

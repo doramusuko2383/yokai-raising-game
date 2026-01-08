@@ -34,9 +34,6 @@ public class YokaiGrowthController : MonoBehaviour
     private YokaiStateController stateController;
 
     [SerializeField]
-    KegareManager kegareManager;
-
-    [SerializeField]
     EnergyManager energyManager;
 
     DateTime lastUpdateTime;
@@ -130,10 +127,11 @@ public class YokaiGrowthController : MonoBehaviour
         if (stateController != null && stateController.isPurifying)
             return true;
 
-        bool isKegareMax = kegareManager != null && kegareManager.isKegareMax;
         bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
+        if (stateController != null && stateController.isSpiritEmpty)
+            isEnergyZero = true;
 
-        return isKegareMax || isEnergyZero;
+        return isEnergyZero;
     }
 
     void LogGrowthStoppedReason()
@@ -143,10 +141,6 @@ public class YokaiGrowthController : MonoBehaviour
         if (hasEvolved)
         {
             reason = "evolution-ready";
-        }
-        else if (kegareManager != null && kegareManager.isKegareMax)
-        {
-            reason = "kegare-max";
         }
         else if (energyManager != null && energyManager.energy <= 0f)
         {
