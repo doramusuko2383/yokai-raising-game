@@ -136,6 +136,7 @@ public class EnergyManager : MonoBehaviour
     {
         isWeak = true;
         WeakStateChanged?.Invoke(true);
+        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
         if (worldConfig != null)
         {
             Debug.Log($"[ENERGY] {worldConfig.weakMessage}");
@@ -164,9 +165,13 @@ public class EnergyManager : MonoBehaviour
             return;
         }
 
+        bool wasEmpty = energy <= 0f;
         float recoveryAmount = Random.Range(30f, 40f);
         ChangeEnergy(recoveryAmount);
         Debug.Log($"[ENERGY] Emergency dango +{recoveryAmount:0.##} energy={energy:0.##}/{maxEnergy:0.##}");
+
+        if (wasEmpty && energy > 0f)
+            AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
     }
 
     bool TryGetRecoveryBlockReason(out string reason)
@@ -176,7 +181,7 @@ public class EnergyManager : MonoBehaviour
             kegareManager = FindObjectOfType<KegareManager>();
         }
 
-        bool isKegareMax = kegareManager != null && kegareManager.kegare >= kegareManager.maxKegare;
+        bool isKegareMax = kegareManager != null && kegareManager.isKegareMax;
         bool isEnergyZero = energy <= 0f;
         if (!isKegareMax && !isEnergyZero)
         {

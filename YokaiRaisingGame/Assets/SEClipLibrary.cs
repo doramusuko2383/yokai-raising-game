@@ -25,6 +25,13 @@ public class SEClipLibrary : ScriptableObject
     [SerializeField]
     AudioClip kegareMaxRelease;
 
+    [Header("Spirit")]
+    [SerializeField]
+    AudioClip spiritEmpty;
+
+    [SerializeField]
+    AudioClip spiritRecover;
+
     public AudioClip ResolveClip(YokaiSE se)
     {
         switch (se)
@@ -41,6 +48,10 @@ public class SEClipLibrary : ScriptableObject
                 return kegareMaxEnter;
             case YokaiSE.SE_KEGARE_MAX_RELEASE:
                 return kegareMaxRelease;
+            case YokaiSE.SE_SPIRIT_EMPTY:
+                return spiritEmpty;
+            case YokaiSE.SE_SPIRIT_RECOVER:
+                return spiritRecover;
             default:
                 return null;
         }

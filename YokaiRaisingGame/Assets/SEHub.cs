@@ -101,6 +101,14 @@ public static class SEHub
                     blockLowerSeconds = 0.6f,
                     priority = SEPriority.High
                 };
+            case YokaiSE.SE_SPIRIT_EMPTY:
+            case YokaiSE.SE_SPIRIT_RECOVER:
+                return new SEPlaybackPolicy
+                {
+                    cooldownSeconds = 0.35f,
+                    blockLowerSeconds = 0.4f,
+                    priority = SEPriority.Normal
+                };
             case YokaiSE.SE_EVOLUTION_START:
             case YokaiSE.SE_EVOLUTION_CHARGE:
             case YokaiSE.SE_EVOLUTION_FLASH:
