@@ -80,6 +80,7 @@ public class MagicCircleActivator : MonoBehaviour
         pendingRequest = requestType;
         controller.gameObject.SetActive(true);
         controller.Show();
+        MentorMessageService.ShowHint(OnmyojiHintType.OkIYomeGuide);
 #if UNITY_EDITOR
         Debug.Log($"[PURIFY] Request received: type={requestType}");
 #endif
