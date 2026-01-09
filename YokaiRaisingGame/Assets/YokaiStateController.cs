@@ -120,6 +120,16 @@ public class YokaiStateController : MonoBehaviour
         CurrentYokaiContext.CurrentChanged -= BindCurrentYokai;
     }
 
+    void Start()
+    {
+        if (CurrentYokaiContext.Current != null)
+        {
+            // 症状1/3/4: Current が既に決定済みの場合に初期化を補完し、Energy/Kegare 反映やおきよめ関連の状態を確定させる。
+            SetActiveYokai(CurrentYokaiContext.Current);
+            RefreshState();
+        }
+    }
+
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         ResolveDependencies();
@@ -386,6 +396,8 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         SetActiveYokai(activeYokai);
+        // 症状1/2/3/4: 妖怪確定時に State の再評価を走らせ、Unknown や各種表示/メッセージ欠落を防ぐ。
+        RefreshState();
         LogStateContext("Bind");
     }
 
