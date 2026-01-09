@@ -245,15 +245,16 @@ public class YokaiStateController : MonoBehaviour
         }
 
         bool isKegareMax = IsKegareMax();
-        if (isKegareMax || isEnergyZero)
+        if (isKegareMax)
         {
-            if (isKegareMax && isEnergyZero && currentState == YokaiState.EnergyEmpty)
-            {
-                ApplyStateUI();
-                return;
-            }
+            // 症状2: 穢れMAX時は霊力0より優先してKegareMaxへ遷移させ、緊急おきよめを確実に表示する。
+            SetState(YokaiState.KegareMax);
+            return;
+        }
 
-            SetState(isKegareMax ? YokaiState.KegareMax : YokaiState.EnergyEmpty);
+        if (isEnergyZero)
+        {
+            SetState(YokaiState.EnergyEmpty);
             return;
         }
 
@@ -405,6 +406,8 @@ public class YokaiStateController : MonoBehaviour
         RefreshDangerEffectOriginalColors();
         UpdateDangerEffects();
         CacheEnergyEmptyTargets(activeYokai);
+        // 症状4: 妖怪切替時にEnergyEmptyのキャッシュを先に作って、霊力0の減衰エフェクトを確実に反映する。
+        UpdateEnergyEmptyVisuals(isSpiritEmpty);
         if (currentState != YokaiState.Evolving)
             RefreshState();
         LogStateContext("Active");
@@ -547,9 +550,12 @@ public class YokaiStateController : MonoBehaviour
 
             bool isEmergency = emergencyPurifyButton != null && button.gameObject == emergencyPurifyButton;
             bool hasDangoHandler = button.GetComponent<DangoButtonHandler>() != null;
-            bool shouldShow = isEnergyEmpty
-                ? (hasDangoHandler || (isEmergency && isKegareMax))
-                : (isEmergency ? isKegareMax : !isKegareMax);
+            bool shouldShow = isKegareMax
+                ? isEmergency
+                : (isEnergyEmpty
+                    ? hasDangoHandler
+                    // 症状1/3: 通常時は赤ちゃんの「だんご+おきよめ」を表示し、Energy0時は特別だんごのみを維持する。
+                    : !isEmergency);
             ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
             button.interactable = shouldShow;
             button.enabled = shouldShow;
