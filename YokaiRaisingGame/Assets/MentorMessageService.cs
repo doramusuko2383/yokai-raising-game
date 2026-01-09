@@ -76,21 +76,14 @@ public class MentorMessageService : MonoBehaviour
         if (messageUI != null)
             return;
 
-        var prefab = Resources.Load<MentorMessageUI>(PrefabResourcePath);
-        if (prefab == null)
+        // Scene 上に配置された唯一の MentorMessageUI を参照して使う（二重生成しない）。
+        messageUI = FindObjectOfType<MentorMessageUI>(true);
+        // Play 中に新規 Instantiate は行わないため、Scene に存在しない場合は警告のみ。
+        if (messageUI == null)
         {
-            Debug.LogWarning("[Mentor] MentorMessageUI prefab not found. Ensure Resources/UI/MentorMessageUI.prefab exists.");
+            Debug.LogWarning("[Mentor] MentorMessageUI instance not found in scene. Ensure the inactive UI exists in the Scene. No Instantiate will occur.");
             return;
         }
-
-        Canvas targetCanvas = FindTargetCanvas();
-        if (targetCanvas == null)
-        {
-            targetCanvas = CreateCanvas();
-        }
-
-        messageUI = Instantiate(prefab, targetCanvas.transform);
-        messageUI.name = "MentorMessageUI";
         messageUI.HideMessage(immediate: true);
     }
 
