@@ -9,7 +9,7 @@ public class MentorMessageService : MonoBehaviour
     const string PrefabResourcePath = "UI/MentorMessageUI";
 
     static MentorMessageService instance;
-    static readonly Dictionary<string, float> lastShownTimes = new Dictionary<string, float>();
+    static readonly Dictionary<OnmyojiHintType, float> lastShownTimes = new Dictionary<OnmyojiHintType, float>();
 
     [Header("Settings")]
     [SerializeField]
@@ -26,29 +26,9 @@ public class MentorMessageService : MonoBehaviour
         EnsureInstance();
     }
 
-    public static void NotifyDangerEntered()
+    public static void ShowHint(OnmyojiHintType type)
     {
-        EnsureInstance().ShowMessage("danger", "けがれが たまってきとるのう…");
-    }
-
-    public static void NotifySpiritEmpty()
-    {
-        EnsureInstance().ShowMessage("spirit_empty", "ちからが なくなっておる…");
-    }
-
-    public static void NotifyRecovered()
-    {
-        EnsureInstance().ShowMessage("recovered", "うむ、げんきが もどったのう");
-    }
-
-    public static void NotifyMononokeEntered()
-    {
-        EnsureInstance().ShowMessage("mononoke_enter", "けがれが たまりすぎて、モノノケに なってしまった…");
-    }
-
-    public static void NotifyMononokeReleased()
-    {
-        EnsureInstance().ShowMessage("mononoke_release", "なんだか わるい ゆめを みていた みたいじゃ");
+        EnsureInstance().ShowMessage(type);
     }
 
     static MentorMessageService EnsureInstance()
@@ -156,7 +136,7 @@ public class MentorMessageService : MonoBehaviour
         return canvas;
     }
 
-    void ShowMessage(string messageKey, string message)
+    void ShowMessage(OnmyojiHintType type)
     {
         if (messageUI == null)
         {
@@ -165,22 +145,26 @@ public class MentorMessageService : MonoBehaviour
                 return;
         }
 
-        if (!CanShowMessage(messageKey))
+        if (!CanShowMessage(type))
+            return;
+
+        string message = OnmyojiHintCatalog.GetMessage(type);
+        if (string.IsNullOrEmpty(message))
             return;
 
         messageUI.ShowMessage(message, defaultDuration, allowTapToClose: true);
     }
 
-    bool CanShowMessage(string messageKey)
+    bool CanShowMessage(OnmyojiHintType type)
     {
         float now = Time.unscaledTime;
-        if (lastShownTimes.TryGetValue(messageKey, out float lastTime))
+        if (lastShownTimes.TryGetValue(type, out float lastTime))
         {
             if (now - lastTime < messageCooldownSeconds)
                 return false;
         }
 
-        lastShownTimes[messageKey] = now;
+        lastShownTimes[type] = now;
         return true;
     }
 }

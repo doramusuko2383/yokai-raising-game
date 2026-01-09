@@ -217,7 +217,7 @@ public class KegareManager : MonoBehaviour
         if (stateController != null)
             stateController.EnterKegareMax();
 
-        MentorMessageService.NotifyMononokeEntered();
+        MentorMessageService.ShowHint(OnmyojiHintType.KegareMax);
     }
 
     void ExitKegareMax()
@@ -228,7 +228,7 @@ public class KegareManager : MonoBehaviour
         if (stateController != null)
             stateController.RequestReleaseKegareMax();
 
-        MentorMessageService.NotifyMononokeReleased();
+        MentorMessageService.ShowHint(OnmyojiHintType.KegareRecovered);
     }
 
     void NotifyKegareChanged()
@@ -246,7 +246,7 @@ public class KegareManager : MonoBehaviour
     {
         bool isDanger = IsDangerState();
         if (isDanger && !isInDanger)
-            MentorMessageService.NotifyDangerEntered();
+            MentorMessageService.ShowHint(OnmyojiHintType.KegareWarning);
 
         isInDanger = isDanger;
     }

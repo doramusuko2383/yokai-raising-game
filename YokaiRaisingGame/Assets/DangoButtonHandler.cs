@@ -26,7 +26,7 @@ public class DangoButtonHandler : MonoBehaviour
             energyManager.AddEnergy(dangoAmount);
             Debug.Log($"[ENERGY] Dango +{dangoAmount:0.##} energy={energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}");
             TutorialManager.NotifyDangoUsed();
-            MentorMessageService.NotifyRecovered();
+            MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
         }
         else
         {
