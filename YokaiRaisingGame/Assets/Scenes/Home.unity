@@ -186,7 +186,6 @@ MonoBehaviour:
   energyManager: {fileID: 515532832}
   actionPanel: {fileID: 1563096701}
   emergencyPurifyButton: {fileID: 1796825459}
-  emergencyDangoButton: {fileID: 0}
   purifyStopButton: {fileID: 0}
   magicCircleOverlay: {fileID: 1803633755}
   dangerOverlay: {fileID: 0}
@@ -587,6 +586,7 @@ MonoBehaviour:
   worldConfig: {fileID: 0}
   stateController: {fileID: 152328533}
   emergencyPurifyValue: 30
+  dangerThresholdRatio: 0.7
 --- !u!4 &604884282
 Transform:
   m_ObjectHideFlags: 0
