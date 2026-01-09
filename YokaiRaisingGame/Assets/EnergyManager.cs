@@ -43,7 +43,7 @@ public class EnergyManager : MonoBehaviour
 
     void Start()
     {
-        energy = Mathf.Clamp(maxEnergy, 0f, maxEnergy);
+        energy = Mathf.Clamp(energy, 0f, maxEnergy);
         if (energy <= 0f)
         {
             EnterWeakState();
@@ -147,12 +147,18 @@ public class EnergyManager : MonoBehaviour
 
     void RecoverFromWeak()
     {
+        bool wasWeak = isWeak;
         isWeak = false;
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
         if (stateController != null)
             stateController.ExitSpiritEmptyState();
         WeakStateChanged?.Invoke(false);
+        if (wasWeak)
+        {
+            AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
+            MentorMessageService.NotifyRecovered();
+        }
         if (worldConfig != null)
         {
             Debug.Log($"[ENERGY] {worldConfig.normalMessage}");

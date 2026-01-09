@@ -46,5 +46,14 @@ public class CharacterSwitcher : MonoBehaviour
         currentInstance.transform.localPosition = Vector3.zero;
         currentInstance.transform.localRotation = Quaternion.identity;
         currentInstance.transform.localScale = Vector3.one;
+
+        CurrentYokaiContext.SetCurrent(currentInstance, "CharacterSwitcher");
+        var kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (kegareManager != null)
+            kegareManager.BindCurrentYokai(currentInstance);
+        var stateController = CurrentYokaiContext.ResolveStateController();
+        if (stateController != null)
+            stateController.BindCurrentYokai(currentInstance);
+        Debug.Log($"[STATE] CurrentYokaiContext.CurrentName={CurrentYokaiContext.CurrentName()}");
     }
 }

@@ -30,9 +30,6 @@ public class YokaiStateController : MonoBehaviour
     GameObject emergencyPurifyButton;
 
     [SerializeField]
-    GameObject emergencyDangoButton;
-
-    [SerializeField]
     GameObject purifyStopButton;
 
     [SerializeField]
@@ -166,9 +163,6 @@ public class YokaiStateController : MonoBehaviour
 
         if (emergencyPurifyButton == null)
             emergencyPurifyButton = GameObject.Find("Button_MononokeHeal");
-
-        if (emergencyDangoButton == null)
-            emergencyDangoButton = GameObject.Find("Btn_AdWatch");
 
         if (purifyStopButton == null)
             purifyStopButton = GameObject.Find("Btn_StopPurify");
@@ -552,9 +546,9 @@ public class YokaiStateController : MonoBehaviour
                 continue;
 
             bool isEmergency = emergencyPurifyButton != null && button.gameObject == emergencyPurifyButton;
-            bool isEmergencyDango = emergencyDangoButton != null && button.gameObject == emergencyDangoButton;
+            bool hasDangoHandler = button.GetComponent<DangoButtonHandler>() != null;
             bool shouldShow = isEnergyEmpty
-                ? (isEmergencyDango || (isEmergency && isKegareMax))
+                ? (hasDangoHandler || (isEmergency && isKegareMax))
                 : (isEmergency ? isKegareMax : !isKegareMax);
             ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
             button.interactable = shouldShow;

@@ -15,6 +15,11 @@ public class DangoButtonHandler : MonoBehaviour
     public void OnClickDango()
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+        string stateName = stateController != null ? stateController.currentState.ToString() : "null";
+        bool spiritEmpty = stateController != null && stateController.isSpiritEmpty;
+        Debug.Log($"[DANGO] click yokai={CurrentYokaiContext.CurrentName()} state={stateName} spiritEmpty={spiritEmpty}");
         if (IsActionBlocked())
             return;
 
@@ -23,6 +28,7 @@ public class DangoButtonHandler : MonoBehaviour
 
         if (energyManager != null)
         {
+            Debug.Log("[DANGO] AddEnergy called.");
             energyManager.AddEnergy(dangoAmount);
             Debug.Log($"[ENERGY] Dango +{dangoAmount:0.##} energy={energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}");
             TutorialManager.NotifyDangoUsed();
@@ -39,6 +45,6 @@ public class DangoButtonHandler : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        return stateController != null && (stateController.isPurifying || stateController.isSpiritEmpty);
+        return stateController != null && stateController.isPurifying;
     }
 }

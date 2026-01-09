@@ -31,6 +31,11 @@ public class MentorMessageService : MonoBehaviour
         EnsureInstance().ShowMessage(type);
     }
 
+    public static void NotifyRecovered()
+    {
+        ShowHint(OnmyojiHintType.EnergyRecovered);
+    }
+
     static MentorMessageService EnsureInstance()
     {
         if (instance != null)
