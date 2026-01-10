@@ -82,6 +82,8 @@ public class YokaiStateController : MonoBehaviour
     KegareManager registeredKegareManager;
     EnergyManager registeredEnergyManager;
     bool evolutionReadyPending;
+    bool evolutionResultPending;
+    YokaiEvolutionStage evolutionResultStage;
     GameObject energyEmptyTargetRoot;
     GameObject kegareMaxTargetRoot;
     readonly Dictionary<SpriteRenderer, Color> energyEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
@@ -122,6 +124,7 @@ public class YokaiStateController : MonoBehaviour
 
     void Start()
     {
+        ResolveDependencies();
         if (CurrentYokaiContext.Current != null)
         {
             // 症状1/3/4: Current が既に決定済みの場合に初期化を補完し、Energy/Kegare 反映やおきよめ関連の状態を確定させる。
@@ -137,6 +140,11 @@ public class YokaiStateController : MonoBehaviour
         isPurifying = false;
         isSpiritEmpty = false;
         isKegareMaxVisualsActive = false;
+        if (CurrentYokaiContext.Current != null)
+        {
+            // 不具合①: シーン再読込時も現在妖怪を再バインドして初期値の同期を確実にする。
+            SetActiveYokai(CurrentYokaiContext.Current);
+        }
         RefreshState();
     }
 
@@ -395,6 +403,19 @@ public class YokaiStateController : MonoBehaviour
         if (activeYokai == null)
             return;
 
+        if (currentState == YokaiState.Evolving)
+        {
+            // 不具合④: 進化演出中に切り替わった妖怪情報を保持して完了メッセージを出す。
+            if (YokaiEncyclopedia.TryResolveYokaiId(activeYokai.name, out _, out YokaiEvolutionStage stage))
+            {
+                if (stage == YokaiEvolutionStage.Child || stage == YokaiEvolutionStage.Adult)
+                {
+                    evolutionResultStage = stage;
+                    evolutionResultPending = true;
+                }
+            }
+        }
+
         SetActiveYokai(activeYokai);
         // 症状1/2/3/4: 妖怪確定時に State の再評価を走らせ、Unknown や各種表示/メッセージ欠落を防ぐ。
         RefreshState();
@@ -406,6 +427,11 @@ public class YokaiStateController : MonoBehaviour
         if (activeYokai == null)
             return;
 
+        if (currentState != YokaiState.Evolving)
+            evolutionResultPending = false;
+        evolutionReadyPending = false;
+        // 不具合②/③: 霊力0の保持状態を現行妖怪に合わせて再同期し、おきよめ可否と減衰表示を一致させる。
+        isSpiritEmpty = IsEnergyZero();
         ResetEnergyEmptyVisuals();
         ResetKegareMaxVisuals();
         ResetKegareMaxMotion();
@@ -439,7 +465,7 @@ public class YokaiStateController : MonoBehaviour
         }
 
         if (!IsKegareMax())
-            currentState = YokaiState.EvolutionReady;
+            SetState(YokaiState.EvolutionReady);
         // DEBUG: EvolutionReady になったことを明示してタップ可能を知らせる
         Debug.Log("[EVOLUTION] Ready. Tap the yokai to evolve.");
         ApplyStateUI();
@@ -525,7 +551,8 @@ public class YokaiStateController : MonoBehaviour
         bool isKegareMax = currentState == YokaiState.KegareMax;
         bool showKegareMaxVisuals = isKegareMaxVisualsActive;
         bool isEnergyEmpty = isSpiritEmpty;
-        bool showActionPanel = currentState == YokaiState.Normal || currentState == YokaiState.EvolutionReady || isKegareMax || isEnergyEmpty;
+        // 不具合②: 霊力0の時は通常だんご/おきよめパネルを隠し、特別だんごのみを表示する。
+        bool showActionPanel = currentState == YokaiState.Normal || currentState == YokaiState.EvolutionReady || isKegareMax;
         bool showEmergency = isKegareMax;
         bool showMagicCircle = isPurifying;
         bool showStopPurify = isPurifying;
@@ -564,10 +591,8 @@ public class YokaiStateController : MonoBehaviour
             bool hasDangoHandler = button.GetComponent<DangoButtonHandler>() != null;
             bool shouldShow = isKegareMax
                 ? isEmergency
-                : (isEnergyEmpty
-                    ? hasDangoHandler
-                    // 症状1/3: 通常時は赤ちゃんの「だんご+おきよめ」を表示し、Energy0時は特別だんごのみを維持する。
-                    : !isEmergency);
+                // 不具合②: 霊力0では通常だんご/おきよめを隠して特別だんごのみを残す。
+                : (isEnergyEmpty ? false : !isEmergency);
             ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
             button.interactable = shouldShow;
             button.enabled = shouldShow;
@@ -628,6 +653,21 @@ public class YokaiStateController : MonoBehaviour
 
     void HandleStateSeTransitions(YokaiState previousState, YokaiState newState)
     {
+        if (newState == YokaiState.EvolutionReady && previousState != YokaiState.EvolutionReady)
+        {
+            // 不具合④: 進化準備状態に入った瞬間にメッセージを出す。
+            MentorMessageService.ShowHint(OnmyojiHintType.EvolutionStart);
+        }
+
+        if (previousState == YokaiState.Evolving && newState == YokaiState.Normal && evolutionResultPending)
+        {
+            // 不具合④: 進化完了後に段階別メッセージを出す。
+            if (evolutionResultStage == YokaiEvolutionStage.Child)
+                MentorMessageService.ShowHint(OnmyojiHintType.EvolutionCompleteChild);
+            else if (evolutionResultStage == YokaiEvolutionStage.Adult)
+                MentorMessageService.ShowHint(OnmyojiHintType.EvolutionCompleteAdult);
+            evolutionResultPending = false;
+        }
     }
 
     void RefreshDangerEffectOriginalColors()

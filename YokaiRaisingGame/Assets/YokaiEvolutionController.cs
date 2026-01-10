@@ -103,7 +103,6 @@ public class YokaiEvolutionController : MonoBehaviour
         Debug.Log($"[EVOLUTION] 進化後キャラ名={GetYokaiName(nextYokaiPrefab)}");
 
         stateController.BeginEvolution();
-        MentorMessageService.ShowHint(OnmyojiHintType.EvolutionStart);
         TutorialManager.NotifyEvolutionStarted();
         Debug.Log($"{FormatEvolutionLog("Start")} Evolution triggered by tap");
         StartCoroutine(EvolutionSequence());
