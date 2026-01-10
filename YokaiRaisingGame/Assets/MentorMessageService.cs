@@ -150,7 +150,9 @@ public class MentorMessageService : MonoBehaviour
         if (string.IsNullOrEmpty(message))
             return;
 
-        messageUI.ShowMessage(message, defaultDuration, allowTapToClose: true);
+        // 不具合④: EvolutionReady 直後のメッセージはタップ待ちにする（自動クローズしない）。
+        float duration = type == OnmyojiHintType.EvolutionStart ? float.MaxValue : defaultDuration;
+        messageUI.ShowMessage(message, duration, allowTapToClose: true);
     }
 
     bool CanShowMessage(OnmyojiHintType type)
