@@ -24,6 +24,9 @@ public class CharacterRespawnGuard : MonoBehaviour
             return;
         }
 
+        if (CurrentYokaiContext.Current != null && CurrentYokaiContext.Current.activeInHierarchy)
+            return;
+
         if (HasActiveCharacter(characterRoot))
             return;
 

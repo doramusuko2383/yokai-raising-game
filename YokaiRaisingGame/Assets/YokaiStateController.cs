@@ -98,7 +98,7 @@ public class YokaiStateController : MonoBehaviour
     bool isKegareMaxVisualsActive;
     bool isKegareMaxMotionApplied;
     Coroutine kegareMaxReleaseRoutine;
-    bool initialSyncComplete;
+    bool hasInitialStateSynced;
     const float EvolutionReadyScale = 2.0f;
 
     public bool IsKegareMaxVisualsActive => isKegareMaxVisualsActive;
@@ -121,7 +121,6 @@ public class YokaiStateController : MonoBehaviour
         ResolveDependencies();
         if (CurrentYokaiContext.Current != null)
             SetActiveYokai(CurrentYokaiContext.Current);
-        ForceInitialSync();
     }
 
     void OnDisable()
@@ -138,7 +137,6 @@ public class YokaiStateController : MonoBehaviour
             // 症状1/3/4: Current が既に決定済みの場合に初期化を補完し、Energy/Kegare 反映やおきよめ関連の状態を確定させる。
             SetActiveYokai(CurrentYokaiContext.Current);
         }
-        ForceInitialSync();
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -153,7 +151,6 @@ public class YokaiStateController : MonoBehaviour
             // 不具合①: シーン再読込時も現在妖怪を再バインドして初期値の同期を確実にする。
             SetActiveYokai(CurrentYokaiContext.Current);
         }
-        ForceInitialSync();
     }
 
     void Update()
@@ -246,7 +243,11 @@ public class YokaiStateController : MonoBehaviour
         if (!IsKegareDataReady())
             return;
 
-        UpdateInitialSyncStatus();
+        bool wasSynced = hasInitialStateSynced;
+        AttemptInitialSync();
+        if (!hasInitialStateSynced || !wasSynced)
+            return;
+
         RefreshState();
     }
 
@@ -255,13 +256,19 @@ public class YokaiStateController : MonoBehaviour
         if (!IsEnergyDataReady())
             return;
 
-        isSpiritEmpty = current <= 0f;
-        UpdateInitialSyncStatus();
+        bool wasSynced = hasInitialStateSynced;
+        AttemptInitialSync();
+        if (!hasInitialStateSynced || !wasSynced)
+            return;
+
         RefreshState();
     }
 
     public void RefreshState()
     {
+        if (!hasInitialStateSynced)
+            return;
+
         if (CurrentYokaiContext.Current == null)
         {
             currentState = YokaiState.Normal;
@@ -271,13 +278,6 @@ public class YokaiStateController : MonoBehaviour
 
         if (currentState == YokaiState.Evolving)
         {
-            ApplyStateUI();
-            return;
-        }
-
-        if (!initialSyncComplete)
-        {
-            currentState = YokaiState.Normal;
             ApplyStateUI();
             return;
         }
@@ -300,7 +300,7 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
-        if (initialSyncComplete && IsEvolutionReadyEligible() && !IsEvolutionBlocked(out _))
+        if (IsEvolutionReadyEligible() && !IsEvolutionBlocked(out _))
         {
             SetState(YokaiState.EvolutionReady);
             return;
@@ -362,7 +362,8 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isSpiritEmpty = true;
-        ApplyStateUI();
+        if (hasInitialStateSynced)
+            RefreshState();
     }
 
     public void ExitSpiritEmptyState()
@@ -371,7 +372,8 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isSpiritEmpty = false;
-        ApplyStateUI();
+        if (hasInitialStateSynced)
+            RefreshState();
     }
 
     public void BeginPurifying()
@@ -444,7 +446,7 @@ public class YokaiStateController : MonoBehaviour
         }
 
         SetActiveYokai(activeYokai);
-        ForceInitialSync();
+        AttemptInitialSync();
         LogStateContext("Bind");
     }
 
@@ -461,24 +463,28 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.Evolving)
             evolutionResultPending = false;
         evolutionReadyPending = false;
-        initialSyncComplete = false;
-        // 不具合②/③: 霊力0の保持状態を現行妖怪に合わせて再同期し、おきよめ可否と減衰表示を一致させる。
-        isSpiritEmpty = IsEnergyZero();
+        hasInitialStateSynced = false;
+        isSpiritEmpty = false;
+        isKegareMaxVisualsActive = false;
         ResetEnergyEmptyVisuals();
         ResetKegareMaxVisuals();
         ResetKegareMaxMotion();
         isKegareMaxMotionApplied = false;
-        CacheKegareMaxTargets(activeYokai);
+        kegareMaxTargetRoot = null;
+        energyEmptyTargetRoot = null;
+        energyEmptySpriteColors.Clear();
+        energyEmptyImageColors.Clear();
+        kegareMaxSpriteColors.Clear();
+        kegareMaxImageColors.Clear();
         growthController = activeYokai.GetComponent<YokaiGrowthController>();
-        if (growthController != null && growthController.isEvolutionReady)
-            evolutionReadyPending = true;
         dangerEffects = activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true);
         RefreshDangerEffectOriginalColors();
         UpdateDangerEffects();
         CacheEnergyEmptyTargets(activeYokai);
-        // 症状4: 妖怪切替時にEnergyEmptyのキャッシュを先に作って、霊力0の減衰エフェクトを確実に反映する。
-        UpdateEnergyEmptyVisuals(isSpiritEmpty);
-        if (currentState != YokaiState.Evolving)
+        CacheKegareMaxTargets(activeYokai);
+        bool wasSynced = hasInitialStateSynced;
+        AttemptInitialSync();
+        if (hasInitialStateSynced && wasSynced)
             RefreshState();
         LogStateContext("Active");
     }
@@ -488,12 +494,10 @@ public class YokaiStateController : MonoBehaviour
         if (currentState == YokaiState.Evolving)
             return;
 
-        evolutionReadyPending = true;
-        if (!initialSyncComplete)
-        {
-            RefreshState();
+        if (!hasInitialStateSynced)
             return;
-        }
+
+        evolutionReadyPending = true;
         if (IsEvolutionBlocked(out string reason))
         {
             Debug.Log($"[EVOLUTION] Ready blocked. reason={reason}");
@@ -570,15 +574,13 @@ public class YokaiStateController : MonoBehaviour
         if (growthController == null)
             return false;
 
-        float reportedScale = growthController.currentScale;
-        float appliedScale = growthController.transform.localScale.x;
-        float scale = Mathf.Max(reportedScale, appliedScale);
+        float scale = growthController.currentScale;
         return scale >= EvolutionReadyScale;
     }
 
     bool IsEvolutionReadyEligible()
     {
-        return evolutionReadyPending && HasReachedEvolutionScale();
+        return hasInitialStateSynced && evolutionReadyPending && HasReachedEvolutionScale();
     }
 
     bool IsEvolutionBlocked(out string reason)
@@ -626,6 +628,9 @@ public class YokaiStateController : MonoBehaviour
 
     void ApplyStateUI()
     {
+        if (!hasInitialStateSynced)
+            return;
+
         bool isKegareMax = currentState == YokaiState.KegareMax;
         bool showKegareMaxVisuals = isKegareMaxVisualsActive;
         bool isEnergyEmpty = isSpiritEmpty;
@@ -1062,31 +1067,28 @@ public class YokaiStateController : MonoBehaviour
 
     void ForceInitialSync()
     {
-        initialSyncComplete = false;
-        ResolveDependencies();
-
-        bool energyReady = IsEnergyDataReady();
-        bool kegareReady = IsKegareDataReady();
-
-        if (energyReady)
-            OnEnergyChanged(energyManager.energy, energyManager.maxEnergy);
-
-        if (kegareReady)
-            OnKegareChanged(kegareManager.kegare, kegareManager.maxKegare);
-
-        initialSyncComplete = energyReady && kegareReady;
-        RefreshState();
+        AttemptInitialSync();
     }
 
-    void UpdateInitialSyncStatus()
+    void AttemptInitialSync()
     {
-        if (initialSyncComplete)
+        if (hasInitialStateSynced)
             return;
 
-        bool energyReady = IsEnergyDataReady();
-        bool kegareReady = IsKegareDataReady();
-        if (energyReady && kegareReady)
-            initialSyncComplete = true;
+        ResolveDependencies();
+        if (!IsEnergyDataReady() || !IsKegareDataReady())
+            return;
+
+        float currentEnergy = energyManager.energy;
+        float currentKegare = kegareManager.kegare;
+        float maxKegare = kegareManager.maxKegare;
+
+        isSpiritEmpty = currentEnergy <= 0f;
+        bool isKegareMax = currentKegare >= maxKegare;
+        isKegareMaxVisualsActive = isKegareMax;
+        evolutionReadyPending = growthController != null && growthController.isEvolutionReady;
+        hasInitialStateSynced = true;
+        RefreshState();
     }
 
     }
