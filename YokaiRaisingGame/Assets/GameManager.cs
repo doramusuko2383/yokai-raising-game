@@ -5,6 +5,7 @@ public class GameManager : MonoBehaviour
 {
     [Header("FireBall")]
     public GameObject fireBallPrefab;
+    [SerializeField] bool spawnFireBallOnStart = false;
 
     [Header("進化後Prefab（属性順）")]
     // 0:Good / 1:Normal / 2:Bad / 3:Secret
@@ -15,7 +16,8 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        SpawnFireBall();
+        if (spawnFireBallOnStart)
+            SpawnFireBall();
     }
 
     public GameObject SpawnFireBall()
