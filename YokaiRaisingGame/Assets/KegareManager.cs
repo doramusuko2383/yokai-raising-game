@@ -3,6 +3,8 @@ using Yokai;
 
 public class KegareManager : MonoBehaviour
 {
+    const float DefaultMaxKegare = 100f;
+
     [Header("数値")]
     public float kegare = 0f;
     public float maxKegare = 100f;
@@ -49,6 +51,7 @@ public class KegareManager : MonoBehaviour
 
     void Awake()
     {
+        EnsureDefaults();
         if (worldConfig == null)
         {
             worldConfig = WorldConfig.LoadDefault();
@@ -62,6 +65,7 @@ public class KegareManager : MonoBehaviour
 
     void Start()
     {
+        EnsureDefaults();
         BindCurrentYokai(CurrentYokaiContext.Current);
         SyncKegareMaxState(isKegareMax, requestRelease: false);
         CacheDangerState();
@@ -235,6 +239,27 @@ public class KegareManager : MonoBehaviour
     {
         UpdateDangerState();
         KegareChanged?.Invoke(kegare, maxKegare);
+    }
+
+    public bool HasValidValues()
+    {
+        return !float.IsNaN(maxKegare)
+            && maxKegare > 0f
+            && !float.IsNaN(kegare)
+            && kegare >= 0f
+            && kegare <= maxKegare;
+    }
+
+    void EnsureDefaults()
+    {
+        if (float.IsNaN(maxKegare) || maxKegare <= 0f)
+            maxKegare = DefaultMaxKegare;
+
+        if (float.IsNaN(kegare))
+            kegare = 0f;
+
+        kegare = Mathf.Clamp(kegare, 0f, maxKegare);
+        isKegareMax = kegare >= maxKegare;
     }
 
     void CacheDangerState()

@@ -3,6 +3,8 @@ using Yokai;
 
 public class EnergyManager : MonoBehaviour
 {
+    const float DefaultMaxEnergy = 100f;
+
     [Header("数値")]
     public float energy = 100f;
     public float maxEnergy = 100f;
@@ -30,6 +32,7 @@ public class EnergyManager : MonoBehaviour
 
     void Awake()
     {
+        EnsureDefaults();
         if (worldConfig == null)
         {
             worldConfig = WorldConfig.LoadDefault();
@@ -43,7 +46,7 @@ public class EnergyManager : MonoBehaviour
 
     void Start()
     {
-        energy = Mathf.Clamp(energy, 0f, maxEnergy);
+        EnsureDefaults();
         if (energy <= 0f)
         {
             EnterWeakState();
@@ -192,6 +195,26 @@ public class EnergyManager : MonoBehaviour
     void NotifyEnergyChanged()
     {
         EnergyChanged?.Invoke(energy, maxEnergy);
+    }
+
+    public bool HasValidValues()
+    {
+        return !float.IsNaN(maxEnergy)
+            && maxEnergy > 0f
+            && !float.IsNaN(energy)
+            && energy >= 0f
+            && energy <= maxEnergy;
+    }
+
+    void EnsureDefaults()
+    {
+        if (float.IsNaN(maxEnergy) || maxEnergy <= 0f)
+            maxEnergy = DefaultMaxEnergy;
+
+        if (float.IsNaN(energy))
+            energy = maxEnergy;
+
+        energy = Mathf.Clamp(energy, 0f, maxEnergy);
     }
 
 }

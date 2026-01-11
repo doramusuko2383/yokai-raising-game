@@ -99,6 +99,7 @@ public class YokaiStateController : MonoBehaviour
     bool isKegareMaxMotionApplied;
     Coroutine kegareMaxReleaseRoutine;
     bool initialSyncComplete;
+    const float EvolutionReadyScale = 2.0f;
 
     public bool IsKegareMaxVisualsActive => isKegareMaxVisualsActive;
 
@@ -242,12 +243,20 @@ public class YokaiStateController : MonoBehaviour
 
     void OnKegareChanged(float current, float max)
     {
+        if (!IsKegareDataReady())
+            return;
+
+        UpdateInitialSyncStatus();
         RefreshState();
     }
 
     void OnEnergyChanged(float current, float max)
     {
+        if (!IsEnergyDataReady())
+            return;
+
         isSpiritEmpty = current <= 0f;
+        UpdateInitialSyncStatus();
         RefreshState();
     }
 
@@ -260,15 +269,22 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
-        bool isEnergyZero = IsEnergyZero();
-        if (isSpiritEmpty != isEnergyZero)
-            isSpiritEmpty = isEnergyZero;
-
         if (currentState == YokaiState.Evolving)
         {
             ApplyStateUI();
             return;
         }
+
+        if (!initialSyncComplete)
+        {
+            currentState = YokaiState.Normal;
+            ApplyStateUI();
+            return;
+        }
+
+        bool isEnergyZero = IsEnergyZero();
+        if (isSpiritEmpty != isEnergyZero)
+            isSpiritEmpty = isEnergyZero;
 
         bool isKegareMax = IsKegareMax();
         if (isKegareMax)
@@ -284,7 +300,7 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
-        if (initialSyncComplete && evolutionReadyPending && !IsEvolutionBlocked(out _))
+        if (initialSyncComplete && IsEvolutionReadyEligible() && !IsEvolutionBlocked(out _))
         {
             SetState(YokaiState.EvolutionReady);
             return;
@@ -485,6 +501,13 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
+        if (!HasReachedEvolutionScale())
+        {
+            Debug.Log("[EVOLUTION] Ready blocked. reason=Scale");
+            RefreshState();
+            return;
+        }
+
         if (!IsKegareMax())
             SetState(YokaiState.EvolutionReady);
         // DEBUG: EvolutionReady になったことを明示してタップ可能を知らせる
@@ -514,7 +537,7 @@ public class YokaiStateController : MonoBehaviour
             kegareManager = CurrentYokaiContext.ResolveKegareManager();
 
         RegisterKegareEvents();
-        return kegareManager != null && kegareManager.isKegareMax;
+        return IsKegareDataReady() && kegareManager != null && kegareManager.isKegareMax;
     }
 
     bool IsEnergyZero()
@@ -523,7 +546,39 @@ public class YokaiStateController : MonoBehaviour
             energyManager = FindObjectOfType<EnergyManager>();
 
         RegisterEnergyEvents();
-        return energyManager != null && energyManager.energy <= 0f;
+        return IsEnergyDataReady() && energyManager != null && energyManager.energy <= 0f;
+    }
+
+    bool IsEnergyDataReady()
+    {
+        if (energyManager == null)
+            return false;
+
+        return energyManager.HasValidValues();
+    }
+
+    bool IsKegareDataReady()
+    {
+        if (kegareManager == null)
+            return false;
+
+        return kegareManager.HasValidValues();
+    }
+
+    bool HasReachedEvolutionScale()
+    {
+        if (growthController == null)
+            return false;
+
+        float reportedScale = growthController.currentScale;
+        float appliedScale = growthController.transform.localScale.x;
+        float scale = Mathf.Max(reportedScale, appliedScale);
+        return scale >= EvolutionReadyScale;
+    }
+
+    bool IsEvolutionReadyEligible()
+    {
+        return evolutionReadyPending && HasReachedEvolutionScale();
     }
 
     bool IsEvolutionBlocked(out string reason)
@@ -574,12 +629,12 @@ public class YokaiStateController : MonoBehaviour
         bool isKegareMax = currentState == YokaiState.KegareMax;
         bool showKegareMaxVisuals = isKegareMaxVisualsActive;
         bool isEnergyEmpty = isSpiritEmpty;
-            // 不具合②: 霊力0の時は通常だんご/おきよめパネルを隠し、特別だんごのみを表示する。
-            bool showActionPanel =
-         currentState == YokaiState.Normal
-         || currentState == YokaiState.EvolutionReady
-         || currentState == YokaiState.EnergyEmpty
-         || isKegareMax;
+        // 不具合②: 霊力0の時は通常だんご/おきよめパネルを隠し、特別だんごのみを表示する。
+        bool showActionPanel =
+            currentState == YokaiState.Normal
+            || currentState == YokaiState.EvolutionReady
+            || currentState == YokaiState.EnergyEmpty
+            || isKegareMax;
         bool showEmergency = isKegareMax;
         bool showMagicCircle = isPurifying;
         bool showStopPurify = isPurifying;
@@ -603,47 +658,47 @@ public class YokaiStateController : MonoBehaviour
         UpdateKegareMaxVisuals(showKegareMaxVisuals);
     }
 
-        void UpdateActionPanelButtons(bool isKegareMax, bool isEnergyEmpty)
+    void UpdateActionPanelButtons(bool isKegareMax, bool isEnergyEmpty)
+    {
+        if (actionPanel == null)
+            return;
+
+        var buttons = actionPanel.GetComponentsInChildren<Button>(true);
+        foreach (var button in buttons)
         {
-            if (actionPanel == null)
-                return;
+            if (button == null)
+                continue;
 
-            var buttons = actionPanel.GetComponentsInChildren<Button>(true);
-            foreach (var button in buttons)
+            bool isEmergency =
+                emergencyPurifyButton != null &&
+                button.gameObject == emergencyPurifyButton;
+
+            bool isSpecialDango =
+                specialDangoButton != null &&
+                button == specialDangoButton;
+
+            bool shouldShow;
+
+            if (isKegareMax)
             {
-                if (button == null)
-                    continue;
-
-                bool isEmergency =
-                    emergencyPurifyButton != null &&
-                    button.gameObject == emergencyPurifyButton;
-
-                bool isSpecialDango =
-                    specialDangoButton != null &&
-                    button == specialDangoButton;
-
-                bool shouldShow;
-
-                if (isKegareMax)
-                {
-                    shouldShow = isEmergency;
-                }
-                else if (isEnergyEmpty)
-                {
-                    shouldShow = isSpecialDango;
-                }
-                else
-                {
-                    shouldShow = !isEmergency;
-                }
-
-                ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
-                button.interactable = shouldShow;
-                button.enabled = shouldShow;
+                shouldShow = isEmergency;
             }
-        }
+            else if (isEnergyEmpty)
+            {
+                shouldShow = isSpecialDango;
+            }
+            else
+            {
+                shouldShow = !isEmergency;
+            }
 
-        void ApplyCanvasGroup(GameObject target, bool visible, bool interactable)
+            ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
+            button.interactable = shouldShow;
+            button.enabled = shouldShow;
+        }
+    }
+
+    void ApplyCanvasGroup(GameObject target, bool visible, bool interactable)
     {
         if (target == null)
             return;
@@ -1010,14 +1065,28 @@ public class YokaiStateController : MonoBehaviour
         initialSyncComplete = false;
         ResolveDependencies();
 
-        if (energyManager != null)
+        bool energyReady = IsEnergyDataReady();
+        bool kegareReady = IsKegareDataReady();
+
+        if (energyReady)
             OnEnergyChanged(energyManager.energy, energyManager.maxEnergy);
 
-        if (kegareManager != null)
+        if (kegareReady)
             OnKegareChanged(kegareManager.kegare, kegareManager.maxKegare);
 
-        initialSyncComplete = true;
+        initialSyncComplete = energyReady && kegareReady;
         RefreshState();
+    }
+
+    void UpdateInitialSyncStatus()
+    {
+        if (initialSyncComplete)
+            return;
+
+        bool energyReady = IsEnergyDataReady();
+        bool kegareReady = IsKegareDataReady();
+        if (energyReady && kegareReady)
+            initialSyncComplete = true;
     }
 
     }
