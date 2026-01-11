@@ -36,10 +36,15 @@ public class YokaiGrowthController : MonoBehaviour
     [SerializeField]
     EnergyManager energyManager;
 
+    [Header("Growth Particles")]
+    [SerializeField]
+    ParticleSystem[] growthParticles;
+
     DateTime lastUpdateTime;
 
     void Awake()
     {
+        InitializeGrowthParticles();
         CalculateGrowthRate();
         LoadState();
         ApplyElapsedTime(DateTime.Now);
@@ -103,6 +108,7 @@ public class YokaiGrowthController : MonoBehaviour
         {
             if (!wasGrowthStopped && isGrowthStopped)
             {
+                StopGrowthParticles();
             }
             return;
         }
@@ -111,6 +117,8 @@ public class YokaiGrowthController : MonoBehaviour
         currentScale = Mathf.Clamp(currentScale + growthAmount, initialScale, maxScale);
 
         ApplyScale();
+        if (growthAmount > 0f)
+            PlayGrowthParticles();
         TryMarkEvolutionReady();
     }
 
@@ -238,7 +246,7 @@ public class YokaiGrowthController : MonoBehaviour
         if (stateController != null && stateController.isPurifying)
             return;
 
-        if (transform.localScale.x < 2.0f)
+        if (currentScale < maxScale)
             return;
 
         hasEvolved = true;
@@ -249,6 +257,55 @@ public class YokaiGrowthController : MonoBehaviour
 
         if (stateController != null)
             stateController.SetEvolutionReady();
+    }
+
+    void InitializeGrowthParticles()
+    {
+        if (growthParticles == null || growthParticles.Length == 0)
+            growthParticles = GetComponentsInChildren<ParticleSystem>(true);
+
+        if (growthParticles == null)
+            return;
+
+        foreach (var particle in growthParticles)
+        {
+            if (particle == null)
+                continue;
+
+            var main = particle.main;
+            main.playOnAwake = false;
+            particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+    }
+
+    void PlayGrowthParticles()
+    {
+        if (growthParticles == null || growthParticles.Length == 0)
+            return;
+
+        foreach (var particle in growthParticles)
+        {
+            if (particle == null)
+                continue;
+
+            if (!particle.isPlaying)
+                particle.Play();
+        }
+    }
+
+    void StopGrowthParticles()
+    {
+        if (growthParticles == null || growthParticles.Length == 0)
+            return;
+
+        foreach (var particle in growthParticles)
+        {
+            if (particle == null)
+                continue;
+
+            if (particle.isPlaying)
+                particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
     }
 
 #if UNITY_EDITOR

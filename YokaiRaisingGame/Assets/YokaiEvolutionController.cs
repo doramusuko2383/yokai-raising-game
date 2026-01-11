@@ -718,7 +718,7 @@ public class YokaiEvolutionController : MonoBehaviour
         if (nextYokai != null && fireBall == nextYokai)
             return;
 
-        fireBall.SetActive(false);
+        Destroy(fireBall);
     }
 
     string FormatEvolutionLog(string phase)
