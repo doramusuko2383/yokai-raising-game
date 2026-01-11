@@ -455,6 +455,7 @@ public class YokaiStateController : MonoBehaviour
 
         SetActiveYokai(activeYokai);
         AttemptInitialSync();
+        SetState(YokaiState.Normal);
         LogStateContext("Bind");
     }
 
@@ -495,6 +496,7 @@ public class YokaiStateController : MonoBehaviour
         if (hasInitialStateSynced && wasSynced)
             RefreshState();
         ApplyEnergyEmptyVisualsFromManager("SetActiveYokai");
+        SetState(YokaiState.Normal);
         LogStateContext("Active");
     }
 
@@ -637,6 +639,9 @@ public class YokaiStateController : MonoBehaviour
 
     void ApplyStateUI()
     {
+        if (currentState == YokaiState.Unknown || !AreDependenciesResolved())
+            return;
+
         if (!hasInitialStateSynced)
         {
             HideActionPanelButtons("ApplyStateUI.NotSynced");
@@ -680,6 +685,20 @@ public class YokaiStateController : MonoBehaviour
         UpdateDangerEffects();
         UpdateEnergyEmptyVisuals(isEnergyEmpty);
         UpdateKegareMaxVisuals(showKegareMaxVisuals);
+    }
+
+    bool AreDependenciesResolved()
+    {
+        if (CurrentYokaiContext.Current == null)
+            return false;
+
+        if (energyManager == null || kegareManager == null)
+            return false;
+
+        if (actionPanel == null || emergencyPurifyButton == null || purifyStopButton == null || magicCircleOverlay == null)
+            return false;
+
+        return true;
     }
 
     void UpdateActionPanelButtons(bool isKegareMax, bool isEnergyEmpty)
@@ -1110,6 +1129,8 @@ public class YokaiStateController : MonoBehaviour
         isKegareMaxVisualsActive = isKegareMax;
         evolutionReadyPending = growthController != null && growthController.isEvolutionReady;
         hasInitialStateSynced = true;
+        if (currentState == YokaiState.Unknown)
+            SetState(YokaiState.Normal);
         RefreshState();
     }
 
