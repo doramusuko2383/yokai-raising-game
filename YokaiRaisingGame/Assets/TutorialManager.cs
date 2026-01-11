@@ -151,7 +151,7 @@ public class TutorialManager : MonoBehaviour
         tutorialText.raycastTarget = false;
 
         if (tutorialText.font == null)
-            tutorialText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            tutorialText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
         var outline = tutorialText.GetComponent<Outline>();
         if (outline == null)

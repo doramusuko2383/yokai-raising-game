@@ -98,8 +98,8 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
     void OnDisable()
     {
-        ToggleGuide(false, immediate: true);
-        ClearTrail(immediate: true);
+        //ToggleGuide(false, immediate: true);
+        //ClearTrail(immediate: true);
     }
 
     void Update()
