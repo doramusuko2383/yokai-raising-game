@@ -202,6 +202,8 @@ public class YokaiStateController : MonoBehaviour
 
         if (dangerEffects == null || dangerEffects.Length == 0)
             dangerEffects = FindObjectsOfType<YokaiDangerEffect>(true);
+
+        LogDependencyState("ResolveDependencies");
     }
 
     void RegisterKegareEvents()
@@ -241,7 +243,10 @@ public class YokaiStateController : MonoBehaviour
     void OnKegareChanged(float current, float max)
     {
         if (!IsKegareDataReady())
+        {
+            LogUnknownDisplay("OnKegareChanged");
             return;
+        }
 
         bool wasSynced = hasInitialStateSynced;
         AttemptInitialSync();
@@ -254,7 +259,10 @@ public class YokaiStateController : MonoBehaviour
     void OnEnergyChanged(float current, float max)
     {
         if (!IsEnergyDataReady())
+        {
+            LogUnknownDisplay("OnEnergyChanged");
             return;
+        }
 
         bool wasSynced = hasInitialStateSynced;
         AttemptInitialSync();
@@ -486,6 +494,7 @@ public class YokaiStateController : MonoBehaviour
         AttemptInitialSync();
         if (hasInitialStateSynced && wasSynced)
             RefreshState();
+        ApplyEnergyEmptyVisualsFromManager("SetActiveYokai");
         LogStateContext("Active");
     }
 
@@ -629,7 +638,10 @@ public class YokaiStateController : MonoBehaviour
     void ApplyStateUI()
     {
         if (!hasInitialStateSynced)
+        {
+            HideActionPanelButtons("ApplyStateUI.NotSynced");
             return;
+        }
 
         bool isKegareMax = currentState == YokaiState.KegareMax;
         bool showKegareMaxVisuals = isKegareMaxVisualsActive;
@@ -657,7 +669,14 @@ public class YokaiStateController : MonoBehaviour
             dangerOverlay.interactable = showDangerOverlay;
         }
 
-        UpdateActionPanelButtons(isKegareMax, isEnergyEmpty);
+        if (!IsEnergyDataReady() || !IsKegareDataReady())
+        {
+            HideActionPanelButtons("ApplyStateUI.NotReady");
+        }
+        else
+        {
+            UpdateActionPanelButtons(isKegareMax, isEnergyEmpty);
+        }
         UpdateDangerEffects();
         UpdateEnergyEmptyVisuals(isEnergyEmpty);
         UpdateKegareMaxVisuals(showKegareMaxVisuals);
@@ -1077,7 +1096,10 @@ public class YokaiStateController : MonoBehaviour
 
         ResolveDependencies();
         if (!IsEnergyDataReady() || !IsKegareDataReady())
+        {
+            LogUnknownDisplay("AttemptInitialSync");
             return;
+        }
 
         float currentEnergy = energyManager.energy;
         float currentKegare = kegareManager.kegare;
@@ -1089,6 +1111,78 @@ public class YokaiStateController : MonoBehaviour
         evolutionReadyPending = growthController != null && growthController.isEvolutionReady;
         hasInitialStateSynced = true;
         RefreshState();
+    }
+
+    void ApplyEnergyEmptyVisualsFromManager(string context)
+    {
+        if (!IsEnergyDataReady())
+        {
+            LogUnknownDisplay($"ApplyEnergyEmptyVisuals.{context}");
+            return;
+        }
+
+        bool isEnergyEmpty = energyManager != null && energyManager.energy <= 0f;
+        UpdateEnergyEmptyVisuals(isEnergyEmpty);
+    }
+
+    void HideActionPanelButtons(string context)
+    {
+        bool hasActionPanel = actionPanel != null;
+        if (!hasActionPanel)
+            LogUnknownDisplay($"HideActionPanelButtons.{context}");
+
+        if (hasActionPanel)
+            ApplyCanvasGroup(actionPanel, false, false);
+        ApplyCanvasGroup(emergencyPurifyButton, false, false);
+        ApplyCanvasGroup(purifyStopButton, false, false);
+        ApplyCanvasGroup(magicCircleOverlay, false, false);
+        if (dangerOverlay != null)
+        {
+            dangerOverlay.alpha = 0f;
+            dangerOverlay.blocksRaycasts = false;
+            dangerOverlay.interactable = false;
+        }
+        if (hasActionPanel)
+        {
+            var buttons = actionPanel.GetComponentsInChildren<Button>(true);
+            foreach (var button in buttons)
+            {
+                if (button == null)
+                    continue;
+
+                ApplyCanvasGroup(button.gameObject, false, false);
+                button.interactable = false;
+                button.enabled = false;
+            }
+        }
+    }
+
+    void LogDependencyState(string context)
+    {
+        string energyStatus = energyManager == null
+            ? "null"
+            : $"{energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}";
+        string kegareStatus = kegareManager == null
+            ? "null"
+            : $"{kegareManager.kegare:0.##}/{kegareManager.maxKegare:0.##}";
+        Debug.Log($"[STATE][{context}] energyManager={(energyManager == null ? "null" : "ok")} energy={energyStatus} kegareManager={(kegareManager == null ? "null" : "ok")} kegare={kegareStatus}");
+    }
+
+    void LogUnknownDisplay(string context)
+    {
+        string managerStatus = string.Empty;
+        if (energyManager == null || kegareManager == null)
+            managerStatus += "manager-null;";
+        if (energyManager != null && energyManager.maxEnergy <= 0f)
+            managerStatus += "maxEnergy=0;";
+        if (kegareManager != null && kegareManager.maxKegare <= 0f)
+            managerStatus += "maxKegare=0;";
+        if (actionPanel == null || emergencyPurifyButton == null || specialDangoButton == null)
+            managerStatus += "ui-unwired;";
+        if (string.IsNullOrEmpty(managerStatus))
+            managerStatus = "unknown";
+
+        Debug.LogWarning($"[STATE][Unknown] context={context} reason={managerStatus}\n{StackTraceUtility.ExtractStackTrace()}");
     }
 
     }
