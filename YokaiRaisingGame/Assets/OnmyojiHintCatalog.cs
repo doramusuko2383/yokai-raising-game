@@ -10,6 +10,7 @@ public static class OnmyojiHintCatalog
         { OnmyojiHintType.KegareMax, "けがれが たまりすぎて モノノケに なってしもうた" },
         { OnmyojiHintType.KegareRecovered, "あぶない ところじゃったわい" },
         { OnmyojiHintType.OkIYomeGuide, "まわりを なぞって おきよめ するのじゃ" },
+        { OnmyojiHintType.OkIYomeSuccess, "よしよし、きれいに なったぞい" },
         { OnmyojiHintType.EvolutionStart, "なにか ようすが おかしいようじゃ" },
         { OnmyojiHintType.EvolutionCompleteChild, "しんかしたようじゃな" },
         { OnmyojiHintType.EvolutionCompleteAdult, "本来の姿に なったようじゃ" }
