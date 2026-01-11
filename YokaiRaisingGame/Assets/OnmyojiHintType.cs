@@ -6,6 +6,7 @@ public enum OnmyojiHintType
     KegareMax,
     KegareRecovered,
     OkIYomeGuide,
+    OkIYomeSuccess,
     EvolutionStart,
     EvolutionCompleteChild,
     EvolutionCompleteAdult

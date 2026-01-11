@@ -116,6 +116,10 @@ public class YokaiStateController : MonoBehaviour
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
         CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
+        ResolveDependencies();
+        if (CurrentYokaiContext.Current != null)
+            SetActiveYokai(CurrentYokaiContext.Current);
+        RefreshState();
     }
 
     void OnDisable()
@@ -129,12 +133,12 @@ public class YokaiStateController : MonoBehaviour
         ResolveDependencies();
         ForceSyncValues();   // ★追加
 
-            if (CurrentYokaiContext.Current != null)
+        if (CurrentYokaiContext.Current != null)
         {
             // 症状1/3/4: Current が既に決定済みの場合に初期化を補完し、Energy/Kegare 反映やおきよめ関連の状態を確定させる。
             SetActiveYokai(CurrentYokaiContext.Current);
-            RefreshState();
         }
+        RefreshState();
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -329,6 +333,9 @@ public class YokaiStateController : MonoBehaviour
                 Debug.Log("[ENERGY] 霊力0 OFF");
         }
 
+        if (currentState == YokaiState.EnergyEmpty && previousState != YokaiState.EnergyEmpty)
+            MentorMessageService.ShowHint(OnmyojiHintType.EnergyZero);
+
         HandleStateSeTransitions(previousState, currentState);
         ApplyStateUI();
         LogStateContext("StateChange");
@@ -432,6 +439,11 @@ public class YokaiStateController : MonoBehaviour
         if (activeYokai == null)
             return;
 
+        kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        energyManager = FindObjectOfType<EnergyManager>();
+        RegisterKegareEvents();
+        RegisterEnergyEvents();
+
         if (currentState != YokaiState.Evolving)
             evolutionResultPending = false;
         evolutionReadyPending = false;
@@ -497,6 +509,7 @@ public class YokaiStateController : MonoBehaviour
         if (kegareManager == null)
             kegareManager = CurrentYokaiContext.ResolveKegareManager();
 
+        RegisterKegareEvents();
         return kegareManager != null && kegareManager.isKegareMax;
     }
 
@@ -505,6 +518,7 @@ public class YokaiStateController : MonoBehaviour
         if (energyManager == null)
             energyManager = FindObjectOfType<EnergyManager>();
 
+        RegisterEnergyEvents();
         return energyManager != null && energyManager.energy <= 0f;
     }
 

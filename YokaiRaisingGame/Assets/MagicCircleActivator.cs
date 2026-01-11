@@ -156,6 +156,8 @@ public class MagicCircleActivator : MonoBehaviour
             Debug.LogWarning("[PURIFY] KegareManager が見つからないため穢れを減らせません。");
         }
 
+        MentorMessageService.ShowHint(OnmyojiHintType.OkIYomeSuccess);
+
         if (stateController == null)
             stateController = CurrentYokaiContext.ResolveStateController();
 
