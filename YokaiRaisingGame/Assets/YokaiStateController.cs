@@ -78,6 +78,8 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     bool enableStateLogs = false;
 
+    [SerializeField] private Button specialDangoButton;
+
     float purifyTimer;
     KegareManager registeredKegareManager;
     EnergyManager registeredEnergyManager;
@@ -125,7 +127,9 @@ public class YokaiStateController : MonoBehaviour
     void Start()
     {
         ResolveDependencies();
-        if (CurrentYokaiContext.Current != null)
+        ForceSyncValues();   // ★追加
+
+            if (CurrentYokaiContext.Current != null)
         {
             // 症状1/3/4: Current が既に決定済みの場合に初期化を補完し、Energy/Kegare 反映やおきよめ関連の状態を確定させる。
             SetActiveYokai(CurrentYokaiContext.Current);
@@ -136,6 +140,7 @@ public class YokaiStateController : MonoBehaviour
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         ResolveDependencies();
+        ForceSyncValues();   // ★追加
         currentState = YokaiState.Normal;
         isPurifying = false;
         isSpiritEmpty = false;
@@ -551,8 +556,12 @@ public class YokaiStateController : MonoBehaviour
         bool isKegareMax = currentState == YokaiState.KegareMax;
         bool showKegareMaxVisuals = isKegareMaxVisualsActive;
         bool isEnergyEmpty = isSpiritEmpty;
-        // 不具合②: 霊力0の時は通常だんご/おきよめパネルを隠し、特別だんごのみを表示する。
-        bool showActionPanel = currentState == YokaiState.Normal || currentState == YokaiState.EvolutionReady || isKegareMax;
+            // 不具合②: 霊力0の時は通常だんご/おきよめパネルを隠し、特別だんごのみを表示する。
+            bool showActionPanel =
+         currentState == YokaiState.Normal
+         || currentState == YokaiState.EvolutionReady
+         || currentState == YokaiState.EnergyEmpty
+         || isKegareMax;
         bool showEmergency = isKegareMax;
         bool showMagicCircle = isPurifying;
         bool showStopPurify = isPurifying;
@@ -576,30 +585,47 @@ public class YokaiStateController : MonoBehaviour
         UpdateKegareMaxVisuals(showKegareMaxVisuals);
     }
 
-    void UpdateActionPanelButtons(bool isKegareMax, bool isEnergyEmpty)
-    {
-        if (actionPanel == null)
-            return;
-
-        var buttons = actionPanel.GetComponentsInChildren<Button>(true);
-        foreach (var button in buttons)
+        void UpdateActionPanelButtons(bool isKegareMax, bool isEnergyEmpty)
         {
-            if (button == null)
-                continue;
+            if (actionPanel == null)
+                return;
 
-            bool isEmergency = emergencyPurifyButton != null && button.gameObject == emergencyPurifyButton;
-            bool hasDangoHandler = button.GetComponent<DangoButtonHandler>() != null;
-            bool shouldShow = isKegareMax
-                ? isEmergency
-                // 不具合②: 霊力0では通常だんご/おきよめを隠して特別だんごのみを残す。
-                : (isEnergyEmpty ? false : !isEmergency);
-            ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
-            button.interactable = shouldShow;
-            button.enabled = shouldShow;
+            var buttons = actionPanel.GetComponentsInChildren<Button>(true);
+            foreach (var button in buttons)
+            {
+                if (button == null)
+                    continue;
+
+                bool isEmergency =
+                    emergencyPurifyButton != null &&
+                    button.gameObject == emergencyPurifyButton;
+
+                bool isSpecialDango =
+                    specialDangoButton != null &&
+                    button == specialDangoButton;
+
+                bool shouldShow;
+
+                if (isKegareMax)
+                {
+                    shouldShow = isEmergency;
+                }
+                else if (isEnergyEmpty)
+                {
+                    shouldShow = isSpecialDango;
+                }
+                else
+                {
+                    shouldShow = !isEmergency;
+                }
+
+                ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
+                button.interactable = shouldShow;
+                button.enabled = shouldShow;
+            }
         }
-    }
 
-    void ApplyCanvasGroup(GameObject target, bool visible, bool interactable)
+        void ApplyCanvasGroup(GameObject target, bool visible, bool interactable)
     {
         if (target == null)
             return;
@@ -961,5 +987,16 @@ public class YokaiStateController : MonoBehaviour
 #endif
     }
 
-}
+        void ForceSyncValues()
+        {
+            if (energyManager == null)
+                energyManager = FindObjectOfType<EnergyManager>();
+            if (kegareManager == null)
+                kegareManager = FindObjectOfType<KegareManager>();
+
+            // ここで初回同期を保証
+            isSpiritEmpty = energyManager != null && energyManager.energy <= 0f;
+        }
+
+    }
 }
