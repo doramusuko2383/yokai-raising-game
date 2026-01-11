@@ -28,7 +28,16 @@ public class GameManager : MonoBehaviour
             return null;
         }
 
-        return Instantiate(fireBallPrefab, Vector3.zero, Quaternion.identity);
+        GameObject existing = GameObject.Find(fireBallPrefab.name);
+        if (existing != null)
+        {
+            existing.SetActive(true);
+            return existing;
+        }
+
+        GameObject instance = Instantiate(fireBallPrefab, Vector3.zero, Quaternion.identity);
+        instance.name = fireBallPrefab.name;
+        return instance;
     }
 
     public GameObject SpawnEvolved(

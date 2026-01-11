@@ -35,6 +35,7 @@ public class EnergyManager : MonoBehaviour
             energyChanged += value;
             if (initialized)
             {
+                Debug.Log($"[ENERGY] EnergyChanged invoked. reason=EventSubscribe energy={energy:0.##}/{maxEnergy:0.##}");
                 value?.Invoke(energy, maxEnergy);
             }
         }
@@ -50,6 +51,7 @@ public class EnergyManager : MonoBehaviour
 
     void Awake()
     {
+        Debug.Log($"[ENERGY][Awake] energy={energy:0.##} maxEnergy={maxEnergy:0.##}");
         EnsureDefaults();
         if (worldConfig == null)
         {
@@ -60,11 +62,14 @@ public class EnergyManager : MonoBehaviour
                 Debug.LogWarning("[ENERGY] WorldConfig が見つかりません: Resources/WorldConfig_Yokai");
             }
         }
+
+        InitializeIfNeeded("Awake");
     }
 
     void Start()
     {
-        InitializeIfNeeded();
+        Debug.Log($"[ENERGY][Start] energy={energy:0.##} maxEnergy={maxEnergy:0.##}");
+        InitializeIfNeeded("Start");
     }
 
     void Update()
@@ -85,7 +90,7 @@ public class EnergyManager : MonoBehaviour
             RecoverFromWeak();
         }
 
-        NotifyEnergyChanged();
+        NotifyEnergyChanged("ChangeEnergy");
     }
 
     public void AddEnergy(float amount)
@@ -200,17 +205,19 @@ public class EnergyManager : MonoBehaviour
         }
     }
 
-    void NotifyEnergyChanged()
+    void NotifyEnergyChanged(string reason)
     {
+        Debug.Log($"[ENERGY] EnergyChanged invoked. reason={reason} energy={energy:0.##}/{maxEnergy:0.##}");
         energyChanged?.Invoke(energy, maxEnergy);
     }
 
-    void InitializeIfNeeded()
+    void InitializeIfNeeded(string reason)
     {
         if (initialized)
             return;
 
         EnsureDefaults();
+        LogEnergyInitialized(reason);
         if (energy <= 0f)
         {
             EnterWeakState();
@@ -220,8 +227,8 @@ public class EnergyManager : MonoBehaviour
             RecoverFromWeak();
         }
 
-        NotifyEnergyChanged();
         initialized = true;
+        NotifyEnergyChanged(reason);
     }
 
     public bool HasNoEnergy()
@@ -247,6 +254,11 @@ public class EnergyManager : MonoBehaviour
             energy = maxEnergy;
 
         energy = Mathf.Clamp(energy, 0f, maxEnergy);
+    }
+
+    void LogEnergyInitialized(string context)
+    {
+        Debug.Log($"[ENERGY] Initialized ({context}) energy={energy:0.##}/{maxEnergy:0.##}");
     }
 
 }

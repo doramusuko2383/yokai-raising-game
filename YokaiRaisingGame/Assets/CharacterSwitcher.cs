@@ -39,10 +39,21 @@ public class CharacterSwitcher : MonoBehaviour
 
         if (currentInstance != null)
         {
-            Destroy(currentInstance);
+            currentInstance.SetActive(false);
         }
 
-        currentInstance = Instantiate(prefab, transform);
+        GameObject existing = FindChildByName(prefab.name);
+        if (existing != null)
+        {
+            currentInstance = existing;
+        }
+        else
+        {
+            currentInstance = Instantiate(prefab, transform);
+            currentInstance.name = prefab.name;
+        }
+
+        currentInstance.SetActive(true);
         currentInstance.transform.localPosition = Vector3.zero;
         currentInstance.transform.localRotation = Quaternion.identity;
         currentInstance.transform.localScale = Vector3.one;
@@ -55,5 +66,16 @@ public class CharacterSwitcher : MonoBehaviour
         if (stateController != null)
             stateController.BindCurrentYokai(currentInstance);
         Debug.Log($"[STATE] CurrentYokaiContext.CurrentName={CurrentYokaiContext.CurrentName()}");
+    }
+
+    GameObject FindChildByName(string name)
+    {
+        foreach (Transform child in transform)
+        {
+            if (child.name == name)
+                return child.gameObject;
+        }
+
+        return null;
     }
 }
