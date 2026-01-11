@@ -27,8 +27,26 @@ public class EnergyManager : MonoBehaviour
     bool isWeak;
     float decayTimer;
 
-    public event System.Action<float, float> EnergyChanged;
+    System.Action<float, float> energyChanged;
+    public event System.Action<float, float> EnergyChanged
+    {
+        add
+        {
+            energyChanged += value;
+            if (initialized)
+            {
+                value?.Invoke(energy, maxEnergy);
+            }
+        }
+        remove
+        {
+            energyChanged -= value;
+        }
+    }
+
     public event System.Action<bool> WeakStateChanged;
+
+    bool initialized;
 
     void Awake()
     {
@@ -46,17 +64,7 @@ public class EnergyManager : MonoBehaviour
 
     void Start()
     {
-        EnsureDefaults();
-        if (energy <= 0f)
-        {
-            EnterWeakState();
-        }
-        else
-        {
-            RecoverFromWeak();
-        }
-
-        NotifyEnergyChanged();
+        InitializeIfNeeded();
     }
 
     void Update()
@@ -194,7 +202,31 @@ public class EnergyManager : MonoBehaviour
 
     void NotifyEnergyChanged()
     {
-        EnergyChanged?.Invoke(energy, maxEnergy);
+        energyChanged?.Invoke(energy, maxEnergy);
+    }
+
+    void InitializeIfNeeded()
+    {
+        if (initialized)
+            return;
+
+        EnsureDefaults();
+        if (energy <= 0f)
+        {
+            EnterWeakState();
+        }
+        else
+        {
+            RecoverFromWeak();
+        }
+
+        NotifyEnergyChanged();
+        initialized = true;
+    }
+
+    public bool HasNoEnergy()
+    {
+        return energy <= 0f;
     }
 
     public bool HasValidValues()

@@ -37,7 +37,24 @@ public class KegareManager : MonoBehaviour
     bool isInDanger;
 
     public event System.Action EmergencyPurifyRequested;
-    public event System.Action<float, float> KegareChanged;
+    System.Action<float, float> kegareChanged;
+    public event System.Action<float, float> KegareChanged
+    {
+        add
+        {
+            kegareChanged += value;
+            if (initialized)
+            {
+                value?.Invoke(kegare, maxKegare);
+            }
+        }
+        remove
+        {
+            kegareChanged -= value;
+        }
+    }
+
+    bool initialized;
 
     void OnEnable()
     {
@@ -65,11 +82,7 @@ public class KegareManager : MonoBehaviour
 
     void Start()
     {
-        EnsureDefaults();
-        BindCurrentYokai(CurrentYokaiContext.Current);
-        SyncKegareMaxState(isKegareMax, requestRelease: false);
-        CacheDangerState();
-        NotifyKegareChanged();
+        InitializeIfNeeded();
     }
 
     void Update()
@@ -238,7 +251,25 @@ public class KegareManager : MonoBehaviour
     void NotifyKegareChanged()
     {
         UpdateDangerState();
-        KegareChanged?.Invoke(kegare, maxKegare);
+        kegareChanged?.Invoke(kegare, maxKegare);
+    }
+
+    void InitializeIfNeeded()
+    {
+        if (initialized)
+            return;
+
+        EnsureDefaults();
+        BindCurrentYokai(CurrentYokaiContext.Current);
+        SyncKegareMaxState(isKegareMax, requestRelease: false);
+        CacheDangerState();
+        NotifyKegareChanged();
+        initialized = true;
+    }
+
+    public bool HasNoKegare()
+    {
+        return kegare <= 0f;
     }
 
     public bool HasValidValues()
