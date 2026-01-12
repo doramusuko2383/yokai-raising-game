@@ -12,6 +12,7 @@ public class YokaiStateController : MonoBehaviour
     public YokaiState currentState = YokaiState.Normal;
     public bool isPurifying;
     public bool isSpiritEmpty { get; private set; }
+    public event System.Action<YokaiState, YokaiState> StateChanged;
 
     [Header("Dependencies")]
     [SerializeField]
@@ -307,6 +308,7 @@ public class YokaiStateController : MonoBehaviour
             isPurifying = false;
         if (currentState == YokaiState.Purifying)
             purifyTimer = 0f;
+        StateChanged?.Invoke(previousState, currentState);
 
         if (enableStateLogs)
         {
