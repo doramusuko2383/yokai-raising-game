@@ -106,15 +106,15 @@ public class YokaiStateController : MonoBehaviour
     public bool IsKegareMaxVisualsActive => isKegareMaxVisualsActive;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    static void Initialize()
-    {
-        if (FindObjectOfType<YokaiStateController>() != null)
-            return;
+    //static void Initialize()
+   // {
+    //    if (FindObjectOfType<YokaiStateController>() != null)
+    //        return;
 
-        var controllerObject = new GameObject("YokaiStateController");
-        controllerObject.AddComponent<YokaiStateController>();
-        DontDestroyOnLoad(controllerObject);
-    }
+   //    var controllerObject = new GameObject("YokaiStateController");
+   //     controllerObject.AddComponent<YokaiStateController>();
+   //     DontDestroyOnLoad(controllerObject);
+   // }
 
     void OnEnable()
     {

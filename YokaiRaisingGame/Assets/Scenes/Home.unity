@@ -142,7 +142,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 152328532}
-  - component: {fileID: 152328533}
   m_Layer: 0
   m_Name: Manegers
   m_TagString: Untagged
@@ -163,45 +162,16 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1786705810}
   - {fileID: 604884282}
   - {fileID: 515532833}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &152328533
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+--- !u!1 &243570841 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 656228942389283711, guid: 366e9576cd92a104e916717384432116, type: 3}
+  m_PrefabInstance: {fileID: 664355983866959897}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 152328531}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fdd66fb74134b04ba00fe852a33f6d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  currentState: 0
-  isPurifying: 0
-  growthController: {fileID: 0}
-  kegareManager: {fileID: 604884281}
-  energyManager: {fileID: 515532832}
-  actionPanel: {fileID: 1563096701}
-  emergencyPurifyButton: {fileID: 1796825459}
-  purifyStopButton: {fileID: 0}
-  magicCircleOverlay: {fileID: 1803633755}
-  dangerOverlay: {fileID: 0}
-  dangerEffects: []
-  kegareMaxOverlayAlpha: 0.2
-  kegareMaxDarkenIntensity: 0.2
-  kegareMaxReleaseDelay: 0.15
-  kegareMaxWobbleScale: 0.02
-  kegareMaxWobbleSpeed: 2.6
-  kegareMaxJitterAmplitude: 0.015
-  purifyTickInterval: 1
-  purifyTickAmount: 2
-  enablePurifyTick: 0
-  energyEmptyAlpha: 0.45
-  enableStateLogs: 0
-  specialDangoButton: {fileID: 2097434938}
 --- !u!114 &252916619 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1773064882957594954, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
@@ -260,10 +230,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   energy: 0
   maxEnergy: 100
+  hasEverHadEnergy: 0
   naturalDecayPerMinute: 2.5
   decayIntervalSeconds: 60
   worldConfig: {fileID: 0}
-  stateController: {fileID: 152328533}
+  stateController: {fileID: 1786705811}
 --- !u!4 &515532833
 Transform:
   m_ObjectHideFlags: 0
@@ -490,7 +461,6 @@ RectTransform:
   - {fileID: 502259744}
   - {fileID: 1563096702}
   - {fileID: 1207660448}
-  - {fileID: 1803633756}
   - {fileID: 817104849}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -529,7 +499,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75ee33d7f1b374e49b0b33714997643e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fireBallPrefab: {fileID: 6342781704519830155, guid: eddf44fe631ea294b81d0039af53981e, type: 3}
   evolutionPrefabs:
   - {fileID: 6342781704519830155, guid: bfaed2e9fb9cd144f81fde14422f643b, type: 3}
   - {fileID: 6342781704519830155, guid: 6895d818a7c801d45a10e53bb08139ee, type: 3}
@@ -586,7 +555,7 @@ MonoBehaviour:
   naturalIncreasePerMinute: 2
   increaseIntervalSeconds: 60
   worldConfig: {fileID: 0}
-  stateController: {fileID: 152328533}
+  stateController: {fileID: 1786705811}
   emergencyPurifyValue: 30
   dangerThresholdRatio: 0.7
 --- !u!4 &604884282
@@ -670,7 +639,7 @@ MonoBehaviour:
   growthController: {fileID: 8218868374499439925}
   currentYokaiPrefab: {fileID: 6983624608841432944, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
   nextYokaiPrefab: {fileID: 4168798394036190179}
-  stateController: {fileID: 0}
+  stateController: {fileID: 1786705811}
   characterRoot: {fileID: 992496716}
   evolutionRules: []
   fireBallName: FireBall
@@ -817,9 +786,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterRoot: {fileID: 992496716}
-  fireBallPrefab: {fileID: 6983624608841432944, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
-  fireBallName: FireBall
-  spawnOnStart: 1
 --- !u!1 &935181998
 GameObject:
   m_ObjectHideFlags: 0
@@ -967,7 +933,8 @@ Transform:
   m_LocalPosition: {x: 0.0033569336, y: -20.353455, z: -1.426161}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1902766324}
   m_Father: {fileID: 543276398}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1213610521
@@ -1433,6 +1400,73 @@ MonoBehaviour:
   maxAngleJump: 70
   minAngleDelta: 0.5
   minimumSamples: 12
+--- !u!1 &1786705809
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1786705810}
+  - component: {fileID: 1786705811}
+  m_Layer: 0
+  m_Name: State Controller
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1786705810
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786705809}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 152328532}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1786705811
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786705809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fdd66fb74134b04ba00fe852a33f6d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentState: 0
+  isPurifying: 0
+  growthController: {fileID: 0}
+  kegareManager: {fileID: 604884281}
+  energyManager: {fileID: 515532832}
+  actionPanel: {fileID: 1563096701}
+  emergencyPurifyButton: {fileID: 1796825459}
+  purifyStopButton: {fileID: 243570841}
+  magicCircleOverlay: {fileID: 1902766323}
+  dangerOverlay: {fileID: 0}
+  dangerEffects: []
+  kegareMaxOverlayAlpha: 0.2
+  kegareMaxDarkenIntensity: 0.2
+  kegareMaxReleaseDelay: 0.15
+  kegareMaxWobbleScale: 0.02
+  kegareMaxWobbleSpeed: 2.6
+  kegareMaxJitterAmplitude: 0.015
+  purifyTickInterval: 1
+  purifyTickAmount: 2
+  enablePurifyTick: 0
+  energyEmptyAlpha: 0.45
+  enableStateLogs: 0
+  specialDangoButton: {fileID: 0}
 --- !u!1 &1796825459 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5481682468745329004, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
@@ -1464,8 +1498,8 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1803633755}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1.426161}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1474,11 +1508,11 @@ RectTransform:
   - {fileID: 1763312156}
   - {fileID: 2067172417}
   - {fileID: 1213610522}
-  m_Father: {fileID: 543276398}
+  m_Father: {fileID: 1902766324}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -0.0033354752, y: 20.353487}
   m_SizeDelta: {x: 1080, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1803633757
@@ -1549,8 +1583,40 @@ MonoBehaviour:
   trailMinPointDistance: 2
   successPulseScale: 1.1
   successPulseDuration: 0.2
-  stateController: {fileID: 152328533}
+  stateController: {fileID: 1786705811}
   kegareManager: {fileID: 604884281}
+--- !u!1 &1902766323
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1902766324}
+  m_Layer: 0
+  m_Name: MagicCircleRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &1902766324
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1902766323}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1803633756}
+  m_Father: {fileID: 1207660448}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1905322486
 GameObject:
   m_ObjectHideFlags: 0
@@ -1567,7 +1633,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1905322487
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1580,7 +1646,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f4b40857ddc4d45b86ef2f1e845b6da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stateController: {fileID: 152328533}
+  stateController: {fileID: 1786705811}
   kegareManager: {fileID: 604884281}
 --- !u!4 &1905322488
 Transform:
@@ -1681,7 +1747,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2067172417
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1731,24 +1797,13 @@ MonoBehaviour:
   trailMinPointDistance: 2
   successPulseScale: 1.1
   successPulseDuration: 0.2
-  stateController: {fileID: 0}
-  kegareManager: {fileID: 0}
+  stateController: {fileID: 1786705811}
+  kegareManager: {fileID: 604884281}
 --- !u!224 &2068515356 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3754476293137327125, guid: 34832eb000682f540abdfbd27a7f5027, type: 3}
   m_PrefabInstance: {fileID: 2129281191}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2097434938 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
-  m_PrefabInstance: {fileID: 664355983866959897}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &2129281191
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2072,7 +2127,7 @@ PrefabInstance:
     - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
-      objectReference: {fileID: 152328533}
+      objectReference: {fileID: 0}
     - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2
@@ -2211,7 +2266,7 @@ PrefabInstance:
     - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: stateController
       value: 
-      objectReference: {fileID: 152328533}
+      objectReference: {fileID: 1786705811}
     - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: magicCircleActivator
       value: 
@@ -2360,7 +2415,7 @@ PrefabInstance:
     - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: stateController
       value: 
-      objectReference: {fileID: 152328533}
+      objectReference: {fileID: 1786705811}
     - target: {fileID: 4131890420529113334, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_SizeDelta.x
       value: 406.402
@@ -2388,11 +2443,11 @@ PrefabInstance:
     - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 152328533}
+      objectReference: {fileID: 0}
     - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
-      objectReference: {fileID: 152328533}
+      objectReference: {fileID: 0}
     - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2
@@ -2424,7 +2479,7 @@ PrefabInstance:
     - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: stateController
       value: 
-      objectReference: {fileID: 152328533}
+      objectReference: {fileID: 1786705811}
     - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: magicCircleActivator
       value: 
@@ -2577,7 +2632,7 @@ PrefabInstance:
     - target: {fileID: 7410728811607350943, guid: f2c4fb29fe97dba4a8d083d0c08ee85c, type: 3}
       propertyPath: stateController
       value: 
-      objectReference: {fileID: 152328533}
+      objectReference: {fileID: 1786705811}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2606,7 +2661,7 @@ PrefabInstance:
     - target: {fileID: 5916421641666367254, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}
       propertyPath: stateController
       value: 
-      objectReference: {fileID: 152328533}
+      objectReference: {fileID: 1786705811}
     - target: {fileID: 6330836455217257061, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -2830,8 +2885,9 @@ MonoBehaviour:
   isGrowthStopped: 0
   isEvolutionReady: 0
   hasEvolved: 0
-  stateController: {fileID: 152328533}
+  stateController: {fileID: 1786705811}
   energyManager: {fileID: 515532832}
+  growthParticles: []
 --- !u!114 &8218868374499439926 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1439122780646479601, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
