@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Yokai;
 
 public class MagicCircleActivator : MonoBehaviour
 {
@@ -74,6 +75,12 @@ public class MagicCircleActivator : MonoBehaviour
         if (controller == null)
         {
             Debug.LogWarning("[PURIFY] MagicCircleSwipeUI が見つからないため表示できません。");
+            return;
+        }
+
+        if (!CanShowMagicCircle())
+        {
+            Debug.Log("[PURIFY] 魔法陣の表示条件を満たしていないため表示をスキップします。");
             return;
         }
 
@@ -169,5 +176,23 @@ public class MagicCircleActivator : MonoBehaviour
         {
             Debug.LogWarning("[PURIFY] StateController が見つからないため状態更新できません。");
         }
+    }
+
+    bool CanShowMagicCircle()
+    {
+        if (stateController == null)
+            stateController = CurrentYokaiContext.ResolveStateController();
+
+        if (stateController == null)
+        {
+            Debug.LogWarning("[PURIFY] StateController が見つからないため表示条件を判定できません。");
+            return false;
+        }
+
+        var energyManager = FindObjectOfType<EnergyManager>();
+        if (energyManager != null && !energyManager.HasEverHadEnergy)
+            return false;
+
+        return stateController.isPurifying || stateController.currentState == YokaiState.KegareMax;
     }
 }

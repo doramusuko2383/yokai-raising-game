@@ -9,6 +9,10 @@ public class EnergyManager : MonoBehaviour
     public float energy = 100f;
     public float maxEnergy = 100f;
 
+    [Header("状態")]
+    [SerializeField]
+    bool hasEverHadEnergy;
+
     [Header("自然減少")]
     [SerializeField]
     float naturalDecayPerMinute = 2.5f;
@@ -52,6 +56,7 @@ public class EnergyManager : MonoBehaviour
     void Awake()
     {
         Debug.Log($"[ENERGY][Awake] energy={energy:0.##} maxEnergy={maxEnergy:0.##}");
+        hasEverHadEnergy = false;
         EnsureDefaults();
         if (worldConfig == null)
         {
@@ -74,14 +79,23 @@ public class EnergyManager : MonoBehaviour
 
     void Update()
     {
+        if (!hasEverHadEnergy && energy > 0f)
+        {
+            hasEverHadEnergy = true;
+        }
         HandleNaturalDecay();
     }
 
     public void ChangeEnergy(float amount)
     {
+        float previousEnergy = energy;
         energy = Mathf.Clamp(energy + amount, 0, maxEnergy);
+        if (!hasEverHadEnergy && (previousEnergy > 0f || energy > 0f))
+        {
+            hasEverHadEnergy = true;
+        }
 
-        if (energy <= 0 && !isWeak)
+        if (energy <= 0 && !isWeak && hasEverHadEnergy)
         {
             EnterWeakState();
         }
@@ -218,7 +232,7 @@ public class EnergyManager : MonoBehaviour
 
         EnsureDefaults();
         LogEnergyInitialized(reason);
-        if (energy <= 0f)
+        if (energy <= 0f && hasEverHadEnergy)
         {
             EnterWeakState();
         }
@@ -235,6 +249,8 @@ public class EnergyManager : MonoBehaviour
     {
         return energy <= 0f;
     }
+
+    public bool HasEverHadEnergy => hasEverHadEnergy;
 
     public bool HasValidValues()
     {
