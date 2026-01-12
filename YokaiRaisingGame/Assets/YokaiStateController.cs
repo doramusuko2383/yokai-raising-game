@@ -245,7 +245,7 @@ public class YokaiStateController : MonoBehaviour
 
     void OnEnergyChanged(float current, float max)
     {
-        isSpiritEmpty = current <= 0;
+        isSpiritEmpty = IsEnergyEmpty(current);
     }
 
     void ApplyStateFromManagers(YokaiState? requestedState = null, bool forceApplyUI = false)
@@ -254,7 +254,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         bool wasSpiritEmpty = isSpiritEmpty;
-        isSpiritEmpty = energyManager.energy <= 0;
+        isSpiritEmpty = IsEnergyEmpty(energyManager.energy);
 
         YokaiState nextState = currentState;
         if (requestedState.HasValue)
@@ -479,7 +479,18 @@ public class YokaiStateController : MonoBehaviour
             energyManager = FindObjectOfType<EnergyManager>();
 
         RegisterEnergyEvents();
-        return energyManager != null && energyManager.energy <= 0f;
+        return energyManager != null && energyManager.energy <= 0f && energyManager.HasEverHadEnergy;
+    }
+
+    bool IsEnergyEmpty(float currentEnergy)
+    {
+        if (energyManager == null)
+            energyManager = FindObjectOfType<EnergyManager>();
+
+        if (energyManager == null || !energyManager.HasEverHadEnergy)
+            return false;
+
+        return currentEnergy <= 0f;
     }
 
     bool HasReachedEvolutionScale()
