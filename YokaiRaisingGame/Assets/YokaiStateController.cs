@@ -119,33 +119,41 @@ public class YokaiStateController : MonoBehaviour
     void OnEnable()
     {
         Debug.Log($"[YokaiStateController][OnEnable][Enter] currentState={currentState} isPurifying={isPurifying}");
+        Debug.Log("[YokaiStateController][OnEnable][ENTER] currentState=" + currentState + " isPurifying=" + isPurifying + " energyManager=" + (energyManager == null ? "null" : "ok") + " kegareManager=" + (kegareManager == null ? "null" : "ok"));
         SceneManager.sceneLoaded += OnSceneLoaded;
         CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
         ResolveDependencies();
         Debug.Log("[YokaiStateController][OnEnable][Exit]");
+        Debug.Log("[YokaiStateController][OnEnable][EXIT] currentState=" + currentState + " isPurifying=" + isPurifying);
     }
 
     void Awake()
     {
         Debug.Log($"[YokaiStateController][Awake][Enter] currentState={currentState} isPurifying={isPurifying}");
+        Debug.Log("[YokaiStateController][Awake][ENTER] currentState=" + currentState + " isPurifying=" + isPurifying);
         isPurifying = false;
         currentState = YokaiState.Normal;
         Debug.Log($"[YokaiStateController][Awake][Exit] currentState={currentState} isPurifying={isPurifying}");
+        Debug.Log("[YokaiStateController][Awake][EXIT] currentState=" + currentState + " isPurifying=" + isPurifying);
     }
 
     void OnDisable()
     {
         Debug.Log("[YokaiStateController][OnDisable][Enter]");
+        Debug.Log("[YokaiStateController][OnDisable][ENTER] currentState=" + currentState + " isPurifying=" + isPurifying);
         SceneManager.sceneLoaded -= OnSceneLoaded;
         CurrentYokaiContext.CurrentChanged -= BindCurrentYokai;
         Debug.Log("[YokaiStateController][OnDisable][Exit]");
+        Debug.Log("[YokaiStateController][OnDisable][EXIT] currentState=" + currentState + " isPurifying=" + isPurifying);
     }
 
     void Start()
     {
         Debug.Log("[YokaiStateController][Start][Enter]");
+        Debug.Log("[YokaiStateController][Start][ENTER] hasStarted=" + hasStarted);
         StartCoroutine(InitialSync());
         Debug.Log("[YokaiStateController][Start][Exit]");
+        Debug.Log("[YokaiStateController][Start][EXIT] hasStarted=" + hasStarted);
     }
 
     IEnumerator InitialSync()
@@ -161,17 +169,21 @@ public class YokaiStateController : MonoBehaviour
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log($"[YokaiStateController][OnSceneLoaded][Enter] scene={scene.name} mode={mode}");
+        Debug.Log("[YokaiStateController][OnSceneLoaded][ENTER] scene=" + scene.name + " mode=" + mode + " currentState=" + currentState);
         ResolveDependencies();
         Debug.Log("[YokaiStateController][OnSceneLoaded][Exit]");
+        Debug.Log("[YokaiStateController][OnSceneLoaded][EXIT] currentState=" + currentState);
     }
 
     void Update()
     {
         Debug.Log($"[YokaiStateController][Update][Enter] currentState={currentState} isPurifying={isPurifying} hasStarted={hasStarted}");
+        Debug.Log("[YokaiStateController][Update][ENTER] currentState=" + currentState + " isPurifying=" + isPurifying + " hasStarted=" + hasStarted);
         HandlePurifyTick();
         if (hasStarted)
             ApplyStateFromManagers();
         Debug.Log($"[YokaiStateController][Update][Exit] currentState={currentState} isPurifying={isPurifying}");
+        Debug.Log("[YokaiStateController][Update][EXIT] currentState=" + currentState + " isPurifying=" + isPurifying);
     }
 
     void LateUpdate()
@@ -235,6 +247,7 @@ public class YokaiStateController : MonoBehaviour
         if (registeredKegareManager == kegareManager)
         {
             Debug.Log("[YokaiStateController][RegisterKegareEvents][EarlyReturn] reason=alreadyRegistered");
+            Debug.Log("[YokaiStateController][RegisterKegareEvents][EARLY_RETURN] reason=alreadyRegistered kegareManager=" + (kegareManager == null ? "null" : "ok"));
             return;
         }
 
@@ -259,6 +272,7 @@ public class YokaiStateController : MonoBehaviour
         if (registeredEnergyManager == energyManager)
         {
             Debug.Log("[YokaiStateController][RegisterEnergyEvents][EarlyReturn] reason=alreadyRegistered");
+            Debug.Log("[YokaiStateController][RegisterEnergyEvents][EARLY_RETURN] reason=alreadyRegistered energyManager=" + (energyManager == null ? "null" : "ok"));
             return;
         }
 
@@ -275,20 +289,25 @@ public class YokaiStateController : MonoBehaviour
     void OnKegareChanged(float current, float max)
     {
         Debug.Log($"[YokaiStateController][OnKegareChanged][Enter] current={current:0.##} max={max:0.##}");
+        Debug.Log("[YokaiStateController][OnKegareChanged][ENTER] current=" + current.ToString("0.##") + " max=" + max.ToString("0.##") + " currentState=" + currentState);
         Debug.Log("[YokaiStateController][OnKegareChanged][Exit]");
+        Debug.Log("[YokaiStateController][OnKegareChanged][EXIT] currentState=" + currentState);
     }
 
     void OnEnergyChanged(float current, float max)
     {
         Debug.Log($"[YokaiStateController][OnEnergyChanged][Enter] current={current:0.##} max={max:0.##} hasStarted={hasStarted}");
+        Debug.Log("[YokaiStateController][OnEnergyChanged][ENTER] current=" + current.ToString("0.##") + " max=" + max.ToString("0.##") + " hasStarted=" + hasStarted + " currentState=" + currentState);
         if (!hasStarted)
         {
             Debug.Log("[YokaiStateController][OnEnergyChanged][EarlyReturn] reason=notStarted");
+            Debug.Log("[YokaiStateController][OnEnergyChanged][EARLY_RETURN] reason=notStarted currentState=" + currentState);
             return;
         }
 
         ApplyStateFromManagers();
         Debug.Log("[YokaiStateController][OnEnergyChanged][Exit]");
+        Debug.Log("[YokaiStateController][OnEnergyChanged][EXIT] currentState=" + currentState);
     }
 
     void ApplyStateFromManagers(YokaiState? requestedState = null, bool forceApplyUI = false)
@@ -297,6 +316,7 @@ public class YokaiStateController : MonoBehaviour
         if (energyManager == null || kegareManager == null)
         {
             Debug.Log("[YokaiStateController][ApplyStateFromManagers][EarlyReturn] reason=missingManagers");
+            Debug.Log("[YokaiStateController][ApplyStateFromManagers][EARLY_RETURN] reason=missingManagers energyManager=" + (energyManager == null ? "null" : "ok") + " kegareManager=" + (kegareManager == null ? "null" : "ok"));
             return;
         }
 
@@ -342,6 +362,7 @@ public class YokaiStateController : MonoBehaviour
         if (currentState == newState)
         {
             Debug.Log("[YokaiStateController][SetState][EarlyReturn] reason=stateUnchanged");
+            Debug.Log("[YokaiStateController][SetState][EARLY_RETURN] reason=stateUnchanged currentState=" + currentState);
             return false;
         }
 
@@ -376,6 +397,7 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.Normal)
         {
             Debug.Log("[YokaiStateController][BeginPurifying][EarlyReturn] reason=stateNotNormal");
+            Debug.Log("[YokaiStateController][BeginPurifying][EARLY_RETURN] reason=stateNotNormal currentState=" + currentState);
             return;
         }
 
@@ -405,6 +427,7 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.Purifying)
         {
             Debug.Log("[YokaiStateController][StopPurifyingInternal][EarlyReturn] reason=stateNotPurifying");
+            Debug.Log("[YokaiStateController][StopPurifyingInternal][EARLY_RETURN] reason=stateNotPurifying currentState=" + currentState);
             return;
         }
 
@@ -422,6 +445,7 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.EvolutionReady)
         {
             Debug.Log("[YokaiStateController][BeginEvolution][EarlyReturn] reason=stateNotEvolutionReady");
+            Debug.Log("[YokaiStateController][BeginEvolution][EARLY_RETURN] reason=stateNotEvolutionReady currentState=" + currentState);
             return;
         }
 
@@ -440,9 +464,11 @@ public class YokaiStateController : MonoBehaviour
     public void BindCurrentYokai(GameObject activeYokai)
     {
         Debug.Log($"[YokaiStateController][BindCurrentYokai][Enter] activeYokai={(activeYokai == null ? "null" : activeYokai.name)} currentState={currentState}");
+        Debug.Log("[YokaiStateController][BindCurrentYokai][ENTER] activeYokai=" + (activeYokai == null ? "null" : activeYokai.name) + " currentState=" + currentState);
         if (activeYokai == null)
         {
             Debug.Log("[YokaiStateController][BindCurrentYokai][EarlyReturn] reason=activeYokai null");
+            Debug.Log("[YokaiStateController][BindCurrentYokai][EARLY_RETURN] reason=activeYokai null currentState=" + currentState);
             return;
         }
 
@@ -470,6 +496,7 @@ public class YokaiStateController : MonoBehaviour
         if (activeYokai == null)
         {
             Debug.Log("[YokaiStateController][SetActiveYokai][EarlyReturn] reason=activeYokai null");
+            Debug.Log("[YokaiStateController][SetActiveYokai][EARLY_RETURN] reason=activeYokai null");
             return;
         }
 
@@ -502,6 +529,7 @@ public class YokaiStateController : MonoBehaviour
         if (currentState == YokaiState.Evolving)
         {
             Debug.Log("[YokaiStateController][SetEvolutionReady][EarlyReturn] reason=alreadyEvolving");
+            Debug.Log("[YokaiStateController][SetEvolutionReady][EARLY_RETURN] reason=alreadyEvolving currentState=" + currentState);
             return;
         }
 
@@ -509,6 +537,7 @@ public class YokaiStateController : MonoBehaviour
         {
             Debug.Log($"[EVOLUTION] Ready blocked. reason={reason}");
             Debug.Log($"[YokaiStateController][SetEvolutionReady][EarlyReturn] reason=blocked detail={reason}");
+            Debug.Log("[YokaiStateController][SetEvolutionReady][EARLY_RETURN] reason=blocked detail=" + reason);
             return;
         }
 
@@ -516,6 +545,7 @@ public class YokaiStateController : MonoBehaviour
         {
             Debug.Log("[EVOLUTION] Ready blocked. reason=Scale");
             Debug.Log("[YokaiStateController][SetEvolutionReady][EarlyReturn] reason=scaleNotReached");
+            Debug.Log("[YokaiStateController][SetEvolutionReady][EARLY_RETURN] reason=scaleNotReached currentState=" + currentState);
             return;
         }
 
@@ -551,12 +581,14 @@ public class YokaiStateController : MonoBehaviour
             if (kegareManager == null || kegareManager.kegare < kegareManager.maxKegare)
             {
                 Debug.Log("[YokaiStateController][ExecuteEmergencyPurifyInternal][EarlyReturn] reason=notKegareMax");
+                Debug.Log("[YokaiStateController][ExecuteEmergencyPurifyInternal][EARLY_RETURN] reason=notKegareMax kegareManager=" + (kegareManager == null ? "null" : "ok"));
                 return;
             }
 
             if (currentState != YokaiState.KegareMax)
             {
                 Debug.Log("[YokaiStateController][ExecuteEmergencyPurifyInternal][EarlyReturn] reason=stateNotKegareMax");
+                Debug.Log("[YokaiStateController][ExecuteEmergencyPurifyInternal][EARLY_RETURN] reason=stateNotKegareMax currentState=" + currentState);
                 return;
             }
         }
@@ -588,6 +620,7 @@ public class YokaiStateController : MonoBehaviour
         if (energyManager == null)
         {
             Debug.Log("[YokaiStateController][IsEnergyEmpty][EarlyReturn] reason=energyManager null");
+            Debug.Log("[YokaiStateController][IsEnergyEmpty][EARLY_RETURN] reason=energyManager null");
             return false;
         }
 
@@ -600,6 +633,7 @@ public class YokaiStateController : MonoBehaviour
         if (growthController == null)
         {
             Debug.Log("[YokaiStateController][HasReachedEvolutionScale][EarlyReturn] reason=growthController null");
+            Debug.Log("[YokaiStateController][HasReachedEvolutionScale][EARLY_RETURN] reason=growthController null");
             return false;
         }
 
@@ -636,12 +670,14 @@ public class YokaiStateController : MonoBehaviour
         if (!isPurifying)
         {
             Debug.Log("[YokaiStateController][HandlePurifyTick][EarlyReturn] reason=isPurifying false");
+            Debug.Log("[YokaiStateController][HandlePurifyTick][EARLY_RETURN] reason=isPurifying false");
             return;
         }
 
         if (!enablePurifyTick)
         {
             Debug.Log("[YokaiStateController][HandlePurifyTick][EarlyReturn] reason=enablePurifyTick false");
+            Debug.Log("[YokaiStateController][HandlePurifyTick][EARLY_RETURN] reason=enablePurifyTick false");
             return;
         }
 
@@ -651,6 +687,7 @@ public class YokaiStateController : MonoBehaviour
         if (kegareManager == null)
         {
             Debug.Log("[YokaiStateController][HandlePurifyTick][EarlyReturn] reason=kegareManager null");
+            Debug.Log("[YokaiStateController][HandlePurifyTick][EARLY_RETURN] reason=kegareManager null");
             return;
         }
 
@@ -658,6 +695,7 @@ public class YokaiStateController : MonoBehaviour
         if (purifyTimer < purifyTickInterval)
         {
             Debug.Log($"[YokaiStateController][HandlePurifyTick][EarlyReturn] reason=intervalNotReached purifyTimer={purifyTimer:0.##} interval={purifyTickInterval:0.##}");
+            Debug.Log("[YokaiStateController][HandlePurifyTick][EARLY_RETURN] reason=intervalNotReached purifyTimer=" + purifyTimer.ToString("0.##") + " interval=" + purifyTickInterval.ToString("0.##"));
             return;
         }
 
@@ -673,6 +711,7 @@ public class YokaiStateController : MonoBehaviour
         if (!AreDependenciesResolved())
         {
             Debug.Log("[YokaiStateController][ApplyStateUI][EarlyReturn] reason=dependenciesNotResolved");
+            Debug.Log("[YokaiStateController][ApplyStateUI][EARLY_RETURN] reason=dependenciesNotResolved");
             return;
         }
 
@@ -714,18 +753,21 @@ public class YokaiStateController : MonoBehaviour
         if (CurrentYokaiContext.Current == null)
         {
             Debug.Log("[YokaiStateController][AreDependenciesResolved][EarlyReturn] reason=CurrentYokaiContext.Current null");
+            Debug.Log("[YokaiStateController][AreDependenciesResolved][EARLY_RETURN] reason=CurrentYokaiContext.Current null");
             return false;
         }
 
         if (energyManager == null || kegareManager == null)
         {
             Debug.Log("[YokaiStateController][AreDependenciesResolved][EarlyReturn] reason=manager null");
+            Debug.Log("[YokaiStateController][AreDependenciesResolved][EARLY_RETURN] reason=manager null energyManager=" + (energyManager == null ? "null" : "ok") + " kegareManager=" + (kegareManager == null ? "null" : "ok"));
             return false;
         }
 
         if (actionPanel == null || emergencyPurifyButton == null || purifyStopButton == null || magicCircleOverlay == null)
         {
             Debug.Log("[YokaiStateController][AreDependenciesResolved][EarlyReturn] reason=ui null");
+            Debug.Log("[YokaiStateController][AreDependenciesResolved][EARLY_RETURN] reason=ui null actionPanel=" + (actionPanel == null ? "null" : "ok") + " emergencyPurifyButton=" + (emergencyPurifyButton == null ? "null" : "ok") + " purifyStopButton=" + (purifyStopButton == null ? "null" : "ok") + " magicCircleOverlay=" + (magicCircleOverlay == null ? "null" : "ok"));
             return false;
         }
 
@@ -739,6 +781,7 @@ public class YokaiStateController : MonoBehaviour
         if (actionPanel == null)
         {
             Debug.Log("[YokaiStateController][UpdateActionPanelButtons][EarlyReturn] reason=actionPanel null");
+            Debug.Log("[YokaiStateController][UpdateActionPanelButtons][EARLY_RETURN] reason=actionPanel null");
             return;
         }
 
@@ -784,6 +827,7 @@ public class YokaiStateController : MonoBehaviour
         if (target == null)
         {
             Debug.Log("[YokaiStateController][ApplyCanvasGroup][EarlyReturn] reason=target null");
+            Debug.Log("[YokaiStateController][ApplyCanvasGroup][EARLY_RETURN] reason=target null");
             return;
         }
 
@@ -829,6 +873,7 @@ public class YokaiStateController : MonoBehaviour
         if (dangerEffects == null || dangerEffects.Length == 0)
         {
             Debug.Log("[YokaiStateController][UpdateDangerEffects][EarlyReturn] reason=dangerEffects empty");
+            Debug.Log("[YokaiStateController][UpdateDangerEffects][EARLY_RETURN] reason=dangerEffects empty");
             return;
         }
 
@@ -875,6 +920,7 @@ public class YokaiStateController : MonoBehaviour
         if (dangerEffects == null || dangerEffects.Length == 0)
         {
             Debug.Log("[YokaiStateController][RefreshDangerEffectOriginalColors][EarlyReturn] reason=dangerEffects empty");
+            Debug.Log("[YokaiStateController][RefreshDangerEffectOriginalColors][EARLY_RETURN] reason=dangerEffects empty");
             return;
         }
 
@@ -898,6 +944,7 @@ public class YokaiStateController : MonoBehaviour
         if (energyEmptyTargetRoot == null)
         {
             Debug.Log("[YokaiStateController][CacheEnergyEmptyTargets][EarlyReturn] reason=targetRoot null");
+            Debug.Log("[YokaiStateController][CacheEnergyEmptyTargets][EARLY_RETURN] reason=targetRoot null");
             return;
         }
 
@@ -932,6 +979,7 @@ public class YokaiStateController : MonoBehaviour
         if (kegareMaxTargetRoot == null)
         {
             Debug.Log("[YokaiStateController][CacheKegareMaxTargets][EarlyReturn] reason=targetRoot null");
+            Debug.Log("[YokaiStateController][CacheKegareMaxTargets][EARLY_RETURN] reason=targetRoot null");
             return;
         }
 
@@ -1080,6 +1128,7 @@ public class YokaiStateController : MonoBehaviour
                 isKegareMaxMotionApplied = false;
             }
             Debug.Log("[YokaiStateController][UpdateKegareMaxMotion][EarlyReturn] reason=visualsInactive");
+            Debug.Log("[YokaiStateController][UpdateKegareMaxMotion][EARLY_RETURN] reason=visualsInactive");
             return;
         }
 
@@ -1091,6 +1140,7 @@ public class YokaiStateController : MonoBehaviour
         if (kegareMaxTargetRoot == null)
         {
             Debug.Log("[YokaiStateController][UpdateKegareMaxMotion][EarlyReturn] reason=targetRoot null");
+            Debug.Log("[YokaiStateController][UpdateKegareMaxMotion][EARLY_RETURN] reason=targetRoot null");
             return;
         }
 
@@ -1114,6 +1164,7 @@ public class YokaiStateController : MonoBehaviour
         if (kegareMaxTargetRoot == null)
         {
             Debug.Log("[YokaiStateController][ResetKegareMaxMotion][EarlyReturn] reason=targetRoot null");
+            Debug.Log("[YokaiStateController][ResetKegareMaxMotion][EARLY_RETURN] reason=targetRoot null");
             return;
         }
 
@@ -1134,6 +1185,7 @@ public class YokaiStateController : MonoBehaviour
         if (isKegareMaxVisualsActive)
         {
             Debug.Log("[YokaiStateController][EnterKegareMax][EarlyReturn] reason=alreadyActive");
+            Debug.Log("[YokaiStateController][EnterKegareMax][EARLY_RETURN] reason=alreadyActive");
             return;
         }
 
@@ -1162,6 +1214,7 @@ public class YokaiStateController : MonoBehaviour
         if (!isKegareMaxVisualsActive)
         {
             Debug.Log("[YokaiStateController][RequestReleaseKegareMax][EarlyReturn] reason=visualsInactive");
+            Debug.Log("[YokaiStateController][RequestReleaseKegareMax][EARLY_RETURN] reason=visualsInactive");
             return;
         }
 
@@ -1187,6 +1240,7 @@ public class YokaiStateController : MonoBehaviour
         if (kegareMaxTargetRoot == null)
         {
             Debug.Log("[YokaiStateController][CaptureKegareMaxBaseTransform][EarlyReturn] reason=targetRoot null");
+            Debug.Log("[YokaiStateController][CaptureKegareMaxBaseTransform][EARLY_RETURN] reason=targetRoot null");
             return;
         }
 
@@ -1200,6 +1254,7 @@ public class YokaiStateController : MonoBehaviour
         if (!enableStateLogs)
         {
             Debug.Log($"[YokaiStateController][LogStateContext][EarlyReturn] reason=enableStateLogs false label={label}");
+            Debug.Log("[YokaiStateController][LogStateContext][EARLY_RETURN] reason=enableStateLogs false label=" + label);
             return;
         }
 

@@ -27,15 +27,19 @@ public class MagicCircleActivator : MonoBehaviour
     void Awake()
     {
         Debug.Log("[MagicCircleActivator][Awake][Enter]");
+        Debug.Log("[MagicCircleActivator][Awake][ENTER] controller=" + (controller == null ? "null" : "ok") + " stateController=" + (stateController == null ? "null" : "ok"));
         InitializeHidden();
         Debug.Log("[MagicCircleActivator][Awake][Exit]");
+        Debug.Log("[MagicCircleActivator][Awake][EXIT] pendingRequest=" + pendingRequest);
     }
 
     void Start()
     {
         Debug.Log("[MagicCircleActivator][Start][Enter]");
+        Debug.Log("[MagicCircleActivator][Start][ENTER] sceneLoadedHooked=true");
         SceneManager.sceneLoaded += OnSceneLoaded;
         Debug.Log("[MagicCircleActivator][Start][Exit]");
+        Debug.Log("[MagicCircleActivator][Start][EXIT] pendingRequest=" + pendingRequest);
     }
 
     void OnDestroy()
@@ -49,15 +53,19 @@ public class MagicCircleActivator : MonoBehaviour
     void OnDisable()
     {
         Debug.Log("[MagicCircleActivator][OnDisable][Enter]");
+        Debug.Log("[MagicCircleActivator][OnDisable][ENTER] subscribedStateController=" + (subscribedStateController == null ? "null" : "ok"));
         UnregisterStateEvents();
         Debug.Log("[MagicCircleActivator][OnDisable][Exit]");
+        Debug.Log("[MagicCircleActivator][OnDisable][EXIT] pendingRequest=" + pendingRequest);
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log($"[MagicCircleActivator][OnSceneLoaded][Enter] scene={scene.name} mode={mode}");
+        Debug.Log("[MagicCircleActivator][OnSceneLoaded][ENTER] scene=" + scene.name + " mode=" + mode);
         InitializeHidden();
         Debug.Log("[MagicCircleActivator][OnSceneLoaded][Exit]");
+        Debug.Log("[MagicCircleActivator][OnSceneLoaded][EXIT] pendingRequest=" + pendingRequest);
     }
 
     void InitializeHidden()
@@ -68,6 +76,7 @@ public class MagicCircleActivator : MonoBehaviour
         {
             Debug.LogWarning("[PURIFY] MagicCircleSwipeController が見つかりません。");
             Debug.Log("[MagicCircleActivator][InitializeHidden][EarlyReturn] reason=controller null");
+            Debug.Log("[MagicCircleActivator][InitializeHidden][EARLY_RETURN] controller=null");
             return;
         }
 
@@ -84,15 +93,19 @@ public class MagicCircleActivator : MonoBehaviour
     public void RequestNormalPurify()
     {
         Debug.Log("[MagicCircleActivator][RequestNormalPurify][Enter]");
+        Debug.Log("[MagicCircleActivator][RequestNormalPurify][ENTER] pendingRequest=" + pendingRequest);
         RequestMagicCircle(PurifyRequestType.Normal);
         Debug.Log("[MagicCircleActivator][RequestNormalPurify][Exit]");
+        Debug.Log("[MagicCircleActivator][RequestNormalPurify][EXIT] pendingRequest=" + pendingRequest);
     }
 
     public void RequestEmergencyPurify()
     {
         Debug.Log("[MagicCircleActivator][RequestEmergencyPurify][Enter]");
+        Debug.Log("[MagicCircleActivator][RequestEmergencyPurify][ENTER] pendingRequest=" + pendingRequest);
         RequestMagicCircle(PurifyRequestType.Emergency);
         Debug.Log("[MagicCircleActivator][RequestEmergencyPurify][Exit]");
+        Debug.Log("[MagicCircleActivator][RequestEmergencyPurify][EXIT] pendingRequest=" + pendingRequest);
     }
 
     void RequestMagicCircle(PurifyRequestType requestType)
@@ -109,6 +122,7 @@ public class MagicCircleActivator : MonoBehaviour
     void OnHealRequested()
     {
         Debug.Log($"[MagicCircleActivator][OnHealRequested][Enter] pendingRequest={pendingRequest}");
+        Debug.Log("[MagicCircleActivator][OnHealRequested][ENTER] pendingRequest=" + pendingRequest + " kegareManager=" + (kegareManager == null ? "null" : "ok"));
         NotifySuccessHooks();
 
         if (pendingRequest == PurifyRequestType.Normal)
@@ -121,6 +135,7 @@ public class MagicCircleActivator : MonoBehaviour
         ApplyPurifySuccess();
         pendingRequest = PurifyRequestType.None;
         Debug.Log("[MagicCircleActivator][OnHealRequested][Exit]");
+        Debug.Log("[MagicCircleActivator][OnHealRequested][EXIT] pendingRequest=" + pendingRequest);
     }
 
     void NotifySuccessHooks()
@@ -146,6 +161,7 @@ public class MagicCircleActivator : MonoBehaviour
         if (magicCircleRoot == null)
         {
             Debug.Log("[MagicCircleActivator][EnsureController][EarlyReturn] reason=magicCircleRoot null");
+            Debug.Log("[MagicCircleActivator][EnsureController][EARLY_RETURN] magicCircleRoot=null");
             return null;
         }
 
@@ -219,12 +235,14 @@ public class MagicCircleActivator : MonoBehaviour
         if (stateController == null)
         {
             Debug.Log("[MagicCircleActivator][RegisterStateEvents][EarlyReturn] reason=stateController null");
+            Debug.Log("[MagicCircleActivator][RegisterStateEvents][EARLY_RETURN] stateController=null");
             return;
         }
 
         if (subscribedStateController == stateController)
         {
             Debug.Log("[MagicCircleActivator][RegisterStateEvents][EarlyReturn] reason=alreadySubscribed");
+            Debug.Log("[MagicCircleActivator][RegisterStateEvents][EARLY_RETURN] reason=alreadySubscribed");
             return;
         }
 
@@ -241,6 +259,7 @@ public class MagicCircleActivator : MonoBehaviour
         if (subscribedStateController == null)
         {
             Debug.Log("[MagicCircleActivator][UnregisterStateEvents][EarlyReturn] reason=subscribedStateController null");
+            Debug.Log("[MagicCircleActivator][UnregisterStateEvents][EARLY_RETURN] subscribedStateController=null");
             return;
         }
 
@@ -252,6 +271,7 @@ public class MagicCircleActivator : MonoBehaviour
     void OnStateChanged(YokaiState previousState, YokaiState newState)
     {
         Debug.Log($"[MagicCircleActivator][OnStateChanged][Enter] previousState={previousState} newState={newState} controller={(controller == null ? "null" : "ok")}");
+        Debug.Log("[MagicCircleActivator][OnStateChanged][ENTER] previousState=" + previousState + " newState=" + newState + " controller=" + (controller == null ? "null" : "ok"));
         if (controller == null)
             controller = EnsureController();
 
@@ -259,6 +279,7 @@ public class MagicCircleActivator : MonoBehaviour
         {
             Debug.LogWarning("[PURIFY] MagicCircleSwipeUI が見つからないため表示できません。");
             Debug.Log("[MagicCircleActivator][OnStateChanged][EarlyReturn] reason=controller null");
+            Debug.Log("[MagicCircleActivator][OnStateChanged][EARLY_RETURN] controller=null");
             return;
         }
 
@@ -273,12 +294,15 @@ public class MagicCircleActivator : MonoBehaviour
             pendingRequest = PurifyRequestType.None;
         }
         Debug.Log("[MagicCircleActivator][OnStateChanged][Exit]");
+        Debug.Log("[MagicCircleActivator][OnStateChanged][EXIT] pendingRequest=" + pendingRequest);
     }
 
     void OnEnable()
     {
         Debug.Log("[MagicCircleActivator][OnEnable][Enter]");
+        Debug.Log("[MagicCircleActivator][OnEnable][ENTER] controller=" + (controller == null ? "null" : "ok"));
         InitializeHidden();
         Debug.Log("[MagicCircleActivator][OnEnable][Exit]");
+        Debug.Log("[MagicCircleActivator][OnEnable][EXIT] pendingRequest=" + pendingRequest);
     }
 }

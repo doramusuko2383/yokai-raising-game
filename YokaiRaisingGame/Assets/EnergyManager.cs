@@ -56,6 +56,7 @@ public class EnergyManager : MonoBehaviour
     void Awake()
     {
         Debug.Log($"[EnergyManager][Awake][Enter] energy={energy:0.##} maxEnergy={maxEnergy:0.##} hasEverHadEnergy={hasEverHadEnergy}");
+        Debug.Log("[EnergyManager][Awake][ENTER] energy=" + energy.ToString("0.##") + " maxEnergy=" + maxEnergy.ToString("0.##") + " hasEverHadEnergy=" + hasEverHadEnergy + " stateController=" + (stateController == null ? "null" : "ok"));
         hasEverHadEnergy = false;
         EnsureDefaults();
         if (worldConfig == null)
@@ -70,24 +71,29 @@ public class EnergyManager : MonoBehaviour
 
         InitializeIfNeeded("Awake");
         Debug.Log($"[EnergyManager][Awake][Exit] energy={energy:0.##} maxEnergy={maxEnergy:0.##} initialized={initialized}");
+        Debug.Log("[EnergyManager][Awake][EXIT] energy=" + energy.ToString("0.##") + " maxEnergy=" + maxEnergy.ToString("0.##") + " initialized=" + initialized);
     }
 
     void Start()
     {
         Debug.Log($"[EnergyManager][Start][Enter] energy={energy:0.##} maxEnergy={maxEnergy:0.##} initialized={initialized}");
+        Debug.Log("[EnergyManager][Start][ENTER] energy=" + energy.ToString("0.##") + " maxEnergy=" + maxEnergy.ToString("0.##") + " initialized=" + initialized);
         InitializeIfNeeded("Start");
         Debug.Log($"[EnergyManager][Start][Exit] energy={energy:0.##} maxEnergy={maxEnergy:0.##} initialized={initialized}");
+        Debug.Log("[EnergyManager][Start][EXIT] energy=" + energy.ToString("0.##") + " maxEnergy=" + maxEnergy.ToString("0.##") + " initialized=" + initialized);
     }
 
     void Update()
     {
         Debug.Log($"[EnergyManager][Update][Enter] energy={energy:0.##} maxEnergy={maxEnergy:0.##} hasEverHadEnergy={hasEverHadEnergy}");
+        Debug.Log("[EnergyManager][Update][ENTER] energy=" + energy.ToString("0.##") + " maxEnergy=" + maxEnergy.ToString("0.##") + " hasEverHadEnergy=" + hasEverHadEnergy + " isWeak=" + isWeak);
         if (!hasEverHadEnergy && energy > 0f)
         {
             hasEverHadEnergy = true;
         }
         HandleNaturalDecay();
         Debug.Log($"[EnergyManager][Update][Exit] energy={energy:0.##} maxEnergy={maxEnergy:0.##} hasEverHadEnergy={hasEverHadEnergy}");
+        Debug.Log("[EnergyManager][Update][EXIT] energy=" + energy.ToString("0.##") + " maxEnergy=" + maxEnergy.ToString("0.##") + " hasEverHadEnergy=" + hasEverHadEnergy);
     }
 
     public void ChangeEnergy(float amount)
@@ -141,12 +147,14 @@ public class EnergyManager : MonoBehaviour
         if (stateController != null && (stateController.isPurifying || stateController.IsEnergyEmpty()))
         {
             Debug.Log($"[EnergyManager][ApplyHealInternal][EarlyReturn] reason=stateBlocked isPurifying={(stateController != null && stateController.isPurifying)} isEnergyEmpty={(stateController != null && stateController.IsEnergyEmpty())}");
+            Debug.Log("[EnergyManager][ApplyHealInternal][EARLY_RETURN] reason=stateBlocked isPurifying=" + (stateController != null && stateController.isPurifying) + " isEnergyEmpty=" + (stateController != null && stateController.IsEnergyEmpty()));
             return;
         }
 
         if (!allowWhenCritical && stateController != null && stateController.IsEnergyEmpty())
         {
             Debug.Log("[EnergyManager][ApplyHealInternal][EarlyReturn] reason=criticalBlock");
+            Debug.Log("[EnergyManager][ApplyHealInternal][EARLY_RETURN] reason=criticalBlock isEnergyEmpty=" + (stateController != null && stateController.IsEnergyEmpty()));
             return;
         }
 
@@ -160,12 +168,14 @@ public class EnergyManager : MonoBehaviour
         if (naturalDecayPerMinute <= 0f)
         {
             Debug.Log($"[EnergyManager][HandleNaturalDecay][EarlyReturn] reason=naturalDecayPerMinute<=0 value={naturalDecayPerMinute:0.##}");
+            Debug.Log("[EnergyManager][HandleNaturalDecay][EARLY_RETURN] reason=naturalDecayPerMinute<=0 value=" + naturalDecayPerMinute.ToString("0.##"));
             return;
         }
 
         if (energy <= 0f)
         {
             Debug.Log($"[EnergyManager][HandleNaturalDecay][EarlyReturn] reason=energy<=0 energy={energy:0.##}");
+            Debug.Log("[EnergyManager][HandleNaturalDecay][EARLY_RETURN] reason=energy<=0 energy=" + energy.ToString("0.##"));
             return;
         }
 
@@ -173,6 +183,7 @@ public class EnergyManager : MonoBehaviour
         if (decayTimer < decayIntervalSeconds)
         {
             Debug.Log($"[EnergyManager][HandleNaturalDecay][EarlyReturn] reason=intervalNotReached decayTimer={decayTimer:0.##} interval={decayIntervalSeconds:0.##}");
+            Debug.Log("[EnergyManager][HandleNaturalDecay][EARLY_RETURN] reason=intervalNotReached decayTimer=" + decayTimer.ToString("0.##") + " interval=" + decayIntervalSeconds.ToString("0.##"));
             return;
         }
 
@@ -223,6 +234,7 @@ public class EnergyManager : MonoBehaviour
     public void OnClickAdWatch()
     {
         Debug.Log($"[EnergyManager][OnClickAdWatch][Enter] energy={energy:0.##}/{maxEnergy:0.##} stateController={(stateController == null ? "null" : "ok")}");
+        Debug.Log("[EnergyManager][OnClickAdWatch][ENTER] energy=" + energy.ToString("0.##") + " maxEnergy=" + maxEnergy.ToString("0.##") + " stateController=" + (stateController == null ? "null" : "ok"));
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
@@ -230,6 +242,7 @@ public class EnergyManager : MonoBehaviour
         if (stateController != null && !stateController.IsEnergyEmpty())
         {
             Debug.Log("[EnergyManager][OnClickAdWatch][EarlyReturn] reason=notEnergyEmpty");
+            Debug.Log("[EnergyManager][OnClickAdWatch][EARLY_RETURN] reason=notEnergyEmpty isEnergyEmpty=" + (stateController != null && stateController.IsEnergyEmpty()));
             return;
         }
 
@@ -244,6 +257,7 @@ public class EnergyManager : MonoBehaviour
             MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
         }
         Debug.Log($"[EnergyManager][OnClickAdWatch][Exit] energy={energy:0.##}/{maxEnergy:0.##} wasEmpty={wasEmpty}");
+        Debug.Log("[EnergyManager][OnClickAdWatch][EXIT] energy=" + energy.ToString("0.##") + " maxEnergy=" + maxEnergy.ToString("0.##") + " wasEmpty=" + wasEmpty);
     }
 
     void NotifyEnergyChanged(string reason)
@@ -259,6 +273,7 @@ public class EnergyManager : MonoBehaviour
         if (initialized)
         {
             Debug.Log($"[EnergyManager][InitializeIfNeeded][EarlyReturn] reason=alreadyInitialized context={reason}");
+            Debug.Log("[EnergyManager][InitializeIfNeeded][EARLY_RETURN] reason=alreadyInitialized context=" + reason + " energy=" + energy.ToString("0.##"));
             return;
         }
 

@@ -60,20 +60,25 @@ public class KegareManager : MonoBehaviour
     void OnEnable()
     {
         Debug.Log($"[KegareManager][OnEnable][Enter] kegare={kegare:0.##} maxKegare={maxKegare:0.##} stateController={(stateController == null ? \"null\" : \"ok\")}");
+        Debug.Log("[KegareManager][OnEnable][ENTER] kegare=" + kegare.ToString("0.##") + " maxKegare=" + maxKegare.ToString("0.##") + " stateController=" + (stateController == null ? "null" : "ok"));
         CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
         Debug.Log("[KegareManager][OnEnable][Exit]");
+        Debug.Log("[KegareManager][OnEnable][EXIT] currentYokai=" + (currentYokai == null ? "null" : "ok"));
     }
 
     void OnDisable()
     {
         Debug.Log("[KegareManager][OnDisable][Enter]");
+        Debug.Log("[KegareManager][OnDisable][ENTER] currentYokai=" + (currentYokai == null ? "null" : "ok"));
         CurrentYokaiContext.CurrentChanged -= BindCurrentYokai;
         Debug.Log("[KegareManager][OnDisable][Exit]");
+        Debug.Log("[KegareManager][OnDisable][EXIT]");
     }
 
     void Awake()
     {
         Debug.Log($"[KegareManager][Awake][Enter] kegare={kegare:0.##} maxKegare={maxKegare:0.##}");
+        Debug.Log("[KegareManager][Awake][ENTER] kegare=" + kegare.ToString("0.##") + " maxKegare=" + maxKegare.ToString("0.##") + " stateController=" + (stateController == null ? "null" : "ok"));
         EnsureDefaults();
         if (worldConfig == null)
         {
@@ -87,27 +92,34 @@ public class KegareManager : MonoBehaviour
 
         InitializeIfNeeded("Awake");
         Debug.Log($"[KegareManager][Awake][Exit] kegare={kegare:0.##} maxKegare={maxKegare:0.##} initialized={initialized}");
+        Debug.Log("[KegareManager][Awake][EXIT] kegare=" + kegare.ToString("0.##") + " maxKegare=" + maxKegare.ToString("0.##") + " initialized=" + initialized);
     }
 
     void Start()
     {
         Debug.Log($"[KegareManager][Start][Enter] kegare={kegare:0.##} maxKegare={maxKegare:0.##} initialized={initialized}");
+        Debug.Log("[KegareManager][Start][ENTER] kegare=" + kegare.ToString("0.##") + " maxKegare=" + maxKegare.ToString("0.##") + " initialized=" + initialized);
         InitializeIfNeeded("Start");
         Debug.Log($"[KegareManager][Start][Exit] kegare={kegare:0.##} maxKegare={maxKegare:0.##} initialized={initialized}");
+        Debug.Log("[KegareManager][Start][EXIT] kegare=" + kegare.ToString("0.##") + " maxKegare=" + maxKegare.ToString("0.##") + " initialized=" + initialized);
     }
 
     void Update()
     {
         Debug.Log($"[KegareManager][Update][Enter] kegare={kegare:0.##}/{maxKegare:0.##} isKegareMax={isKegareMax}");
+        Debug.Log("[KegareManager][Update][ENTER] kegare=" + kegare.ToString("0.##") + " maxKegare=" + maxKegare.ToString("0.##") + " isKegareMax=" + isKegareMax);
         HandleNaturalIncrease();
         Debug.Log($"[KegareManager][Update][Exit] kegare={kegare:0.##}/{maxKegare:0.##} isKegareMax={isKegareMax}");
+        Debug.Log("[KegareManager][Update][EXIT] kegare=" + kegare.ToString("0.##") + " maxKegare=" + maxKegare.ToString("0.##") + " isKegareMax=" + isKegareMax);
     }
 
     public void BindCurrentYokai(GameObject yokai)
     {
         Debug.Log($"[KegareManager][BindCurrentYokai][Enter] yokai={(yokai == null ? \"null\" : yokai.name)}");
+        Debug.Log("[KegareManager][BindCurrentYokai][ENTER] yokai=" + (yokai == null ? "null" : yokai.name));
         currentYokai = yokai;
         Debug.Log("[KegareManager][BindCurrentYokai][Exit]");
+        Debug.Log("[KegareManager][BindCurrentYokai][EXIT] currentYokai=" + (currentYokai == null ? "null" : currentYokai.name));
     }
 
     public void AddKegare(float amount)
@@ -159,6 +171,7 @@ public class KegareManager : MonoBehaviour
         if (!allowWhenCritical && TryGetRecoveryBlockReason(out _))
         {
             Debug.Log("[KegareManager][ApplyPurifyInternal][EarlyReturn] reason=blocked");
+            Debug.Log("[KegareManager][ApplyPurifyInternal][EARLY_RETURN] reason=blocked");
             return;
         }
 
@@ -175,6 +188,7 @@ public class KegareManager : MonoBehaviour
     public void OnClickAdWatch()
     {
         Debug.Log($"[KegareManager][OnClickAdWatch][Enter] kegare={kegare:0.##}/{maxKegare:0.##} stateController={(stateController == null ? \"null\" : \"ok\")}");
+        Debug.Log("[KegareManager][OnClickAdWatch][ENTER] kegare=" + kegare.ToString("0.##") + " maxKegare=" + maxKegare.ToString("0.##") + " stateController=" + (stateController == null ? "null" : "ok"));
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (stateController == null)
             stateController = CurrentYokaiContext.ResolveStateController();
@@ -182,6 +196,7 @@ public class KegareManager : MonoBehaviour
         if (stateController != null && stateController.currentState != YokaiState.KegareMax)
         {
             Debug.Log("[KegareManager][OnClickAdWatch][EarlyReturn] reason=notKegareMaxState");
+            Debug.Log("[KegareManager][OnClickAdWatch][EARLY_RETURN] reason=notKegareMaxState currentState=" + (stateController == null ? "null" : stateController.currentState.ToString()));
             return;
         }
 
@@ -192,6 +207,7 @@ public class KegareManager : MonoBehaviour
 
         EmergencyPurifyRequested?.Invoke();
         Debug.Log("[KegareManager][OnClickAdWatch][Exit]");
+        Debug.Log("[KegareManager][OnClickAdWatch][EXIT] kegare=" + kegare.ToString("0.##") + " maxKegare=" + maxKegare.ToString("0.##"));
     }
 
     bool TryGetRecoveryBlockReason(out string reason)
@@ -206,6 +222,7 @@ public class KegareManager : MonoBehaviour
         {
             reason = string.Empty;
             Debug.Log("[KegareManager][TryGetRecoveryBlockReason][Exit] blocked=false");
+            Debug.Log("[KegareManager][TryGetRecoveryBlockReason][EXIT] blocked=false isPurifying=" + isPurifying + " isEnergyEmpty=" + isEnergyEmpty);
             return false;
         }
 
@@ -236,12 +253,14 @@ public class KegareManager : MonoBehaviour
         if (naturalIncreasePerMinute <= 0f)
         {
             Debug.Log($"[KegareManager][HandleNaturalIncrease][EarlyReturn] reason=naturalIncreasePerMinute<=0 value={naturalIncreasePerMinute:0.##}");
+            Debug.Log("[KegareManager][HandleNaturalIncrease][EARLY_RETURN] reason=naturalIncreasePerMinute<=0 value=" + naturalIncreasePerMinute.ToString("0.##"));
             return;
         }
 
         if (isKegareMax)
         {
             Debug.Log("[KegareManager][HandleNaturalIncrease][EarlyReturn] reason=isKegareMax");
+            Debug.Log("[KegareManager][HandleNaturalIncrease][EARLY_RETURN] reason=isKegareMax kegare=" + kegare.ToString("0.##"));
             return;
         }
 
@@ -249,6 +268,7 @@ public class KegareManager : MonoBehaviour
         if (increaseTimer < increaseIntervalSeconds)
         {
             Debug.Log($"[KegareManager][HandleNaturalIncrease][EarlyReturn] reason=intervalNotReached increaseTimer={increaseTimer:0.##} interval={increaseIntervalSeconds:0.##}");
+            Debug.Log("[KegareManager][HandleNaturalIncrease][EARLY_RETURN] reason=intervalNotReached increaseTimer=" + increaseTimer.ToString("0.##") + " interval=" + increaseIntervalSeconds.ToString("0.##"));
             return;
         }
 
@@ -316,6 +336,7 @@ public class KegareManager : MonoBehaviour
         if (initialized)
         {
             Debug.Log($"[KegareManager][InitializeIfNeeded][EarlyReturn] reason=alreadyInitialized context={reason}");
+            Debug.Log("[KegareManager][InitializeIfNeeded][EARLY_RETURN] reason=alreadyInitialized context=" + reason);
             return;
         }
 
@@ -388,6 +409,7 @@ public class KegareManager : MonoBehaviour
         if (isKegareMax)
         {
             Debug.Log("[KegareManager][IsDangerState][EarlyReturn] reason=isKegareMax");
+            Debug.Log("[KegareManager][IsDangerState][EARLY_RETURN] reason=isKegareMax kegare=" + kegare.ToString("0.##"));
             return false;
         }
 
