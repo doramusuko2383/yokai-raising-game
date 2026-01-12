@@ -44,16 +44,17 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
     {
         ResolveReferences();
         EnsureGuideVisuals();
+        InitializeHidden();
     }
 
     void OnEnable()
     {
-        Show();
+        InitializeHidden();
     }
 
     void OnDisable()
     {
-        Hide();
+        InitializeHidden();
     }
 
     public void Show()
@@ -77,6 +78,19 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
         if (!isActive)
             return;
 
+        isActive = false;
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.interactable = false;
+        }
+
+        ResetSwipe();
+    }
+
+    public void InitializeHidden()
+    {
         isActive = false;
         if (canvasGroup != null)
         {
