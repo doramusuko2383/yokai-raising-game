@@ -2079,7 +2079,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
-      value: ExecuteEmergencyPurify
+      value: ExecuteEmergencyPurifyFromButton
       objectReference: {fileID: 0}
     - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
