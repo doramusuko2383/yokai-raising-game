@@ -78,7 +78,7 @@ public class PurifyButtonHandler : MonoBehaviour
 
         // 不具合③: 状態未同期時はブロックせず、霊力0状態のみを明示的に弾く。
         return stateController != null
-            && (stateController.isPurifying || stateController.currentState == YokaiState.EnergyEmpty);
+            && (stateController.isPurifying || stateController.isSpiritEmpty);
     }
 
     bool IsState(YokaiState state)

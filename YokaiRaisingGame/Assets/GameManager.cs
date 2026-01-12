@@ -3,10 +3,6 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    [Header("FireBall")]
-    public GameObject fireBallPrefab;
-    [SerializeField] bool spawnFireBallOnStart = false;
-
     [Header("進化後Prefab（属性順）")]
     // 0:Good / 1:Normal / 2:Bad / 3:Secret
     public GameObject[] evolutionPrefabs;
@@ -16,28 +12,6 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        if (spawnFireBallOnStart)
-            SpawnFireBall();
-    }
-
-    public GameObject SpawnFireBall()
-    {
-        if (fireBallPrefab == null)
-        {
-            Debug.LogWarning("[STATE] FireBall prefab is not assigned.");
-            return null;
-        }
-
-        GameObject existing = GameObject.Find(fireBallPrefab.name);
-        if (existing != null)
-        {
-            existing.SetActive(true);
-            return existing;
-        }
-
-        GameObject instance = Instantiate(fireBallPrefab, Vector3.zero, Quaternion.identity);
-        instance.name = fireBallPrefab.name;
-        return instance;
     }
 
     public GameObject SpawnEvolved(

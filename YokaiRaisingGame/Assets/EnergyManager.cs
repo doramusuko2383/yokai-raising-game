@@ -188,7 +188,7 @@ public class EnergyManager : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        if (stateController != null && stateController.currentState != YokaiState.EnergyEmpty)
+        if (stateController != null && !stateController.isSpiritEmpty)
         {
             return;
         }

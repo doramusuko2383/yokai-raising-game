@@ -104,6 +104,13 @@ public class YokaiGrowthController : MonoBehaviour
         bool wasGrowthStopped = isGrowthStopped;
         isGrowthStopped = ShouldStopGrowth();
 
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>();
+
+        bool shouldPlayParticles = stateController != null && stateController.currentState == YokaiState.Evolving;
+        if (!shouldPlayParticles)
+            StopGrowthParticles();
+
         if (isGrowthStopped || elapsedSeconds <= 0f)
         {
             if (!wasGrowthStopped && isGrowthStopped)
@@ -117,7 +124,7 @@ public class YokaiGrowthController : MonoBehaviour
         currentScale = Mathf.Clamp(currentScale + growthAmount, initialScale, maxScale);
 
         ApplyScale();
-        if (growthAmount > 0f)
+        if (growthAmount > 0f && shouldPlayParticles)
             PlayGrowthParticles();
         TryMarkEvolutionReady();
     }
