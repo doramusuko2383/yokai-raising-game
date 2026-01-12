@@ -40,6 +40,16 @@ public class GameManager : MonoBehaviour
             return null;
         }
 
+        if (evolutionPrefabs[index].name == "FireBall")
+        {
+            var existing = GameObject.Find("FireBall");
+            if (existing != null)
+                return existing;
+
+            Debug.LogWarning("[STATE] FireBall prefab spawn skipped to avoid clones.");
+            return null;
+        }
+
         return Instantiate(evolutionPrefabs[index], position, Quaternion.identity);
     }
 
