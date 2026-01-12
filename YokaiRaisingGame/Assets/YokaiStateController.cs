@@ -99,6 +99,7 @@ public class YokaiStateController : MonoBehaviour
     Coroutine kegareMaxReleaseRoutine;
     const float EvolutionReadyScale = 2.0f;
     bool hasLoggedDependencies;
+    bool hasStarted;
 
     public bool IsKegareMaxVisualsActive => isKegareMaxVisualsActive;
 
@@ -130,6 +131,7 @@ public class YokaiStateController : MonoBehaviour
     {
         ResolveDependencies();
         ApplyStateFromManagers();
+        hasStarted = true;
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -230,12 +232,20 @@ public class YokaiStateController : MonoBehaviour
 
     void OnKegareChanged(float current, float max)
     {
+        if (!hasStarted)
+            return;
+
         ApplyStateFromManagers();
     }
 
     void OnEnergyChanged(float current, float max)
     {
-        ApplyStateFromManagers();
+        if (!hasStarted)
+            return;
+
+        isSpiritEmpty = current <= 0;
+        RefreshState();
+        UpdateEnergyEmptyVisuals(isSpiritEmpty);
     }
 
     void ApplyStateFromManagers()
@@ -243,27 +253,18 @@ public class YokaiStateController : MonoBehaviour
         if (energyManager == null || kegareManager == null)
             return;
 
-        bool isEnergyZero = energyManager.energy <= 0;
-        bool isKegareMax = kegareManager.kegare >= kegareManager.maxKegare;
-
-        isSpiritEmpty = isEnergyZero;
-        isKegareMaxVisualsActive = isKegareMax;
+        isSpiritEmpty = energyManager.energy <= 0;
 
         if (currentState == YokaiState.Evolving)
-        {
-            RefreshState();
             return;
-        }
 
-        if (isKegareMax)
+        if (kegareManager.kegare >= kegareManager.maxKegare)
         {
             SetState(YokaiState.KegareMax);
-            RefreshState();
             return;
         }
 
         SetState(YokaiState.Normal);
-        RefreshState();
     }
 
     void RefreshState()
@@ -305,7 +306,6 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isSpiritEmpty = true;
-        ApplyStateUI();
     }
 
     public void ExitSpiritEmptyState()
@@ -314,7 +314,6 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isSpiritEmpty = false;
-        ApplyStateUI();
     }
 
     public void BeginPurifying()
@@ -462,7 +461,7 @@ public class YokaiStateController : MonoBehaviour
             kegareManager = CurrentYokaiContext.ResolveKegareManager();
 
         RegisterKegareEvents();
-        return IsKegareDataReady() && kegareManager != null && kegareManager.isKegareMax;
+        return kegareManager != null && kegareManager.isKegareMax;
     }
 
     bool IsEnergyZero()
@@ -471,23 +470,7 @@ public class YokaiStateController : MonoBehaviour
             energyManager = FindObjectOfType<EnergyManager>();
 
         RegisterEnergyEvents();
-        return IsEnergyDataReady() && energyManager != null && energyManager.energy <= 0f;
-    }
-
-    bool IsEnergyDataReady()
-    {
-        if (energyManager == null)
-            return false;
-
-        return energyManager.HasValidValues();
-    }
-
-    bool IsKegareDataReady()
-    {
-        if (kegareManager == null)
-            return false;
-
-        return kegareManager.HasValidValues();
+        return energyManager != null && energyManager.energy <= 0f;
     }
 
     bool HasReachedEvolutionScale()
@@ -556,14 +539,15 @@ public class YokaiStateController : MonoBehaviour
             || currentState == YokaiState.EvolutionReady
             || isKegareMax;
         bool showEmergency = isKegareMax;
-        bool showMagicCircle = isPurifying;
+        bool showMagicCircle = currentState == YokaiState.Purifying;
         bool showStopPurify = isPurifying;
         bool showDangerOverlay = showKegareMaxVisuals;
 
         ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
         ApplyCanvasGroup(emergencyPurifyButton, showEmergency, showEmergency);
         ApplyCanvasGroup(purifyStopButton, showStopPurify, showStopPurify);
-        ApplyCanvasGroup(magicCircleOverlay, showMagicCircle, showMagicCircle);
+        if (magicCircleOverlay != null)
+            magicCircleOverlay.SetActive(showMagicCircle);
 
         if (dangerOverlay != null)
         {
@@ -574,7 +558,6 @@ public class YokaiStateController : MonoBehaviour
 
         UpdateActionPanelButtons(isKegareMax, isEnergyEmpty);
         UpdateDangerEffects();
-        UpdateEnergyEmptyVisuals(isEnergyEmpty);
         UpdateKegareMaxVisuals(showKegareMaxVisuals);
     }
 
