@@ -49,6 +49,7 @@ public class MagicCircleActivator : MonoBehaviour
 
         controller.HealRequested -= OnHealRequested;
         controller.HealRequested += OnHealRequested;
+        controller.InitializeHidden();
 #if UNITY_EDITOR
         Debug.Log("[PURIFY] MagicCircleSwipeUI を初期化しました。");
 #endif
@@ -193,6 +194,6 @@ public class MagicCircleActivator : MonoBehaviour
         if (energyManager != null && !energyManager.HasEverHadEnergy)
             return false;
 
-        return stateController.isPurifying || stateController.currentState == YokaiState.KegareMax;
+        return stateController.currentState == YokaiState.Purifying;
     }
 }
