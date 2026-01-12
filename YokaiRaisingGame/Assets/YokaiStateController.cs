@@ -142,6 +142,8 @@ public class YokaiStateController : MonoBehaviour
     void Update()
     {
         HandlePurifyTick();
+        if (hasStarted)
+            ApplyStateFromManagers();
     }
 
     void LateUpdate()
@@ -232,50 +234,56 @@ public class YokaiStateController : MonoBehaviour
 
     void OnKegareChanged(float current, float max)
     {
-        if (!hasStarted)
-            return;
-
-        ApplyStateFromManagers();
     }
 
     void OnEnergyChanged(float current, float max)
     {
-        if (!hasStarted)
-            return;
-
         isSpiritEmpty = current <= 0;
-        RefreshState();
-        UpdateEnergyEmptyVisuals(isSpiritEmpty);
     }
 
-    void ApplyStateFromManagers()
+    void ApplyStateFromManagers(YokaiState? requestedState = null, bool forceApplyUI = false)
     {
         if (energyManager == null || kegareManager == null)
             return;
 
+        bool wasSpiritEmpty = isSpiritEmpty;
         isSpiritEmpty = energyManager.energy <= 0;
 
-        if (currentState == YokaiState.Evolving)
-            return;
-
-        if (kegareManager.kegare >= kegareManager.maxKegare)
+        YokaiState nextState = currentState;
+        if (requestedState.HasValue)
         {
-            SetState(YokaiState.KegareMax);
-            return;
+            nextState = requestedState.Value;
+        }
+        else if (currentState == YokaiState.Evolving)
+        {
+            nextState = YokaiState.Evolving;
+        }
+        else if (isPurifying)
+        {
+            nextState = YokaiState.Purifying;
+        }
+        else if (growthController != null && growthController.isEvolutionReady && !IsEvolutionBlocked(out _))
+        {
+            nextState = YokaiState.EvolutionReady;
+        }
+        else if (kegareManager.kegare >= kegareManager.maxKegare)
+        {
+            nextState = YokaiState.KegareMax;
+        }
+        else
+        {
+            nextState = YokaiState.Normal;
         }
 
-        SetState(YokaiState.Normal);
+        bool stateChanged = SetState(nextState);
+        if (stateChanged || forceApplyUI || wasSpiritEmpty != isSpiritEmpty)
+            ApplyStateUI();
     }
 
-    void RefreshState()
-    {
-        ApplyStateUI();
-    }
-
-    public void SetState(YokaiState newState)
+    bool SetState(YokaiState newState)
     {
         if (currentState == newState)
-            return;
+            return false;
 
         YokaiState previousState = currentState;
         currentState = newState;
@@ -296,8 +304,8 @@ public class YokaiStateController : MonoBehaviour
         }
 
         HandleStateSeTransitions(previousState, currentState);
-        ApplyStateUI();
         LogStateContext("StateChange");
+        return true;
     }
 
     public void EnterSpiritEmptyState()
@@ -323,7 +331,7 @@ public class YokaiStateController : MonoBehaviour
 
         isPurifying = true;
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
-        SetState(YokaiState.Purifying);
+        ApplyStateFromManagers();
     }
 
     public void StopPurifying()
@@ -345,7 +353,7 @@ public class YokaiStateController : MonoBehaviour
             AudioHook.RequestPlay(YokaiSE.SE_PURIFY_CANCEL);
 
         isPurifying = false;
-        SetState(YokaiState.Normal);
+        ApplyStateFromManagers();
     }
 
     public void BeginEvolution()
@@ -353,12 +361,12 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.EvolutionReady)
             return;
 
-        SetState(YokaiState.Evolving);
+        ApplyStateFromManagers(YokaiState.Evolving, forceApplyUI: true);
     }
 
     public void CompleteEvolution()
     {
-        SetState(YokaiState.Normal);
+        ApplyStateFromManagers(YokaiState.Normal, forceApplyUI: true);
         RefreshDangerEffectOriginalColors();
     }
 
@@ -398,9 +406,6 @@ public class YokaiStateController : MonoBehaviour
             evolutionResultPending = false;
         isSpiritEmpty = false;
         isKegareMaxVisualsActive = false;
-        ResetEnergyEmptyVisuals();
-        ResetKegareMaxVisuals();
-        ResetKegareMaxMotion();
         isKegareMaxMotionApplied = false;
         kegareMaxTargetRoot = null;
         energyEmptyTargetRoot = null;
@@ -410,8 +415,6 @@ public class YokaiStateController : MonoBehaviour
         kegareMaxImageColors.Clear();
         growthController = activeYokai.GetComponent<YokaiGrowthController>();
         dangerEffects = activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true);
-        RefreshDangerEffectOriginalColors();
-        UpdateDangerEffects();
         CacheEnergyEmptyTargets(activeYokai);
         CacheKegareMaxTargets(activeYokai);
         LogStateContext("Active");
@@ -435,10 +438,9 @@ public class YokaiStateController : MonoBehaviour
         }
 
         if (!IsKegareMax())
-            SetState(YokaiState.EvolutionReady);
+            ApplyStateFromManagers(YokaiState.EvolutionReady, forceApplyUI: true);
         // DEBUG: EvolutionReady になったことを明示してタップ可能を知らせる
         Debug.Log("[EVOLUTION] Ready. Tap the yokai to evolve.");
-        ApplyStateUI();
     }
 
     public void ExecuteEmergencyPurify()
@@ -452,7 +454,7 @@ public class YokaiStateController : MonoBehaviour
         if (kegareManager != null)
             kegareManager.ExecuteEmergencyPurify();
 
-        SetState(YokaiState.Normal);
+        ApplyStateFromManagers();
     }
 
     bool IsKegareMax()
@@ -557,6 +559,7 @@ public class YokaiStateController : MonoBehaviour
         }
 
         UpdateActionPanelButtons(isKegareMax, isEnergyEmpty);
+        UpdateEnergyEmptyVisuals(isEnergyEmpty);
         UpdateDangerEffects();
         UpdateKegareMaxVisuals(showKegareMaxVisuals);
     }
@@ -923,7 +926,7 @@ public class YokaiStateController : MonoBehaviour
 
         CaptureKegareMaxBaseTransform();
         isKegareMaxVisualsActive = true;
-        ApplyStateUI();
+        ApplyStateFromManagers(forceApplyUI: true);
         RefreshDangerEffectOriginalColors();
         AudioHook.RequestPlay(YokaiSE.SE_KEGARE_MAX_ENTER);
     }
@@ -947,7 +950,7 @@ public class YokaiStateController : MonoBehaviour
         float delay = Mathf.Clamp(kegareMaxReleaseDelay, 0.1f, 0.2f);
         yield return new WaitForSeconds(delay);
         isKegareMaxVisualsActive = false;
-        ApplyStateUI();
+        ApplyStateFromManagers(forceApplyUI: true);
         RefreshDangerEffectOriginalColors();
         AudioHook.RequestPlay(YokaiSE.SE_KEGARE_MAX_RELEASE);
         kegareMaxReleaseRoutine = null;
