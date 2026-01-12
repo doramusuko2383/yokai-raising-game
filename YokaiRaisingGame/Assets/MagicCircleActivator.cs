@@ -7,6 +7,7 @@ public class MagicCircleActivator : MonoBehaviour
     MagicCircleSwipeController controller;
     [SerializeField]
     Yokai.YokaiStateController stateController;
+    Yokai.YokaiStateController subscribedStateController;
 
     [SerializeField]
     KegareManager kegareManager;
@@ -25,20 +26,31 @@ public class MagicCircleActivator : MonoBehaviour
 
     void Awake()
     {
+        InitializeHidden();
+    }
+
+    void Start()
+    {
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     void OnDestroy()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        UnregisterStateEvents();
+    }
+
+    void OnDisable()
+    {
+        UnregisterStateEvents();
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        SetupForScene();
+        InitializeHidden();
     }
 
-    void SetupForScene()
+    void InitializeHidden()
     {
         controller = EnsureController();
         if (controller == null)
@@ -50,6 +62,7 @@ public class MagicCircleActivator : MonoBehaviour
         controller.HealRequested -= OnHealRequested;
         controller.HealRequested += OnHealRequested;
         controller.InitializeHidden();
+        RegisterStateEvents();
 #if UNITY_EDITOR
         Debug.Log("[PURIFY] MagicCircleSwipeUI を初期化しました。");
 #endif
@@ -67,27 +80,7 @@ public class MagicCircleActivator : MonoBehaviour
 
     void RequestMagicCircle(PurifyRequestType requestType)
     {
-        if (controller == null)
-        {
-            Debug.LogWarning("[PURIFY] controller が未初期化なので再セットアップします。");
-            SetupForScene();
-        }
-
-        if (controller == null)
-        {
-            Debug.LogWarning("[PURIFY] MagicCircleSwipeUI が見つからないため表示できません。");
-            return;
-        }
-
-        if (!CanShowMagicCircle())
-        {
-            Debug.Log("[PURIFY] 魔法陣の表示条件を満たしていないため表示をスキップします。");
-            return;
-        }
-
         pendingRequest = requestType;
-        controller.gameObject.SetActive(true);
-        controller.Show();
         MentorMessageService.ShowHint(OnmyojiHintType.OkIYomeGuide);
 #if UNITY_EDITOR
         Debug.Log($"[PURIFY] Request received: type={requestType}");
@@ -179,21 +172,58 @@ public class MagicCircleActivator : MonoBehaviour
         }
     }
 
-    bool CanShowMagicCircle()
+    void RegisterStateEvents()
     {
         if (stateController == null)
             stateController = CurrentYokaiContext.ResolveStateController();
 
         if (stateController == null)
+            return;
+
+        if (subscribedStateController == stateController)
+            return;
+
+        if (subscribedStateController != null)
+            subscribedStateController.StateChanged -= OnStateChanged;
+
+        subscribedStateController = stateController;
+        subscribedStateController.StateChanged += OnStateChanged;
+    }
+
+    void UnregisterStateEvents()
+    {
+        if (subscribedStateController == null)
+            return;
+
+        subscribedStateController.StateChanged -= OnStateChanged;
+        subscribedStateController = null;
+    }
+
+    void OnStateChanged(YokaiState previousState, YokaiState newState)
+    {
+        if (controller == null)
+            controller = EnsureController();
+
+        if (controller == null)
         {
-            Debug.LogWarning("[PURIFY] StateController が見つからないため表示条件を判定できません。");
-            return false;
+            Debug.LogWarning("[PURIFY] MagicCircleSwipeUI が見つからないため表示できません。");
+            return;
         }
 
-        var energyManager = FindObjectOfType<EnergyManager>();
-        if (energyManager != null && !energyManager.HasEverHadEnergy)
-            return false;
+        if (newState == YokaiState.Purifying)
+        {
+            controller.gameObject.SetActive(true);
+            controller.Show();
+        }
+        else
+        {
+            controller.Hide();
+            pendingRequest = PurifyRequestType.None;
+        }
+    }
 
-        return stateController.currentState == YokaiState.Purifying;
+    void OnEnable()
+    {
+        InitializeHidden();
     }
 }
