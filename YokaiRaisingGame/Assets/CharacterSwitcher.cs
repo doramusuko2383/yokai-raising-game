@@ -11,7 +11,22 @@ public class CharacterSwitcher : MonoBehaviour
 
     void Start()
     {
-        SwitchTo(fireBallPrefab);
+        if (fireBallPrefab != null && FindChildByName(fireBallPrefab.name) != null)
+        {
+            SwitchTo(fireBallPrefab);
+            return;
+        }
+
+        if (yokaiChildPrefab != null && FindChildByName(yokaiChildPrefab.name) != null)
+        {
+            SwitchTo(yokaiChildPrefab);
+            return;
+        }
+
+        if (yokaiAdultPrefab != null && FindChildByName(yokaiAdultPrefab.name) != null)
+        {
+            SwitchTo(yokaiAdultPrefab);
+        }
     }
 
     public void ShowFireBall()
@@ -49,6 +64,12 @@ public class CharacterSwitcher : MonoBehaviour
         }
         else
         {
+            if (prefab == fireBallPrefab)
+            {
+                Debug.LogWarning("[STATE] FireBall prefab is not present under CharacterSwitcher.");
+                return;
+            }
+
             currentInstance = Instantiate(prefab, transform);
             currentInstance.name = prefab.name;
         }
