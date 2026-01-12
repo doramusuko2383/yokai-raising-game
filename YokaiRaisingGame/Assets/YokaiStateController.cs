@@ -11,7 +11,6 @@ public class YokaiStateController : MonoBehaviour
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
     public bool isPurifying;
-    public bool isSpiritEmpty { get; private set; }
     public event System.Action<YokaiState, YokaiState> StateChanged;
 
     [Header("Dependencies")]
@@ -89,6 +88,7 @@ public class YokaiStateController : MonoBehaviour
     YokaiEvolutionStage evolutionResultStage;
     GameObject energyEmptyTargetRoot;
     GameObject kegareMaxTargetRoot;
+    bool lastEnergyEmpty;
     readonly Dictionary<SpriteRenderer, Color> energyEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
     readonly Dictionary<Image, Color> energyEmptyImageColors = new Dictionary<Image, Color>();
     readonly Dictionary<SpriteRenderer, Color> kegareMaxSpriteColors = new Dictionary<SpriteRenderer, Color>();
@@ -127,7 +127,6 @@ public class YokaiStateController : MonoBehaviour
     {
         isPurifying = false;
         currentState = YokaiState.Normal;
-        isSpiritEmpty = false;
     }
 
     void OnDisable()
@@ -138,10 +137,10 @@ public class YokaiStateController : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(DelayedInitialState());
+        StartCoroutine(InitialSync());
     }
 
-    IEnumerator DelayedInitialState()
+    IEnumerator InitialSync()
     {
         yield return null;
         ResolveDependencies();
@@ -253,7 +252,10 @@ public class YokaiStateController : MonoBehaviour
 
     void OnEnergyChanged(float current, float max)
     {
-        isSpiritEmpty = IsEnergyEmpty(current);
+        if (!hasStarted)
+            return;
+
+        ApplyStateFromManagers();
     }
 
     void ApplyStateFromManagers(YokaiState? requestedState = null, bool forceApplyUI = false)
@@ -261,8 +263,7 @@ public class YokaiStateController : MonoBehaviour
         if (energyManager == null || kegareManager == null)
             return;
 
-        bool wasSpiritEmpty = isSpiritEmpty;
-        isSpiritEmpty = IsEnergyEmpty(energyManager.energy);
+        bool isEnergyEmpty = IsEnergyEmpty();
 
         YokaiState nextState = currentState;
         if (requestedState.HasValue)
@@ -277,13 +278,13 @@ public class YokaiStateController : MonoBehaviour
         {
             nextState = YokaiState.Purifying;
         }
-        else if (growthController != null && growthController.isEvolutionReady && !IsEvolutionBlocked(out _))
-        {
-            nextState = YokaiState.EvolutionReady;
-        }
         else if (kegareManager.kegare >= kegareManager.maxKegare)
         {
             nextState = YokaiState.KegareMax;
+        }
+        else if (growthController != null && growthController.isEvolutionReady && !IsEvolutionBlocked(out _))
+        {
+            nextState = YokaiState.EvolutionReady;
         }
         else
         {
@@ -291,8 +292,10 @@ public class YokaiStateController : MonoBehaviour
         }
 
         bool stateChanged = SetState(nextState);
-        if (stateChanged || forceApplyUI || wasSpiritEmpty != isSpiritEmpty)
+        if (stateChanged || forceApplyUI || isEnergyEmpty != lastEnergyEmpty)
             ApplyStateUI();
+
+        lastEnergyEmpty = isEnergyEmpty;
     }
 
     bool SetState(YokaiState newState)
@@ -322,22 +325,6 @@ public class YokaiStateController : MonoBehaviour
         HandleStateSeTransitions(previousState, currentState);
         LogStateContext("StateChange");
         return true;
-    }
-
-    public void EnterSpiritEmptyState()
-    {
-        if (isSpiritEmpty)
-            return;
-
-        isSpiritEmpty = true;
-    }
-
-    public void ExitSpiritEmptyState()
-    {
-        if (!isSpiritEmpty)
-            return;
-
-        isSpiritEmpty = false;
     }
 
     public void BeginPurifying()
@@ -420,7 +407,6 @@ public class YokaiStateController : MonoBehaviour
 
         if (currentState != YokaiState.Evolving)
             evolutionResultPending = false;
-        isSpiritEmpty = false;
         isKegareMaxVisualsActive = false;
         isKegareMaxMotionApplied = false;
         kegareMaxTargetRoot = null;
@@ -498,24 +484,15 @@ public class YokaiStateController : MonoBehaviour
         return kegareManager != null && kegareManager.isKegareMax;
     }
 
-    bool IsEnergyZero()
+    public bool IsEnergyEmpty()
     {
         if (energyManager == null)
             energyManager = FindObjectOfType<EnergyManager>();
 
-        RegisterEnergyEvents();
-        return energyManager != null && energyManager.energy <= 0f && energyManager.HasEverHadEnergy;
-    }
-
-    bool IsEnergyEmpty(float currentEnergy)
-    {
         if (energyManager == null)
-            energyManager = FindObjectOfType<EnergyManager>();
-
-        if (energyManager == null || !energyManager.HasEverHadEnergy)
             return false;
 
-        return currentEnergy <= 0f;
+        return energyManager.HasEverHadEnergy && energyManager.energy <= 0f;
     }
 
     bool HasReachedEvolutionScale()
@@ -530,14 +507,14 @@ public class YokaiStateController : MonoBehaviour
     bool IsEvolutionBlocked(out string reason)
     {
         bool isKegareMax = IsKegareMax();
-        bool isEnergyZero = IsEnergyZero();
-        if (!isKegareMax && !isEnergyZero)
+        bool isEnergyEmpty = IsEnergyEmpty();
+        if (!isKegareMax && !isEnergyEmpty)
         {
             reason = string.Empty;
             return false;
         }
 
-        if (isKegareMax && isEnergyZero)
+        if (isKegareMax && isEnergyEmpty)
             reason = "穢れMAX / 霊力0";
         else if (isKegareMax)
             reason = "穢れMAX";
@@ -577,7 +554,7 @@ public class YokaiStateController : MonoBehaviour
 
         bool isKegareMax = currentState == YokaiState.KegareMax;
         bool showKegareMaxVisuals = isKegareMaxVisualsActive;
-        bool isEnergyEmpty = isSpiritEmpty;
+        bool isEnergyEmpty = IsEnergyEmpty();
         // 不具合②: 霊力0の時は通常だんご/おきよめパネルを隠し、特別だんごのみを表示する。
         bool showActionPanel =
             currentState == YokaiState.Normal

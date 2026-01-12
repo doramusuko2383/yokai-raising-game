@@ -173,14 +173,14 @@ public class KegareManager : MonoBehaviour
             stateController = CurrentYokaiContext.ResolveStateController();
 
         bool isPurifying = stateController != null && stateController.isPurifying;
-        bool isSpiritEmpty = stateController != null && stateController.isSpiritEmpty;
-        if (!isPurifying && !isSpiritEmpty)
+        bool isEnergyEmpty = stateController != null && stateController.IsEnergyEmpty();
+        if (!isPurifying && !isEnergyEmpty)
         {
             reason = string.Empty;
             return false;
         }
 
-        if (isPurifying && isSpiritEmpty)
+        if (isPurifying && isEnergyEmpty)
             reason = "魔法陣 / 霊力0";
         else if (isPurifying)
             reason = "魔法陣";

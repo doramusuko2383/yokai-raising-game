@@ -127,12 +127,12 @@ public class EnergyManager : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        if (stateController != null && (stateController.isPurifying || stateController.isSpiritEmpty))
+        if (stateController != null && (stateController.isPurifying || stateController.IsEnergyEmpty()))
         {
             return;
         }
 
-        if (!allowWhenCritical && stateController != null && stateController.isSpiritEmpty)
+        if (!allowWhenCritical && stateController != null && stateController.IsEnergyEmpty())
         {
             return;
         }
@@ -164,8 +164,6 @@ public class EnergyManager : MonoBehaviour
         isWeak = true;
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
-        if (stateController != null)
-            stateController.EnterSpiritEmptyState();
         WeakStateChanged?.Invoke(true);
         AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
         MentorMessageService.ShowHint(OnmyojiHintType.EnergyZero);
@@ -181,8 +179,6 @@ public class EnergyManager : MonoBehaviour
         isWeak = false;
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
-        if (stateController != null)
-            stateController.ExitSpiritEmptyState();
         WeakStateChanged?.Invoke(false);
         if (wasWeak)
         {
@@ -202,7 +198,7 @@ public class EnergyManager : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        if (stateController != null && !stateController.isSpiritEmpty)
+        if (stateController != null && !stateController.IsEnergyEmpty())
         {
             return;
         }

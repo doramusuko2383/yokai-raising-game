@@ -143,7 +143,7 @@ public class YokaiGrowthController : MonoBehaviour
             return true;
 
         bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
-        if (stateController != null && stateController.isSpiritEmpty)
+        if (stateController != null && stateController.IsEnergyEmpty())
             isEnergyZero = true;
 
         return isEnergyZero;
