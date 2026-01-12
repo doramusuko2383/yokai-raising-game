@@ -122,6 +122,13 @@ public class YokaiStateController : MonoBehaviour
         ResolveDependencies();
     }
 
+    void Awake()
+    {
+        isPurifying = false;
+        currentState = YokaiState.Normal;
+        isSpiritEmpty = false;
+    }
+
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -212,7 +219,7 @@ public class YokaiStateController : MonoBehaviour
 
         if (registeredKegareManager != null)
         {
-            registeredKegareManager.EmergencyPurifyRequested -= ExecuteEmergencyPurify;
+            registeredKegareManager.EmergencyPurifyRequested -= ExecuteEmergencyPurifyFromButton;
             registeredKegareManager.KegareChanged -= OnKegareChanged;
         }
 
@@ -220,7 +227,7 @@ public class YokaiStateController : MonoBehaviour
 
         if (registeredKegareManager != null)
         {
-            registeredKegareManager.EmergencyPurifyRequested += ExecuteEmergencyPurify;
+            registeredKegareManager.EmergencyPurifyRequested += ExecuteEmergencyPurifyFromButton;
             registeredKegareManager.KegareChanged += OnKegareChanged;
         }
     }
@@ -452,11 +459,27 @@ public class YokaiStateController : MonoBehaviour
 
     public void ExecuteEmergencyPurify()
     {
-        if (currentState != YokaiState.KegareMax)
-            return;
+        ExecuteEmergencyPurifyInternal(isExplicitRequest: false);
+    }
 
+    public void ExecuteEmergencyPurifyFromButton()
+    {
+        ExecuteEmergencyPurifyInternal(isExplicitRequest: true);
+    }
+
+    void ExecuteEmergencyPurifyInternal(bool isExplicitRequest)
+    {
         if (kegareManager == null)
             kegareManager = CurrentYokaiContext.ResolveKegareManager();
+
+        if (!isExplicitRequest)
+        {
+            if (kegareManager == null || kegareManager.kegare < kegareManager.maxKegare)
+                return;
+
+            if (currentState != YokaiState.KegareMax)
+                return;
+        }
 
         if (kegareManager != null)
             kegareManager.ExecuteEmergencyPurify();

@@ -48,7 +48,7 @@ public class PurifyButtonHandler : MonoBehaviour
 
             if (stateController != null)
             {
-                stateController.ExecuteEmergencyPurify();
+                stateController.ExecuteEmergencyPurifyFromButton();
                 TutorialManager.NotifyPurifyUsed();
             }
             else
