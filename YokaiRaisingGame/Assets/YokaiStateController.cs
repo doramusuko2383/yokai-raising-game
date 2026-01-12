@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -129,6 +130,12 @@ public class YokaiStateController : MonoBehaviour
 
     void Start()
     {
+        StartCoroutine(DelayedInitialState());
+    }
+
+    IEnumerator DelayedInitialState()
+    {
+        yield return null;
         ResolveDependencies();
         ApplyStateFromManagers();
         hasStarted = true;
