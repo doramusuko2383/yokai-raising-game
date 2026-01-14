@@ -88,7 +88,10 @@ public class YokaiStateController : MonoBehaviour
     YokaiEvolutionStage evolutionResultStage;
     GameObject energyEmptyTargetRoot;
     GameObject kegareMaxTargetRoot;
+    YokaiState lastAppliedState;
     bool lastEnergyEmpty;
+    bool lastKegareMax;
+    bool hasStateCache;
     readonly Dictionary<SpriteRenderer, Color> energyEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
     readonly Dictionary<Image, Color> energyEmptyImageColors = new Dictionary<Image, Color>();
     readonly Dictionary<SpriteRenderer, Color> kegareMaxSpriteColors = new Dictionary<SpriteRenderer, Color>();
@@ -262,6 +265,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         bool isEnergyEmpty = IsEnergyEmpty();
+        bool isKegareMax = IsKegareMax();
 
         YokaiState nextState = currentState;
         if (requestedState.HasValue)
@@ -276,7 +280,7 @@ public class YokaiStateController : MonoBehaviour
         {
             nextState = YokaiState.Purifying;
         }
-        else if (kegareManager.kegare >= kegareManager.maxKegare)
+        else if (isKegareMax)
         {
             nextState = YokaiState.KegareMax;
         }
@@ -289,11 +293,25 @@ public class YokaiStateController : MonoBehaviour
             nextState = YokaiState.Normal;
         }
 
+        if (hasStateCache &&
+            !forceApplyUI &&
+            nextState == lastAppliedState &&
+            isEnergyEmpty == lastEnergyEmpty &&
+            isKegareMax == lastKegareMax)
+        {
+            return;
+        }
+
         bool stateChanged = SetState(nextState);
-        if (stateChanged || forceApplyUI || isEnergyEmpty != lastEnergyEmpty)
+        bool energyChanged = isEnergyEmpty != lastEnergyEmpty;
+        bool kegareMaxChanged = isKegareMax != lastKegareMax;
+        if (stateChanged || forceApplyUI || energyChanged || kegareMaxChanged)
             ApplyStateUI();
 
+        lastAppliedState = nextState;
         lastEnergyEmpty = isEnergyEmpty;
+        lastKegareMax = isKegareMax;
+        hasStateCache = true;
     }
 
     bool SetState(YokaiState newState)
@@ -310,15 +328,6 @@ public class YokaiStateController : MonoBehaviour
         if (currentState == YokaiState.Purifying)
             purifyTimer = 0f;
         StateChanged?.Invoke(previousState, currentState);
-
-        if (enableStateLogs)
-        {
-            if (currentState == YokaiState.KegareMax && previousState != YokaiState.KegareMax)
-                Debug.Log("[STATE] 穢れMAX ON");
-            else if (previousState == YokaiState.KegareMax && currentState != YokaiState.KegareMax)
-                Debug.Log("[STATE] 穢れMAX OFF");
-
-        }
 
         HandleStateSeTransitions(previousState, currentState);
         LogStateContext("StateChange");
@@ -628,7 +637,7 @@ public bool IsEnergyEmpty()
             }
             else
             {
-                shouldShow = !isEmergency;
+                shouldShow = !isEmergency && !isSpecialDango;
             }
 
             ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
@@ -987,6 +996,8 @@ public bool IsEnergyEmpty()
     void LogStateContext(string label)
     {
         if (!enableStateLogs)
+            return;
+        if (label != "StateChange")
             return;
 
         string yokaiName = CurrentYokaiContext.CurrentName();
