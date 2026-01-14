@@ -270,6 +270,7 @@ MonoBehaviour:
   weakScale: 0.8
   weakAlpha: 0.4
   weakBrightness: 0.6
+  energyText: {fileID: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -1092,6 +1093,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4729676478636256463, guid: 366e9576cd92a104e916717384432116, type: 3}
   m_PrefabInstance: {fileID: 664355983866959897}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1469008923 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
+  m_PrefabInstance: {fileID: 664355983866959897}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 243570841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1478606781
 GameObject:
   m_ObjectHideFlags: 0
@@ -1466,7 +1478,7 @@ MonoBehaviour:
   enablePurifyTick: 0
   energyEmptyAlpha: 0.45
   enableStateLogs: 0
-  specialDangoButton: {fileID: 0}
+  specialDangoButton: {fileID: 1469008923}
 --- !u!1 &1796825459 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5481682468745329004, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
@@ -2023,6 +2035,10 @@ PrefabInstance:
     - target: {fileID: 656228942389283711, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_Name
       value: Btn_AdWatch
+      objectReference: {fileID: 0}
+    - target: {fileID: 656228942389283711, guid: 366e9576cd92a104e916717384432116, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4729676478636256463, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_Pivot.x

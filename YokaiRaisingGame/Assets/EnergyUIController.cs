@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class EnergyUIController : MonoBehaviour
 {
@@ -27,6 +28,9 @@ public class EnergyUIController : MonoBehaviour
 
     [SerializeField]
     float weakBrightness = 0.6f;
+
+    [SerializeField]
+    TMP_Text energyText;
 
     Vector3 originalScale;
     Color originalColor;
@@ -60,6 +64,9 @@ public class EnergyUIController : MonoBehaviour
     {
         if (energySlider != null)
             energySlider.value = max > 0f ? current / max : 0f;
+
+        if (energyText != null)
+            energyText.text = $"Energy: {current}/{max}";
     }
 
     void OnWeakStateChanged(bool isWeak)
