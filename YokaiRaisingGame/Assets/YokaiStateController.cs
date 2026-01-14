@@ -599,9 +599,7 @@ public bool IsEnergyEmpty()
 
     void UpdateActionPanelButtons(bool isKegareMax, bool isEnergyEmpty)
     {
-            Debug.Log($"[STATE][ActionPanel] specialDangoButton={(specialDangoButton == null ? "NULL" : specialDangoButton.name)}");
-
-            if (actionPanel == null)
+        if (actionPanel == null)
             return;
 
         var buttons = actionPanel.GetComponentsInChildren<Button>(true);
@@ -620,13 +618,13 @@ public bool IsEnergyEmpty()
 
             bool shouldShow;
 
-            if (isKegareMax)
-            {
-                shouldShow = isEmergency;
-            }
-            else if (isEnergyEmpty)
+            if (isEnergyEmpty)
             {
                 shouldShow = isSpecialDango;
+            }
+            else if (isKegareMax)
+            {
+                shouldShow = isEmergency;
             }
             else
             {
