@@ -142,9 +142,9 @@ public class YokaiGrowthController : MonoBehaviour
         if (stateController != null && stateController.isPurifying)
             return true;
 
-        bool isEnergyZero = energyManager != null && energyManager.energy <= 0f;
-        if (stateController != null && stateController.IsEnergyEmpty())
-            isEnergyZero = true;
+        bool isEnergyZero = stateController != null && stateController.IsEnergyEmpty();
+        if (!isEnergyZero && energyManager != null)
+            isEnergyZero = energyManager.energy <= 0f;
 
         return isEnergyZero;
     }
@@ -156,6 +156,10 @@ public class YokaiGrowthController : MonoBehaviour
         if (hasEvolved)
         {
             reason = "evolution-ready";
+        }
+        else if (stateController != null && stateController.IsEnergyEmpty())
+        {
+            reason = "energy-empty";
         }
         else if (energyManager != null && energyManager.energy <= 0f)
         {

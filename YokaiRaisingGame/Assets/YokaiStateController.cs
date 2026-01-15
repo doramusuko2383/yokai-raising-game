@@ -264,11 +264,16 @@ public class YokaiStateController : MonoBehaviour
         if (energyManager == null || kegareManager == null)
             return;
 
-        bool isEnergyEmpty = IsEnergyEmpty();
+        bool isEnergyDepleted = IsEnergyDepleted();
         bool isKegareMax = IsKegareMax();
+        bool isEnergyEmptyState;
 
         YokaiState nextState = currentState;
-        if (requestedState.HasValue)
+        if (isEnergyDepleted)
+        {
+            nextState = YokaiState.EnergyEmpty;
+        }
+        else if (requestedState.HasValue)
         {
             nextState = requestedState.Value;
         }
@@ -293,23 +298,24 @@ public class YokaiStateController : MonoBehaviour
             nextState = YokaiState.Normal;
         }
 
+        isEnergyEmptyState = nextState == YokaiState.EnergyEmpty;
         if (hasStateCache &&
             !forceApplyUI &&
             nextState == lastAppliedState &&
-            isEnergyEmpty == lastEnergyEmpty &&
+            isEnergyEmptyState == lastEnergyEmpty &&
             isKegareMax == lastKegareMax)
         {
             return;
         }
 
         bool stateChanged = SetState(nextState);
-        bool energyChanged = isEnergyEmpty != lastEnergyEmpty;
+        bool energyChanged = isEnergyEmptyState != lastEnergyEmpty;
         bool kegareMaxChanged = isKegareMax != lastKegareMax;
         if (stateChanged || forceApplyUI || energyChanged || kegareMaxChanged)
             ApplyStateUI();
 
         lastAppliedState = nextState;
-        lastEnergyEmpty = isEnergyEmpty;
+        lastEnergyEmpty = isEnergyEmptyState;
         lastKegareMax = isKegareMax;
         hasStateCache = true;
     }
@@ -491,16 +497,21 @@ public class YokaiStateController : MonoBehaviour
         return kegareManager != null && kegareManager.isKegareMax;
     }
 
-public bool IsEnergyEmpty()
-{
-    if (energyManager == null)
-        energyManager = FindObjectOfType<EnergyManager>();
+    public bool IsEnergyEmpty()
+    {
+        return currentState == YokaiState.EnergyEmpty;
+    }
 
-    if (energyManager == null)
-        return false;
+    bool IsEnergyDepleted()
+    {
+        if (energyManager == null)
+            energyManager = FindObjectOfType<EnergyManager>();
 
-    return energyManager.energy <= 0f;
-}
+        if (energyManager == null)
+            return false;
+
+        return energyManager.energy <= 0f;
+    }
 
     bool HasReachedEvolutionScale()
     {
@@ -514,7 +525,7 @@ public bool IsEnergyEmpty()
     bool IsEvolutionBlocked(out string reason)
     {
         bool isKegareMax = IsKegareMax();
-        bool isEnergyEmpty = IsEnergyEmpty();
+        bool isEnergyEmpty = IsEnergyDepleted();
         if (!isKegareMax && !isEnergyEmpty)
         {
             reason = string.Empty;
@@ -561,7 +572,7 @@ public bool IsEnergyEmpty()
 
         bool isKegareMax = currentState == YokaiState.KegareMax;
         bool showKegareMaxVisuals = isKegareMaxVisualsActive;
-        bool isEnergyEmpty = IsEnergyEmpty();
+        bool isEnergyEmpty = currentState == YokaiState.EnergyEmpty;
         // 不具合②: 霊力0の時は通常だんご/おきよめパネルを隠し、特別だんごのみを表示する。
         bool showActionPanel =
             currentState == YokaiState.Normal

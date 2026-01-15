@@ -8,6 +8,9 @@ public class EnergyUIController : MonoBehaviour
     EnergyManager energyManager;
 
     [SerializeField]
+    Yokai.YokaiStateController stateController;
+
+    [SerializeField]
     Slider energySlider;
 
     [SerializeField]
@@ -40,6 +43,9 @@ public class EnergyUIController : MonoBehaviour
     {
         if (energyManager == null)
             energyManager = FindObjectOfType<EnergyManager>();
+
+        if (stateController == null)
+            stateController = FindObjectOfType<Yokai.YokaiStateController>();
 
         if (energyManager != null)
         {
@@ -86,7 +92,10 @@ public class EnergyUIController : MonoBehaviour
             return;
 
         OnEnergyChanged(energyManager.energy, energyManager.maxEnergy);
-        OnWeakStateChanged(energyManager.energy <= 0f);
+        bool isEnergyEmpty = stateController != null
+            ? stateController.IsEnergyEmpty()
+            : energyManager.energy <= 0f;
+        OnWeakStateChanged(isEnergyEmpty);
     }
 
     void CacheOriginalVisuals()
