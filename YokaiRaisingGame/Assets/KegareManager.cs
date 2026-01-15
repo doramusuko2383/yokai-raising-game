@@ -45,7 +45,6 @@ public class KegareManager : MonoBehaviour
             kegareChanged += value;
             if (initialized)
             {
-                Debug.Log($"[PURIFY] KegareChanged invoked. reason=EventSubscribe kegare={kegare:0.##}/{maxKegare:0.##}");
                 value?.Invoke(kegare, maxKegare);
             }
         }
@@ -59,7 +58,6 @@ public class KegareManager : MonoBehaviour
 
     void OnEnable()
     {
-        Debug.Log($"[PURIFY][OnEnable] kegare={kegare:0.##} maxKegare={maxKegare:0.##}");
         CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
     }
 
@@ -70,7 +68,6 @@ public class KegareManager : MonoBehaviour
 
     void Awake()
     {
-        Debug.Log($"[PURIFY][Awake] kegare={kegare:0.##} maxKegare={maxKegare:0.##}");
         EnsureDefaults();
         if (worldConfig == null)
         {
@@ -87,7 +84,6 @@ public class KegareManager : MonoBehaviour
 
     void Start()
     {
-        Debug.Log($"[PURIFY][Start] kegare={kegare:0.##} maxKegare={maxKegare:0.##}");
         InitializeIfNeeded("Start");
     }
 
@@ -146,7 +142,6 @@ public class KegareManager : MonoBehaviour
         kegare = Mathf.Clamp(kegare - purifyAmount, 0f, maxKegare);
         SyncKegareMaxState(wasKegareMax, requestRelease: true);
 
-        Debug.Log($"[PURIFY] {logContext} amount={purifyAmount:0.##} kegare={kegare:0.##}/{maxKegare:0.##}");
         NotifyKegareChanged("ApplyPurifyInternal");
     }
 
@@ -158,11 +153,6 @@ public class KegareManager : MonoBehaviour
 
         if (stateController != null && stateController.currentState != YokaiState.KegareMax)
             return;
-
-        if (worldConfig != null)
-        {
-            Debug.Log($"[PURIFY] {worldConfig.recoveredMessage}");
-        }
 
         EmergencyPurifyRequested?.Invoke();
     }
@@ -240,6 +230,7 @@ public class KegareManager : MonoBehaviour
         if (stateController != null)
             stateController.EnterKegareMax();
 
+        Debug.Log("[STATE] StateChange: Normal -> KegareMax");
         MentorMessageService.ShowHint(OnmyojiHintType.KegareMax);
     }
 
@@ -251,13 +242,13 @@ public class KegareManager : MonoBehaviour
         if (stateController != null)
             stateController.RequestReleaseKegareMax();
 
+        Debug.Log("[STATE] StateChange: KegareMax -> Normal");
         MentorMessageService.ShowHint(OnmyojiHintType.KegareRecovered);
     }
 
     void NotifyKegareChanged(string reason)
     {
         UpdateDangerState();
-        Debug.Log($"[PURIFY] KegareChanged invoked. reason={reason} kegare={kegare:0.##}/{maxKegare:0.##}");
         kegareChanged?.Invoke(kegare, maxKegare);
     }
 
@@ -267,7 +258,6 @@ public class KegareManager : MonoBehaviour
             return;
 
         EnsureDefaults();
-        LogKegareInitialized(reason);
         BindCurrentYokai(CurrentYokaiContext.Current);
         SyncKegareMaxState(isKegareMax, requestRelease: false);
         CacheDangerState();
@@ -299,11 +289,6 @@ public class KegareManager : MonoBehaviour
 
         kegare = Mathf.Clamp(kegare, 0f, maxKegare);
         isKegareMax = kegare >= maxKegare;
-    }
-
-    void LogKegareInitialized(string context)
-    {
-        Debug.Log($"[PURIFY] Initialized ({context}) kegare={kegare:0.##}/{maxKegare:0.##}");
     }
 
     void CacheDangerState()

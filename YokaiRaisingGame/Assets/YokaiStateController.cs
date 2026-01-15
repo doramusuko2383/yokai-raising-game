@@ -209,10 +209,7 @@ public class YokaiStateController : MonoBehaviour
             dangerEffects = FindObjectsOfType<YokaiDangerEffect>(true);
 
         if (!hasLoggedDependencies)
-        {
-            LogDependencyState("ResolveDependencies");
             hasLoggedDependencies = true;
-        }
     }
 
     void RegisterKegareEvents()
@@ -336,7 +333,7 @@ public class YokaiStateController : MonoBehaviour
         StateChanged?.Invoke(previousState, currentState);
 
         HandleStateSeTransitions(previousState, currentState);
-        LogStateContext("StateChange");
+        LogStateChange(previousState, currentState);
         return true;
     }
 
@@ -405,7 +402,6 @@ public class YokaiStateController : MonoBehaviour
         }
 
         SetActiveYokai(activeYokai);
-        LogStateContext("Bind");
     }
 
     public void SetActiveYokai(GameObject activeYokai)
@@ -432,7 +428,6 @@ public class YokaiStateController : MonoBehaviour
         dangerEffects = activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true);
         CacheEnergyEmptyTargets(activeYokai);
         CacheKegareMaxTargets(activeYokai);
-        LogStateContext("Active");
     }
 
     public void SetEvolutionReady()
@@ -442,20 +437,16 @@ public class YokaiStateController : MonoBehaviour
 
         if (IsEvolutionBlocked(out string reason))
         {
-            Debug.Log($"[EVOLUTION] Ready blocked. reason={reason}");
             return;
         }
 
         if (!HasReachedEvolutionScale())
         {
-            Debug.Log("[EVOLUTION] Ready blocked. reason=Scale");
             return;
         }
 
         if (!IsKegareMax())
             ApplyStateFromManagers(YokaiState.EvolutionReady, forceApplyUI: true);
-        // DEBUG: EvolutionReady になったことを明示してタップ可能を知らせる
-        Debug.Log("[EVOLUTION] Ready. Tap the yokai to evolve.");
     }
 
     public void ExecuteEmergencyPurify()
@@ -562,7 +553,6 @@ public class YokaiStateController : MonoBehaviour
 
         purifyTimer = 0f;
         kegareManager.AddKegare(-purifyTickAmount);
-        LogStateContext("PurifyTick");
     }
 
     void ApplyStateUI()
@@ -1004,32 +994,11 @@ public class YokaiStateController : MonoBehaviour
         kegareMaxBaseScale = kegareMaxTargetRoot.transform.localScale;
     }
 
-    void LogStateContext(string label)
+    void LogStateChange(YokaiState previousState, YokaiState nextState)
     {
         if (!enableStateLogs)
             return;
-        if (label != "StateChange")
-            return;
-
-        string yokaiName = CurrentYokaiContext.CurrentName();
-        float currentKegare = kegareManager != null ? kegareManager.kegare : 0f;
-        float maxKegare = kegareManager != null ? kegareManager.maxKegare : 0f;
-        float currentEnergy = energyManager != null ? energyManager.energy : 0f;
-        float maxEnergy = energyManager != null ? energyManager.maxEnergy : 0f;
-#if UNITY_EDITOR
-        Debug.Log($"[STATE][{label}] yokai={yokaiName} state={currentState} kegare={currentKegare:0.##}/{maxKegare:0.##} energy={currentEnergy:0.##}/{maxEnergy:0.##}");
-#endif
-    }
-
-    void LogDependencyState(string context)
-    {
-        string energyStatus = energyManager == null
-            ? "null"
-            : $"{energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}";
-        string kegareStatus = kegareManager == null
-            ? "null"
-            : $"{kegareManager.kegare:0.##}/{kegareManager.maxKegare:0.##}";
-        Debug.Log($"[STATE][{context}] energyManager={(energyManager == null ? "null" : "ok")} energy={energyStatus} kegareManager={(kegareManager == null ? "null" : "ok")} kegare={kegareStatus}");
+        Debug.Log($"[STATE] StateChange: {previousState} -> {nextState}");
     }
     }
 }
