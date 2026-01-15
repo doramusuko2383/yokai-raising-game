@@ -264,7 +264,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   energyManager: {fileID: 515532832}
   energySlider: {fileID: 20035157}
-  adWatchButton: {fileID: 0}
+  adWatchButton: {fileID: 243570841}
   weakMessage: {fileID: 0}
   yokaiSprite: {fileID: 0}
   weakScale: 0.8
@@ -588,7 +588,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   kegareManager: {fileID: 604884281}
   kegareSlider: {fileID: 676147554}
-  stateController: {fileID: 0}
+  stateController: {fileID: 1786705811}
   pulseScale: 1.08
   pulseSpeed: 3.2
   pulseAlpha: 0.85

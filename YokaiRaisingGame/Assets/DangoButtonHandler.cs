@@ -19,7 +19,6 @@ public class DangoButtonHandler : MonoBehaviour
             stateController = FindObjectOfType<YokaiStateController>();
         string stateName = stateController != null ? stateController.currentState.ToString() : "null";
         bool energyEmpty = stateController != null && stateController.IsEnergyEmpty();
-        Debug.Log($"[DANGO] click yokai={CurrentYokaiContext.CurrentName()} state={stateName} energyEmpty={energyEmpty}");
         if (IsActionBlocked())
             return;
 
@@ -28,7 +27,6 @@ public class DangoButtonHandler : MonoBehaviour
 
         if (energyManager != null)
         {
-            Debug.Log("[DANGO] AddEnergy called.");
             energyManager.AddEnergy(dangoAmount);
             Debug.Log($"[ENERGY] Dango +{dangoAmount:0.##} energy={energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}");
             TutorialManager.NotifyDangoUsed();

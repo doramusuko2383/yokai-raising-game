@@ -998,7 +998,25 @@ public class YokaiStateController : MonoBehaviour
     {
         if (!enableStateLogs)
             return;
-        Debug.Log($"[STATE] StateChange: {previousState} -> {nextState}");
+
+        string yokaiName = CurrentYokaiContext.CurrentName();
+        float currentKegare = kegareManager != null ? kegareManager.kegare : 0f;
+        float maxKegare = kegareManager != null ? kegareManager.maxKegare : 0f;
+        float currentEnergy = energyManager != null ? energyManager.energy : 0f;
+        float maxEnergy = energyManager != null ? energyManager.maxEnergy : 0f;
+#if UNITY_EDITOR
+#endif
+    }
+
+    void LogDependencyState(string context)
+    {
+        string energyStatus = energyManager == null
+            ? "null"
+            : $"{energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}";
+        string kegareStatus = kegareManager == null
+            ? "null"
+            : $"{kegareManager.kegare:0.##}/{kegareManager.maxKegare:0.##}";
+        Debug.Log($"[STATE][{context}] energyManager={(energyManager == null ? "null" : "ok")} energy={energyStatus} kegareManager={(kegareManager == null ? "null" : "ok")} kegare={kegareStatus}");
     }
     }
 }

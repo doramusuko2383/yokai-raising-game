@@ -62,7 +62,6 @@ public class EnergyManager : MonoBehaviour
 
             if (worldConfig == null)
             {
-                Debug.LogWarning("[ENERGY] WorldConfig が見つかりません: Resources/WorldConfig_Yokai");
             }
         }
 
@@ -187,7 +186,6 @@ public class EnergyManager : MonoBehaviour
         }
         if (wasWeak)
         {
-            Debug.Log("[STATE] StateChange: EnergyEmpty -> Normal");
         }
     }
 
@@ -265,6 +263,10 @@ public class EnergyManager : MonoBehaviour
             energy = maxEnergy;
 
         energy = Mathf.Clamp(energy, 0f, maxEnergy);
+    }
+
+    void LogEnergyInitialized(string context)
+    {
     }
 
 }

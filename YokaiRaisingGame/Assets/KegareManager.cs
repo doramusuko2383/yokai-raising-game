@@ -230,7 +230,6 @@ public class KegareManager : MonoBehaviour
         if (stateController != null)
             stateController.EnterKegareMax();
 
-        Debug.Log("[STATE] StateChange: Normal -> KegareMax");
         MentorMessageService.ShowHint(OnmyojiHintType.KegareMax);
     }
 
@@ -242,7 +241,6 @@ public class KegareManager : MonoBehaviour
         if (stateController != null)
             stateController.RequestReleaseKegareMax();
 
-        Debug.Log("[STATE] StateChange: KegareMax -> Normal");
         MentorMessageService.ShowHint(OnmyojiHintType.KegareRecovered);
     }
 
@@ -289,6 +287,10 @@ public class KegareManager : MonoBehaviour
 
         kegare = Mathf.Clamp(kegare, 0f, maxKegare);
         isKegareMax = kegare >= maxKegare;
+    }
+
+    void LogKegareInitialized(string context)
+    {
     }
 
     void CacheDangerState()

@@ -16,7 +16,6 @@ public static class CurrentYokaiContext
 
         currentYokai = yokai;
 #if UNITY_EDITOR
-        Debug.Log($"[STATE][Current] name={(currentYokai != null ? currentYokai.name : "null")} reason={reason ?? "unspecified"}");
 #endif
         CurrentChanged?.Invoke(currentYokai);
     }
