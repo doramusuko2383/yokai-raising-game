@@ -142,11 +142,14 @@ public class YokaiGrowthController : MonoBehaviour
         if (stateController != null && stateController.isPurifying)
             return true;
 
-        bool isEnergyZero = stateController != null && stateController.IsEnergyEmpty();
-        if (!isEnergyZero && energyManager != null)
-            isEnergyZero = energyManager.energy <= 0f;
+        if (stateController != null)
+        {
+            var currentState = stateController.currentState;
+            if (currentState == YokaiState.EnergyEmpty || currentState == YokaiState.KegareMax)
+                return true;
+        }
 
-        return isEnergyZero;
+        return energyManager != null && energyManager.energy <= 0f;
     }
 
     void LogGrowthStoppedReason()
@@ -157,9 +160,12 @@ public class YokaiGrowthController : MonoBehaviour
         {
             reason = "evolution-ready";
         }
-        else if (stateController != null && stateController.IsEnergyEmpty())
+        else if (stateController != null)
         {
-            reason = "energy-empty";
+            if (stateController.currentState == YokaiState.EnergyEmpty)
+                reason = "energy-empty";
+            else if (stateController.currentState == YokaiState.KegareMax)
+                reason = "kegare-max";
         }
         else if (energyManager != null && energyManager.energy <= 0f)
         {
