@@ -4,5 +4,6 @@ public enum YokaiState
     Purifying,
     KegareMax,
     EvolutionReady,
-    Evolving
+    Evolving,
+    EnergyEmpty
 }
