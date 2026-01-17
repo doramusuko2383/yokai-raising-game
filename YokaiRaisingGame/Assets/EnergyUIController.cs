@@ -24,7 +24,7 @@ public class EnergyUIController : MonoBehaviour
             stateController = CurrentYokaiContext.ResolveStateController();
 
         if (stateController != null)
-            stateController.StateChanged += OnStateChanged;
+            stateController.OnStateChanged += OnStateChanged;
     }
 
     void OnDisable()
@@ -35,7 +35,7 @@ public class EnergyUIController : MonoBehaviour
         }
 
         if (stateController != null)
-            stateController.StateChanged -= OnStateChanged;
+            stateController.OnStateChanged -= OnStateChanged;
     }
 
     void Start()
