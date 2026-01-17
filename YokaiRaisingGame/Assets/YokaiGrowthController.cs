@@ -142,7 +142,7 @@ public class YokaiGrowthController : MonoBehaviour
         if (stateController != null)
         {
             var currentState = stateController.currentState;
-            if (currentState == YokaiState.EnergyEmpty || currentState == YokaiState.KegareMax)
+            if (currentState == YokaiState.EnergyEmpty || currentState == YokaiState.PurityEmpty)
                 return true;
         }
 
@@ -161,7 +161,7 @@ public class YokaiGrowthController : MonoBehaviour
         {
             if (stateController.currentState == YokaiState.EnergyEmpty)
                 reason = "energy-empty";
-            else if (stateController.currentState == YokaiState.KegareMax)
+            else if (stateController.currentState == YokaiState.PurityEmpty)
                 reason = "kegare-max";
         }
 

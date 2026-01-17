@@ -66,7 +66,7 @@ public class KegareUIController : MonoBehaviour
     void OnKegareChanged(float current, float max)
     {
         if (kegareSlider != null)
-            kegareSlider.value = max > 0f ? current / max : 0f;
+            kegareSlider.value = max > 0f ? Mathf.Clamp01((max - current) / max) : 0f;
     }
 
     void CacheFillReferences()

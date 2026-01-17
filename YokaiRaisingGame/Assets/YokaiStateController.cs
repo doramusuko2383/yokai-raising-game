@@ -219,7 +219,7 @@ public class YokaiStateController : MonoBehaviour
 
         if (isKegareMax)
         {
-            return YokaiState.KegareMax;
+            return YokaiState.PurityEmpty;
         }
 
         if (requestedState.HasValue)
@@ -394,7 +394,7 @@ public class YokaiStateController : MonoBehaviour
             if (kegareManager == null || kegareManager.kegare < kegareManager.maxKegare)
                 return;
 
-            if (currentState != YokaiState.KegareMax)
+            if (currentState != YokaiState.PurityEmpty)
                 return;
         }
 
@@ -473,7 +473,7 @@ public class YokaiStateController : MonoBehaviour
 
     public void EnterKegareMax()
     {
-        SetState(YokaiState.KegareMax, "KegareMax");
+        SetState(YokaiState.PurityEmpty, "KegareMax");
     }
 
     public bool TryConsumeEvolutionResult(out YokaiEvolutionStage stage)

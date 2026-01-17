@@ -73,12 +73,13 @@ public class EnergyUIController : MonoBehaviour
     void OnEnergyChanged(float current, float max)
     {
         RefreshUI();
+        SyncWeakVisualsWithState();
     }
 
     void OnStateChanged(YokaiState previousState, YokaiState newState)
     {
         UpdateAdWatchButton(newState);
-        SetWeakVisuals(newState == YokaiState.EnergyEmpty);
+        SetWeakVisuals(IsWeakState(newState));
     }
 
     void RefreshUI()
@@ -108,7 +109,7 @@ public class EnergyUIController : MonoBehaviour
 
     void HandleCurrentYokaiChanged(GameObject activeYokai)
     {
-        bool shouldApply = stateController != null && stateController.currentState == YokaiState.EnergyEmpty;
+        bool shouldApply = stateController != null && IsWeakState(stateController.currentState);
         ResetWeakVisuals();
         AssignWeakVisualTargets(activeYokai);
         CacheWeakVisualBase();
@@ -175,7 +176,12 @@ public class EnergyUIController : MonoBehaviour
             return;
         }
 
-        SetWeakVisuals(stateController.currentState == YokaiState.EnergyEmpty);
+        SetWeakVisuals(IsWeakState(stateController.currentState));
+    }
+
+    bool IsWeakState(YokaiState state)
+    {
+        return state == YokaiState.EnergyEmpty || state == YokaiState.PurityEmpty;
     }
 
     void ApplyWeakVisuals()
