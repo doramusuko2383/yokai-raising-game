@@ -179,7 +179,7 @@ public class KegareManager : MonoBehaviour
             stateController = CurrentYokaiContext.ResolveStateController();
 
         bool isPurifying = stateController != null && stateController.isPurifying;
-        bool isEnergyEmpty = stateController != null && stateController.IsEnergyEmpty();
+        bool isEnergyEmpty = stateController != null && stateController.currentState == YokaiState.EnergyEmpty;
         if (!isPurifying && !isEnergyEmpty)
         {
             reason = string.Empty;

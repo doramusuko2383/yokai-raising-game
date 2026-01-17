@@ -18,7 +18,6 @@ public class DangoButtonHandler : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
         string stateName = stateController != null ? stateController.currentState.ToString() : "null";
-        bool energyEmpty = stateController != null && stateController.IsEnergyEmpty();
         if (IsActionBlocked())
             return;
 
@@ -43,6 +42,7 @@ public class DangoButtonHandler : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        return stateController != null && stateController.isPurifying;
+        return stateController != null
+            && (stateController.isPurifying || stateController.currentState == YokaiState.EnergyEmpty);
     }
 }

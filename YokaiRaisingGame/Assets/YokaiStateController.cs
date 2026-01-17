@@ -97,6 +97,7 @@ public class YokaiStateController : MonoBehaviour
     YokaiState lastAppliedState;
     bool lastEnergyEmpty;
     bool lastKegareMax;
+    bool lastPurifying;
     bool hasStateCache;
     readonly Dictionary<SpriteRenderer, Color> energyEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
     readonly Dictionary<Image, Color> energyEmptyImageColors = new Dictionary<Image, Color>();
@@ -354,7 +355,8 @@ public class YokaiStateController : MonoBehaviour
             !forceApplyUI &&
             nextState == lastAppliedState &&
             isEnergyEmptyState == lastEnergyEmpty &&
-            kegareMax == lastKegareMax)
+            kegareMax == lastKegareMax &&
+            isPurifying == lastPurifying)
         {
             return;
         }
@@ -362,12 +364,14 @@ public class YokaiStateController : MonoBehaviour
         bool stateChanged = SetState(nextState);
         bool energyChanged = isEnergyEmptyState != lastEnergyEmpty;
         bool kegareMaxChanged = kegareMax != lastKegareMax;
-        if (stateChanged || forceApplyUI || energyChanged || kegareMaxChanged)
+        bool purifyChanged = isPurifying != lastPurifying;
+        if (stateChanged || forceApplyUI || energyChanged || kegareMaxChanged || purifyChanged)
             ApplyStateUI();
 
         lastAppliedState = nextState;
         lastEnergyEmpty = isEnergyEmptyState;
         lastKegareMax = kegareMax;
+        lastPurifying = isPurifying;
         hasStateCache = true;
     }
 
@@ -401,7 +405,7 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginPurifying()
     {
-        if (currentState != YokaiState.Normal)
+        if (currentState != YokaiState.Normal && currentState != YokaiState.EnergyEmpty)
             return;
 
         isPurifying = true;
@@ -421,7 +425,7 @@ public class YokaiStateController : MonoBehaviour
 
     void StopPurifyingInternal(bool playCancelSe)
     {
-        if (currentState != YokaiState.Purifying)
+        if (!isPurifying)
             return;
 
         if (playCancelSe)
@@ -565,7 +569,7 @@ public class YokaiStateController : MonoBehaviour
 
     public bool IsEnergyEmpty()
     {
-        return isEnergyEmpty;
+        return currentState == YokaiState.EnergyEmpty;
     }
 
     bool HasReachedEvolutionScale()
@@ -634,10 +638,10 @@ public class YokaiStateController : MonoBehaviour
             || currentState == YokaiState.EvolutionReady
             || isKegareMax
             || isEnergyEmpty)
-            && currentState != YokaiState.Purifying
+            && !isPurifying
             && visualState != YokaiState.Evolving;
         bool showEmergency = isKegareMax;
-        bool showMagicCircle = currentState == YokaiState.Purifying;
+        bool showMagicCircle = isPurifying;
         bool showStopPurify = isPurifying;
         bool showDangerOverlay = showKegareMaxVisuals;
 
