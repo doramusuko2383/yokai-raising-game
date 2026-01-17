@@ -1,13 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Yokai;
 
 public class EnergyUIController : MonoBehaviour
 {
     [Header("Dependencies")]
     [SerializeField] private EnergyManager energyManager;
-    [SerializeField] private YokaiStateController stateController;
 
     [Header("UI")]
     [SerializeField] private Slider energySlider;

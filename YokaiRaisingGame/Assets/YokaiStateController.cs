@@ -12,6 +12,9 @@ public class YokaiStateController : MonoBehaviour
     public YokaiState currentState = YokaiState.Normal;
     public bool isPurifying;
     public event System.Action<YokaiState, YokaiState> StateChanged;
+    bool isEnergyEmpty;
+    bool isKegareMax;
+    bool isEvolving;
 
     [Header("Dependencies")]
     [SerializeField]
@@ -147,7 +150,9 @@ public class YokaiStateController : MonoBehaviour
     {
         yield return null;
         ResolveDependencies();
-        ApplyStateFromManagers();
+        UpdateEnergyEmptyState(forceApplyUI: true);
+        UpdateKegareMaxState(forceApplyUI: true);
+        ApplyStateFromManagers(forceApplyUI: true);
         hasStarted = true;
     }
 
@@ -248,11 +253,52 @@ public class YokaiStateController : MonoBehaviour
 
     void OnKegareChanged(float current, float max)
     {
+        UpdateKegareMaxState(forceApplyUI: true);
     }
 
     void OnEnergyChanged(float current, float max)
     {
-        ApplyStateFromManagers();
+        UpdateEnergyEmptyState(forceApplyUI: true);
+    }
+
+    void UpdateEnergyEmptyState(bool forceApplyUI)
+    {
+        if (energyManager == null)
+            return;
+
+        bool shouldBeEmpty = energyManager.energy <= 0f && energyManager.HasEverHadEnergy;
+        if (shouldBeEmpty == isEnergyEmpty && !forceApplyUI)
+            return;
+
+        bool wasEmpty = isEnergyEmpty;
+        isEnergyEmpty = shouldBeEmpty;
+
+        if (isEnergyEmpty && !wasEmpty)
+            EnterEnergyEmpty();
+        else if (!isEnergyEmpty && wasEmpty)
+            ExitEnergyEmpty();
+
+        ApplyStateFromManagers(forceApplyUI: true);
+    }
+
+    void UpdateKegareMaxState(bool forceApplyUI)
+    {
+        if (kegareManager == null)
+            return;
+
+        bool shouldBeMax = kegareManager.isKegareMax;
+        if (shouldBeMax == isKegareMax && !forceApplyUI)
+            return;
+
+        bool wasMax = isKegareMax;
+        isKegareMax = shouldBeMax;
+
+        if (isKegareMax && !wasMax)
+            EnterKegareMax();
+        else if (!isKegareMax && wasMax)
+            RequestReleaseKegareMax();
+
+        ApplyStateFromManagers(forceApplyUI: true);
     }
 
 
@@ -261,12 +307,12 @@ public class YokaiStateController : MonoBehaviour
         if (energyManager == null || kegareManager == null)
             return;
 
-        bool isEnergyDepleted = IsEnergyDepleted();
-        bool isKegareMax = IsKegareMax();
+        bool energyEmpty = isEnergyEmpty;
+        bool kegareMax = isKegareMax;
         bool isEnergyEmptyState;
 
         YokaiState nextState = currentState;
-        if (isEnergyDepleted)
+        if (energyEmpty)
         {
             nextState = YokaiState.EnergyEmpty;
         }
@@ -274,7 +320,7 @@ public class YokaiStateController : MonoBehaviour
         {
             nextState = requestedState.Value;
         }
-        else if (currentState == YokaiState.Evolving)
+        else if (isEvolving)
         {
             nextState = YokaiState.Evolving;
         }
@@ -282,7 +328,7 @@ public class YokaiStateController : MonoBehaviour
         {
             nextState = YokaiState.Purifying;
         }
-        else if (isKegareMax)
+        else if (kegareMax)
         {
             nextState = YokaiState.KegareMax;
         }
@@ -300,20 +346,20 @@ public class YokaiStateController : MonoBehaviour
             !forceApplyUI &&
             nextState == lastAppliedState &&
             isEnergyEmptyState == lastEnergyEmpty &&
-            isKegareMax == lastKegareMax)
+            kegareMax == lastKegareMax)
         {
             return;
         }
 
         bool stateChanged = SetState(nextState);
         bool energyChanged = isEnergyEmptyState != lastEnergyEmpty;
-        bool kegareMaxChanged = isKegareMax != lastKegareMax;
+        bool kegareMaxChanged = kegareMax != lastKegareMax;
         if (stateChanged || forceApplyUI || energyChanged || kegareMaxChanged)
             ApplyStateUI();
 
         lastAppliedState = nextState;
         lastEnergyEmpty = isEnergyEmptyState;
-        lastKegareMax = isKegareMax;
+        lastKegareMax = kegareMax;
         hasStateCache = true;
     }
 
@@ -324,6 +370,10 @@ public class YokaiStateController : MonoBehaviour
 
         YokaiState previousState = currentState;
         currentState = newState;
+        if (currentState == YokaiState.Evolving)
+            isEvolving = true;
+        if (previousState == YokaiState.Evolving && currentState != YokaiState.Evolving)
+            isEvolving = false;
         if (currentState == YokaiState.Purifying)
             isPurifying = true;
         if (previousState == YokaiState.Purifying && currentState != YokaiState.Purifying)
@@ -428,6 +478,8 @@ public class YokaiStateController : MonoBehaviour
         dangerEffects = activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true);
         CacheEnergyEmptyTargets(activeYokai);
         CacheKegareMaxTargets(activeYokai);
+        UpdateEnergyEmptyState(forceApplyUI: true);
+        UpdateKegareMaxState(forceApplyUI: true);
     }
 
     public void SetEvolutionReady()
@@ -485,23 +537,14 @@ public class YokaiStateController : MonoBehaviour
             kegareManager = CurrentYokaiContext.ResolveKegareManager();
 
         RegisterKegareEvents();
-        return kegareManager != null && kegareManager.isKegareMax;
+        if (kegareManager != null)
+            isKegareMax = kegareManager.isKegareMax;
+        return isKegareMax;
     }
 
     public bool IsEnergyEmpty()
     {
-        return currentState == YokaiState.EnergyEmpty;
-    }
-
-    bool IsEnergyDepleted()
-    {
-        if (energyManager == null)
-            energyManager = FindObjectOfType<EnergyManager>();
-
-        if (energyManager == null)
-            return false;
-
-        return energyManager.energy <= 0f;
+        return isEnergyEmpty;
     }
 
     bool HasReachedEvolutionScale()
@@ -515,17 +558,17 @@ public class YokaiStateController : MonoBehaviour
 
     bool IsEvolutionBlocked(out string reason)
     {
-        bool isKegareMax = IsKegareMax();
-        bool isEnergyEmpty = IsEnergyDepleted();
-        if (!isKegareMax && !isEnergyEmpty)
+        bool hasKegareMax = isKegareMax;
+        bool hasEnergyEmpty = isEnergyEmpty;
+        if (!hasKegareMax && !hasEnergyEmpty)
         {
             reason = string.Empty;
             return false;
         }
 
-        if (isKegareMax && isEnergyEmpty)
+        if (hasKegareMax && hasEnergyEmpty)
             reason = "穢れMAX / 霊力0";
-        else if (isKegareMax)
+        else if (hasKegareMax)
             reason = "穢れMAX";
         else
             reason = "霊力0";
@@ -560,16 +603,19 @@ public class YokaiStateController : MonoBehaviour
         if (!AreDependenciesResolved())
             return;
 
-        bool isKegareMax = currentState == YokaiState.KegareMax;
+        YokaiState visualState = ResolveVisualState();
+        bool isKegareMax = visualState == YokaiState.KegareMax;
         bool showKegareMaxVisuals = isKegareMaxVisualsActive;
-        bool isEnergyEmpty = currentState == YokaiState.EnergyEmpty;
+        bool isEnergyEmpty = visualState == YokaiState.EnergyEmpty;
         // 不具合②: 霊力0の時は通常だんご/おきよめパネルを隠し、特別だんごのみを表示する。
         bool showActionPanel =
-            currentState == YokaiState.Normal
+            (currentState == YokaiState.Normal
             || currentState == YokaiState.EvolutionReady
             || isKegareMax
-            || isEnergyEmpty;
-            bool showEmergency = isKegareMax;
+            || isEnergyEmpty)
+            && currentState != YokaiState.Purifying
+            && visualState != YokaiState.Evolving;
+        bool showEmergency = isKegareMax;
         bool showMagicCircle = currentState == YokaiState.Purifying;
         bool showStopPurify = isPurifying;
         bool showDangerOverlay = showKegareMaxVisuals;
@@ -591,6 +637,20 @@ public class YokaiStateController : MonoBehaviour
         UpdateEnergyEmptyVisuals(isEnergyEmpty);
         UpdateDangerEffects();
         UpdateKegareMaxVisuals(showKegareMaxVisuals);
+    }
+
+    YokaiState ResolveVisualState()
+    {
+        if (isEvolving)
+            return YokaiState.Evolving;
+
+        if (isKegareMax)
+            return YokaiState.KegareMax;
+
+        if (isEnergyEmpty)
+            return YokaiState.EnergyEmpty;
+
+        return YokaiState.Normal;
     }
 
     bool AreDependenciesResolved()
@@ -791,6 +851,18 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
+    void EnterEnergyEmpty()
+    {
+        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
+        MentorMessageService.ShowHint(OnmyojiHintType.EnergyZero);
+    }
+
+    void ExitEnergyEmpty()
+    {
+        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
+        MentorMessageService.NotifyRecovered();
+    }
+
     void UpdateEnergyEmptyVisuals(bool isEnergyEmpty)
     {
         if (energyEmptyTargetRoot == null || CurrentYokaiContext.Current != energyEmptyTargetRoot)
@@ -958,6 +1030,7 @@ public class YokaiStateController : MonoBehaviour
         ApplyStateFromManagers(forceApplyUI: true);
         RefreshDangerEffectOriginalColors();
         AudioHook.RequestPlay(YokaiSE.SE_KEGARE_MAX_ENTER);
+        MentorMessageService.ShowHint(OnmyojiHintType.KegareMax);
     }
 
     public void RequestReleaseKegareMax()
@@ -982,6 +1055,7 @@ public class YokaiStateController : MonoBehaviour
         ApplyStateFromManagers(forceApplyUI: true);
         RefreshDangerEffectOriginalColors();
         AudioHook.RequestPlay(YokaiSE.SE_KEGARE_MAX_RELEASE);
+        MentorMessageService.ShowHint(OnmyojiHintType.KegareRecovered);
         kegareMaxReleaseRoutine = null;
     }
 
