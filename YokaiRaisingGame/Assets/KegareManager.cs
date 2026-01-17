@@ -3,7 +3,7 @@ using Yokai;
 
 public class KegareManager : MonoBehaviour
 {
-    const float DefaultMaxKegare = 100f;
+    const float DefaultMaxPurity = 100f;
 
     [Header("数値")]
     public float kegare = 0f;
@@ -31,10 +31,22 @@ public class KegareManager : MonoBehaviour
     [SerializeField]
     float dangerThresholdRatio = 0.7f;
 
-    public bool isKegareMax { get; private set; }
+    public bool isKegareMax
+    {
+        get => isPurityEmpty;
+        private set => isPurityEmpty = value;
+    }
+    public bool IsPurityEmpty => isPurityEmpty;
     GameObject currentYokai;
     float increaseTimer;
     bool isInDanger;
+    bool isPurityEmpty;
+    float maxPurity => maxKegare;
+    float purity
+    {
+        get => Mathf.Clamp(maxPurity - kegare, 0f, maxPurity);
+        set => kegare = Mathf.Clamp(maxPurity - value, 0f, maxPurity);
+    }
 
     public event System.Action EmergencyPurifyRequested;
     System.Action<float, float> kegareChanged;
@@ -99,18 +111,28 @@ public class KegareManager : MonoBehaviour
 
     public void AddKegare(float amount)
     {
-        kegare = Mathf.Clamp(kegare + amount, 0, maxKegare);
-        SyncKegareMaxState();
+        AddPurity(-amount, "AddKegare");
+    }
 
-        NotifyKegareChanged("AddKegare");
+    public void AddPurity(float amount, string reason = "AddPurity")
+    {
+        purity = Mathf.Clamp(purity + amount, 0f, maxPurity);
+        SyncPurityEmptyState();
+
+        NotifyKegareChanged(reason);
     }
 
     public void SetKegare(float value, string reason = null)
     {
-        kegare = Mathf.Clamp(value, 0f, maxKegare);
-        SyncKegareMaxState();
+        SetPurity(maxPurity - value, reason ?? "SetKegare");
+    }
 
-        NotifyKegareChanged("SetKegare");
+    public void SetPurity(float value, string reason = null)
+    {
+        purity = Mathf.Clamp(value, 0f, maxPurity);
+        SyncPurityEmptyState();
+
+        NotifyKegareChanged(reason ?? "SetPurity");
     }
 
     public void ApplyPurify(float purifyRatio = 0.25f)
@@ -135,11 +157,8 @@ public class KegareManager : MonoBehaviour
             return;
         }
 
-        float purifyAmount = maxKegare * purifyRatio;
-        kegare = Mathf.Clamp(kegare - purifyAmount, 0f, maxKegare);
-        SyncKegareMaxState();
-
-        NotifyKegareChanged("ApplyPurifyInternal");
+        float purifyAmount = maxPurity * purifyRatio;
+        AddPurity(purifyAmount, "ApplyPurifyInternal");
     }
 
     public void OnClickAdWatch()
@@ -179,10 +198,7 @@ public class KegareManager : MonoBehaviour
 
     public void ExecuteEmergencyPurify()
     {
-        kegare = Mathf.Clamp(emergencyPurifyValue, 0f, maxKegare);
-        SyncKegareMaxState();
-
-        NotifyKegareChanged("ExecuteEmergencyPurify");
+        SetPurity(maxPurity - emergencyPurifyValue, "ExecuteEmergencyPurify");
     }
 
     void HandleNaturalIncrease()
@@ -190,7 +206,7 @@ public class KegareManager : MonoBehaviour
         if (naturalIncreasePerMinute <= 0f)
             return;
 
-        if (isKegareMax)
+        if (isPurityEmpty)
             return;
 
         increaseTimer += Time.deltaTime;
@@ -200,16 +216,16 @@ public class KegareManager : MonoBehaviour
         int ticks = Mathf.FloorToInt(increaseTimer / increaseIntervalSeconds);
         increaseTimer -= ticks * increaseIntervalSeconds;
         float increaseAmount = naturalIncreasePerMinute * ticks;
-        AddKegare(increaseAmount);
+        AddPurity(-increaseAmount);
     }
 
-    void SyncKegareMaxState()
+    void SyncPurityEmptyState()
     {
-        bool wasMax = isKegareMax;
-        bool isNowMax = kegare >= maxKegare;
-        isKegareMax = isNowMax;
+        bool wasEmpty = isPurityEmpty;
+        bool isNowEmpty = purity <= 0f;
+        isPurityEmpty = isNowEmpty;
 
-        if (isNowMax && !wasMax)
+        if (isNowEmpty && !wasEmpty)
         {
             if (stateController == null)
                 stateController = CurrentYokaiContext.ResolveStateController();
@@ -232,7 +248,7 @@ public class KegareManager : MonoBehaviour
 
         EnsureDefaults();
         BindCurrentYokai(CurrentYokaiContext.Current);
-        SyncKegareMaxState();
+        SyncPurityEmptyState();
         CacheDangerState();
         initialized = true;
         NotifyKegareChanged(reason);
@@ -255,13 +271,13 @@ public class KegareManager : MonoBehaviour
     void EnsureDefaults()
     {
         if (float.IsNaN(maxKegare) || maxKegare <= 0f)
-            maxKegare = DefaultMaxKegare;
+            maxKegare = DefaultMaxPurity;
 
         if (float.IsNaN(kegare))
             kegare = 0f;
 
         kegare = Mathf.Clamp(kegare, 0f, maxKegare);
-        isKegareMax = kegare >= maxKegare;
+        isPurityEmpty = purity <= 0f;
     }
 
     void LogKegareInitialized(string context)
@@ -284,11 +300,11 @@ public class KegareManager : MonoBehaviour
 
     bool IsDangerState()
     {
-        if (isKegareMax)
+        if (isPurityEmpty)
             return false;
 
-        float threshold = maxKegare * Mathf.Clamp01(dangerThresholdRatio);
-        return kegare >= threshold;
+        float threshold = maxPurity * Mathf.Clamp01(1f - dangerThresholdRatio);
+        return purity <= threshold;
     }
 
 }
