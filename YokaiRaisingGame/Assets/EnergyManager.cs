@@ -163,31 +163,37 @@ public class EnergyManager : MonoBehaviour
 
     void EnterWeakState()
     {
+        if (isWeak)
+            return; // すでに弱体なら何もしない
+
         isWeak = true;
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
+
         WeakStateChanged?.Invoke(true);
+
         AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
         MentorMessageService.ShowHint(OnmyojiHintType.EnergyZero);
+
         Debug.Log("[STATE] StateChange: Normal -> EnergyEmpty");
     }
 
+
+
+
     void RecoverFromWeak()
     {
-        bool wasWeak = isWeak;
+        if (!isWeak)
+            return; // すでに回復済みなら何もしない
+
         isWeak = false;
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
+
         WeakStateChanged?.Invoke(false);
-        if (wasWeak)
-        {
-            AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
-            MentorMessageService.NotifyRecovered();
-        }
-        if (wasWeak)
-        {
-        }
+
+        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
+        MentorMessageService.NotifyRecovered();
+
+        Debug.Log("[STATE] Energy recovered from weak");
     }
+
 
     // 📺 広告を見る（仮）
     public void OnClickAdWatch()

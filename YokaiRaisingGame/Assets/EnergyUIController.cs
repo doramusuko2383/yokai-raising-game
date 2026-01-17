@@ -1,60 +1,25 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Yokai;
 
 public class EnergyUIController : MonoBehaviour
 {
-    [SerializeField]
-    EnergyManager energyManager;
+    [Header("Dependencies")]
+    [SerializeField] private EnergyManager energyManager;
+    [SerializeField] private YokaiStateController stateController;
 
-    [SerializeField]
-    Yokai.YokaiStateController stateController;
-
-    [SerializeField]
-    Slider energySlider;
-
-    [SerializeField]
-    GameObject adWatchButton;
-
-    [SerializeField]
-    GameObject weakMessage;
-
-    [Header("Weak Visuals")]
-    [SerializeField]
-    SpriteRenderer yokaiSprite;
-
-    [SerializeField]
-    float weakScale = 0.8f;
-
-    [SerializeField]
-    float weakAlpha = 0.4f;
-
-    [SerializeField]
-    float weakBrightness = 0.6f;
-
-    [SerializeField]
-    TMP_Text energyText;
-
-    Vector3 originalScale;
-    Color originalColor;
-    bool hasCachedOriginal;
+    [Header("UI")]
+    [SerializeField] private Slider energySlider;
+    [SerializeField] private TMP_Text energyText;
+    [SerializeField] private GameObject adWatchButton;
 
     void OnEnable()
     {
-        if (energyManager == null)
-            energyManager = FindObjectOfType<EnergyManager>();
-
-        if (stateController == null)
-            stateController = FindObjectOfType<Yokai.YokaiStateController>();
-
         if (energyManager != null)
         {
             energyManager.EnergyChanged += OnEnergyChanged;
-            energyManager.WeakStateChanged += OnWeakStateChanged;
         }
-
-        CacheOriginalVisuals();
-        RefreshUI();
     }
 
     void OnDisable()
@@ -62,28 +27,17 @@ public class EnergyUIController : MonoBehaviour
         if (energyManager != null)
         {
             energyManager.EnergyChanged -= OnEnergyChanged;
-            energyManager.WeakStateChanged -= OnWeakStateChanged;
         }
+    }
+
+    void Start()
+    {
+        RefreshUI();
     }
 
     void OnEnergyChanged(float current, float max)
     {
-        if (energySlider != null)
-            energySlider.value = max > 0f ? current / max : 0f;
-
-        if (energyText != null)
-            energyText.text = $"Energy: {current}/{max}";
-    }
-
-    void OnWeakStateChanged(bool isWeak)
-    {
-        if (adWatchButton != null)
-            adWatchButton.SetActive(isWeak);
-
-        if (weakMessage != null)
-            weakMessage.SetActive(isWeak);
-
-        ApplyWeakVisuals(isWeak);
+        RefreshUI();
     }
 
     void RefreshUI()
@@ -91,45 +45,20 @@ public class EnergyUIController : MonoBehaviour
         if (energyManager == null)
             return;
 
-        OnEnergyChanged(energyManager.energy, energyManager.maxEnergy);
-        bool isEnergyEmpty = stateController != null
-            ? stateController.IsEnergyEmpty()
-            : energyManager.energy <= 0f;
-        OnWeakStateChanged(isEnergyEmpty);
-    }
-
-    void CacheOriginalVisuals()
-    {
-        if (yokaiSprite == null)
-            return;
-
-        originalScale = yokaiSprite.transform.localScale;
-        originalColor = yokaiSprite.color;
-        hasCachedOriginal = true;
-    }
-
-    void ApplyWeakVisuals(bool isWeak)
-    {
-        if (yokaiSprite == null)
-            return;
-
-        if (!hasCachedOriginal)
-            CacheOriginalVisuals();
-
-        if (isWeak)
+        if (energySlider != null)
         {
-            yokaiSprite.transform.localScale = originalScale * weakScale;
-            yokaiSprite.color = new Color(
-                originalColor.r * weakBrightness,
-                originalColor.g * weakBrightness,
-                originalColor.b * weakBrightness,
-                weakAlpha
-            );
+            energySlider.maxValue = energyManager.maxEnergy;
+            energySlider.value = energyManager.energy;
         }
-        else
+
+        if (energyText != null)
         {
-            yokaiSprite.transform.localScale = originalScale;
-            yokaiSprite.color = originalColor;
+            energyText.text = $"{energyManager.energy:0}/{energyManager.maxEnergy}";
+        }
+
+        if (adWatchButton != null)
+        {
+            adWatchButton.SetActive(energyManager.energy <= 0);
         }
     }
 }
