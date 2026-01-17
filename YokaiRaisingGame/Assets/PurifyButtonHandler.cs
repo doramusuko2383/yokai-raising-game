@@ -26,6 +26,8 @@ public class PurifyButtonHandler : MonoBehaviour
         if (stateController != null)
         {
             stateController.BeginPurifying();
+            if (stateController.isPurifying)
+                AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
             TutorialManager.NotifyPurifyUsed();
             RequestMagicCircle(PurifyRequestType.Normal);
         }
@@ -67,6 +69,8 @@ public class PurifyButtonHandler : MonoBehaviour
         if (stateController == null)
             stateController = CurrentYokaiContext.ResolveStateController();
 
+        if (stateController != null)
+            AudioHook.RequestPlay(YokaiSE.SE_PURIFY_CANCEL);
         if (stateController != null)
             stateController.StopPurifying();
     }
