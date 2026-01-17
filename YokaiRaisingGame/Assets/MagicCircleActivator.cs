@@ -247,10 +247,10 @@ public class MagicCircleActivator : MonoBehaviour
         }
 
         if (subscribedStateController != null)
-            subscribedStateController.StateChanged -= OnStateChanged;
+            subscribedStateController.OnStateChanged -= OnStateChanged;
 
         subscribedStateController = stateController;
-        subscribedStateController.StateChanged += OnStateChanged;
+        subscribedStateController.OnStateChanged += OnStateChanged;
         Debug.Log("[MagicCircleActivator][RegisterStateEvents][Exit]");
     }
 
@@ -263,7 +263,7 @@ public class MagicCircleActivator : MonoBehaviour
             return;
         }
 
-        subscribedStateController.StateChanged -= OnStateChanged;
+        subscribedStateController.OnStateChanged -= OnStateChanged;
         subscribedStateController = null;
         Debug.Log("[MagicCircleActivator][UnregisterStateEvents][Exit]");
     }

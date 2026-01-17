@@ -13,6 +13,9 @@ public class KegareUIController : MonoBehaviour
     Yokai.YokaiStateController stateController;
 
     [SerializeField]
+    Yokai.YokaiStatePresentationController presentationController;
+
+    [SerializeField]
     float pulseScale = 1.08f;
 
     [SerializeField]
@@ -33,6 +36,12 @@ public class KegareUIController : MonoBehaviour
 
         if (stateController == null)
             stateController = CurrentYokaiContext.ResolveStateController();
+
+        if (presentationController == null && stateController != null)
+            presentationController = stateController.GetComponent<Yokai.YokaiStatePresentationController>();
+
+        if (presentationController == null)
+            presentationController = FindObjectOfType<Yokai.YokaiStatePresentationController>();
 
         if (kegareManager != null)
             kegareManager.KegareChanged += OnKegareChanged;
@@ -81,7 +90,7 @@ public class KegareUIController : MonoBehaviour
         if (fillRect == null)
             return;
 
-        bool shouldPulse = stateController != null && stateController.IsKegareMaxVisualsActive;
+        bool shouldPulse = presentationController != null && presentationController.IsKegareMaxVisualsActive;
         if (!shouldPulse)
         {
             ResetPulse();
