@@ -80,6 +80,9 @@ public class YokaiStateController : MonoBehaviour
     float energyEmptyAlpha = 0.45f;
 
     [SerializeField]
+    float energyEmptyScaleMultiplier = 0.85f;
+
+    [SerializeField]
     bool enableStateLogs = false;
 
     [SerializeField] private Button specialDangoButton;
@@ -99,6 +102,7 @@ public class YokaiStateController : MonoBehaviour
     readonly Dictionary<Image, Color> energyEmptyImageColors = new Dictionary<Image, Color>();
     readonly Dictionary<SpriteRenderer, Color> kegareMaxSpriteColors = new Dictionary<SpriteRenderer, Color>();
     readonly Dictionary<Image, Color> kegareMaxImageColors = new Dictionary<Image, Color>();
+    Vector3 energyEmptyBaseScale;
     Vector3 kegareMaxBasePosition;
     Vector3 kegareMaxBaseScale;
     float kegareMaxNoiseSeed;
@@ -267,7 +271,6 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isEnergyEmpty = true;
-        EnterEnergyEmpty();
         ApplyStateFromManagers(forceApplyUI: true);
     }
 
@@ -277,7 +280,6 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isEnergyEmpty = false;
-        ExitEnergyEmpty();
         ApplyStateFromManagers(forceApplyUI: true);
     }
 
@@ -322,6 +324,10 @@ public class YokaiStateController : MonoBehaviour
         {
             nextState = YokaiState.EnergyEmpty;
         }
+        else if (kegareMax)
+        {
+            nextState = YokaiState.KegareMax;
+        }
         else if (requestedState.HasValue)
         {
             nextState = requestedState.Value;
@@ -333,10 +339,6 @@ public class YokaiStateController : MonoBehaviour
         else if (isPurifying)
         {
             nextState = YokaiState.Purifying;
-        }
-        else if (kegareMax)
-        {
-            nextState = YokaiState.KegareMax;
         }
         else if (growthController != null && growthController.isEvolutionReady && !IsEvolutionBlocked(out _))
         {
@@ -376,6 +378,10 @@ public class YokaiStateController : MonoBehaviour
 
         YokaiState previousState = currentState;
         currentState = newState;
+        if (currentState == YokaiState.EnergyEmpty && previousState != YokaiState.EnergyEmpty)
+            EnterEnergyEmpty();
+        if (previousState == YokaiState.EnergyEmpty && currentState != YokaiState.EnergyEmpty)
+            ExitEnergyEmpty();
         if (currentState == YokaiState.Evolving)
             isEvolving = true;
         if (previousState == YokaiState.Evolving && currentState != YokaiState.Evolving)
@@ -620,7 +626,7 @@ public class YokaiStateController : MonoBehaviour
 
         YokaiState visualState = ResolveVisualState();
         bool isKegareMax = visualState == YokaiState.KegareMax;
-        bool showKegareMaxVisuals = isKegareMaxVisualsActive;
+        bool showKegareMaxVisuals = isKegareMaxVisualsActive && isKegareMax;
         bool isEnergyEmpty = visualState == YokaiState.EnergyEmpty;
         // 不具合②: 霊力0の時は通常だんご/おきよめパネルを隠し、特別だんごのみを表示する。
         bool showActionPanel =
@@ -659,11 +665,11 @@ public class YokaiStateController : MonoBehaviour
         if (isEvolving)
             return YokaiState.Evolving;
 
-        if (isKegareMax)
-            return YokaiState.KegareMax;
-
         if (isEnergyEmpty)
             return YokaiState.EnergyEmpty;
+
+        if (isKegareMax)
+            return YokaiState.KegareMax;
 
         return YokaiState.Normal;
     }
@@ -703,9 +709,13 @@ public class YokaiStateController : MonoBehaviour
 
             bool shouldShow;
 
+            bool isPurifyButton =
+                !isEmergency &&
+                button.GetComponent<PurifyButtonHandler>() != null;
+
             if (isEnergyEmpty)
             {
-                shouldShow = isSpecialDango;
+                shouldShow = isSpecialDango || isPurifyButton;
             }
             else if (isKegareMax)
             {
@@ -814,9 +824,12 @@ public class YokaiStateController : MonoBehaviour
         energyEmptyTargetRoot = targetRoot;
         energyEmptySpriteColors.Clear();
         energyEmptyImageColors.Clear();
+        energyEmptyBaseScale = Vector3.one;
 
         if (energyEmptyTargetRoot == null)
             return;
+
+        energyEmptyBaseScale = energyEmptyTargetRoot.transform.localScale;
 
         foreach (var sprite in energyEmptyTargetRoot.GetComponentsInChildren<SpriteRenderer>(true))
         {
@@ -868,6 +881,7 @@ public class YokaiStateController : MonoBehaviour
 
     void EnterEnergyEmpty()
     {
+        currentState = YokaiState.EnergyEmpty;
         AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
         MentorMessageService.ShowHint(OnmyojiHintType.EnergyZero);
     }
@@ -887,6 +901,12 @@ public class YokaiStateController : MonoBehaviour
 
         if (isEnergyEmpty)
         {
+            if (energyEmptyTargetRoot != null)
+            {
+                float scaleMultiplier = Mathf.Max(0f, energyEmptyScaleMultiplier);
+                energyEmptyTargetRoot.transform.localScale = energyEmptyBaseScale * scaleMultiplier;
+            }
+
             foreach (var pair in energyEmptySpriteColors)
             {
                 if (pair.Key == null)
@@ -930,6 +950,9 @@ public class YokaiStateController : MonoBehaviour
 
             pair.Key.color = pair.Value;
         }
+
+        if (energyEmptyTargetRoot != null)
+            energyEmptyTargetRoot.transform.localScale = energyEmptyBaseScale;
     }
 
     void UpdateKegareMaxVisuals(bool enable)
@@ -984,7 +1007,7 @@ public class YokaiStateController : MonoBehaviour
 
     void UpdateKegareMaxMotion()
     {
-        if (!isKegareMaxVisualsActive)
+        if (!isKegareMaxVisualsActive || ResolveVisualState() != YokaiState.KegareMax)
         {
             if (isKegareMaxMotionApplied)
             {
