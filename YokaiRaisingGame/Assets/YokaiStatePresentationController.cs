@@ -72,6 +72,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isKegareMaxVisualsActive;
     bool isKegareMaxMotionApplied;
     Coroutine kegareMaxReleaseRoutine;
+    bool lastPurifying;
 
     public bool IsKegareMaxVisualsActive => isKegareMaxVisualsActive;
 
@@ -93,14 +94,30 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         ResolveDependencies();
         RegisterStateEvents();
+        CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
         SyncCurrentYokai();
         SyncVisualState();
         RefreshPresentation();
+        lastPurifying = stateController != null && stateController.isPurifying;
     }
 
     void OnDisable()
     {
         UnregisterStateEvents();
+        CurrentYokaiContext.CurrentChanged -= HandleCurrentYokaiChanged;
+    }
+
+    void Update()
+    {
+        if (stateController == null)
+            return;
+
+        bool isPurifying = stateController.isPurifying;
+        if (isPurifying == lastPurifying)
+            return;
+
+        lastPurifying = isPurifying;
+        RefreshPresentation();
     }
 
     void LateUpdate()
@@ -142,10 +159,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         stateController.OnStateChanged += HandleStateChanged;
-        stateController.OnPurifyChanged += HandlePurifyChanged;
-        stateController.OnPurifyStarted += HandlePurifyStarted;
-        stateController.OnPurifyCanceled += HandlePurifyCanceled;
-        stateController.OnActiveYokaiChanged += HandleActiveYokaiChanged;
     }
 
     void UnregisterStateEvents()
@@ -154,13 +167,9 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         stateController.OnStateChanged -= HandleStateChanged;
-        stateController.OnPurifyChanged -= HandlePurifyChanged;
-        stateController.OnPurifyStarted -= HandlePurifyStarted;
-        stateController.OnPurifyCanceled -= HandlePurifyCanceled;
-        stateController.OnActiveYokaiChanged -= HandleActiveYokaiChanged;
     }
 
-    void HandleActiveYokaiChanged(GameObject activeYokai)
+    void HandleCurrentYokaiChanged(GameObject activeYokai)
     {
         CacheEnergyEmptyTargets(activeYokai);
         CacheKegareMaxTargets(activeYokai);
@@ -182,21 +191,8 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         HandleStateMessages(previousState, newState);
         RefreshPresentation();
-    }
-
-    void HandlePurifyChanged(bool isPurifying)
-    {
-        RefreshPresentation();
-    }
-
-    void HandlePurifyStarted()
-    {
-        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
-    }
-
-    void HandlePurifyCanceled()
-    {
-        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_CANCEL);
+        if (stateController != null)
+            lastPurifying = stateController.isPurifying;
     }
 
     void SyncCurrentYokai()

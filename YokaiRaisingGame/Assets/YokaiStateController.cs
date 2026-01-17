@@ -10,10 +10,6 @@ public class YokaiStateController : MonoBehaviour
     public YokaiState currentState = YokaiState.Normal;
     public bool isPurifying;
     public event System.Action<YokaiState, YokaiState> OnStateChanged;
-    public event System.Action<bool> OnPurifyChanged;
-    public event System.Action OnPurifyStarted;
-    public event System.Action OnPurifyCanceled;
-    public event System.Action<GameObject> OnActiveYokaiChanged;
     bool isEnergyEmpty;
     bool isKegareMax;
     bool isEvolving;
@@ -274,30 +270,25 @@ public class YokaiStateController : MonoBehaviour
 
         isPurifying = true;
         purifyTimer = 0f;
-        OnPurifyChanged?.Invoke(true);
-        OnPurifyStarted?.Invoke();
         EvaluateState(reason: "BeginPurify");
     }
 
     public void StopPurifying()
     {
-        StopPurifyingInternal(playCancelSe: true);
+        StopPurifyingInternal();
     }
 
     public void StopPurifyingForSuccess()
     {
-        StopPurifyingInternal(playCancelSe: false);
+        StopPurifyingInternal();
     }
 
-    void StopPurifyingInternal(bool playCancelSe)
+    void StopPurifyingInternal()
     {
         if (!isPurifying)
             return;
 
         isPurifying = false;
-        OnPurifyChanged?.Invoke(false);
-        if (playCancelSe)
-            OnPurifyCanceled?.Invoke();
         EvaluateState(reason: "StopPurify");
     }
 
@@ -353,7 +344,6 @@ public class YokaiStateController : MonoBehaviour
         growthController = activeYokai.GetComponent<YokaiGrowthController>();
         SyncManagerState();
         EvaluateState(reason: "ActiveYokaiChanged");
-        OnActiveYokaiChanged?.Invoke(activeYokai);
     }
 
     public void SetEvolutionReady()
