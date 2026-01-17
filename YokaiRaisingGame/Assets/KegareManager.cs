@@ -205,8 +205,18 @@ public class KegareManager : MonoBehaviour
 
     void SyncKegareMaxState()
     {
+        bool wasMax = isKegareMax;
         bool isNowMax = kegare >= maxKegare;
         isKegareMax = isNowMax;
+
+        if (isNowMax && !wasMax)
+        {
+            if (stateController == null)
+                stateController = CurrentYokaiContext.ResolveStateController();
+
+            if (stateController != null)
+                stateController.OnKegareMax();
+        }
     }
 
     void NotifyKegareChanged(string reason)

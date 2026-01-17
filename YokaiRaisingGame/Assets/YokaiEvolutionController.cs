@@ -226,11 +226,10 @@ public class YokaiEvolutionController : MonoBehaviour
 
     bool IsEvolutionBlocked(out string reason)
     {
-        var kegareManager = CurrentYokaiContext.ResolveKegareManager();
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        bool isKegareMax = kegareManager != null && kegareManager.isKegareMax;
+        bool isKegareMax = stateController != null && stateController.currentState == YokaiState.KegareMax;
         bool isEnergyEmpty = stateController != null && stateController.IsEnergyEmpty();
         if (!isKegareMax && !isEnergyEmpty)
         {

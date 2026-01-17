@@ -31,6 +31,8 @@ public class EnergyManager : MonoBehaviour
     float decayTimer;
 
     System.Action<float, float> energyChanged;
+    public event System.Action OnEnergyEmpty;
+    public event System.Action OnEnergyRecovered;
     public event System.Action<float, float> EnergyChanged
     {
         add
@@ -48,10 +50,12 @@ public class EnergyManager : MonoBehaviour
     }
 
     bool initialized;
+    bool isEnergyEmpty;
 
     void Awake()
     {
         hasEverHadEnergy = false;
+        isEnergyEmpty = false;
         EnsureDefaults();
         if (worldConfig == null)
         {
@@ -89,6 +93,7 @@ public class EnergyManager : MonoBehaviour
         }
 
         NotifyEnergyChanged("ChangeEnergy");
+        UpdateEnergyEmptyState(previousEnergy);
     }
 
     public void AddEnergy(float amount)
@@ -161,11 +166,11 @@ public class EnergyManager : MonoBehaviour
             return;
         }
 
-        bool wasEmpty = energy <= 0f;
+        bool wasEmpty = isEnergyEmpty;
         float recoveryAmount = Random.Range(30f, 40f);
         ChangeEnergy(recoveryAmount);
 
-        if (wasEmpty && energy > 0f)
+        if (wasEmpty && !isEnergyEmpty)
         {
             MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
         }
@@ -184,6 +189,7 @@ public class EnergyManager : MonoBehaviour
         EnsureDefaults();
         initialized = true;
         NotifyEnergyChanged(reason);
+        UpdateEnergyEmptyState(energy);
     }
 
     public bool HasNoEnergy()
@@ -211,6 +217,25 @@ public class EnergyManager : MonoBehaviour
             energy = maxEnergy;
 
         energy = Mathf.Clamp(energy, 0f, maxEnergy);
+    }
+
+    void UpdateEnergyEmptyState(float previousEnergy)
+    {
+        bool hasEnergyNow = energy > 0f;
+        if (!hasEverHadEnergy && (previousEnergy > 0f || hasEnergyNow))
+        {
+            hasEverHadEnergy = true;
+        }
+
+        bool shouldBeEmpty = energy <= 0f && hasEverHadEnergy;
+        if (shouldBeEmpty == isEnergyEmpty)
+            return;
+
+        isEnergyEmpty = shouldBeEmpty;
+        if (isEnergyEmpty)
+            OnEnergyEmpty?.Invoke();
+        else
+            OnEnergyRecovered?.Invoke();
     }
 
     void LogEnergyInitialized(string context)
