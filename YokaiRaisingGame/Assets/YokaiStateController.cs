@@ -502,7 +502,7 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
-        if (!IsKegareMax())
+        if (!IsPurityEmpty())
             ApplyStateFromManagers(YokaiState.EvolutionReady, forceApplyUI: true);
     }
 
@@ -546,7 +546,7 @@ public class YokaiStateController : MonoBehaviour
         ApplyStateFromManagers();
     }
 
-    bool IsKegareMax()
+    bool IsPurityEmpty()
     {
         if (kegareManager == null)
             kegareManager = CurrentYokaiContext.ResolveKegareManager();
