@@ -40,7 +40,7 @@ public class PurifyButtonHandler : MonoBehaviour
     public void OnClickEmergencyPurify()
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
-        if (!IsState(YokaiState.KegareMax))
+        if (!IsState(YokaiState.PurityEmpty))
             return;
 
         ShowAd(() =>

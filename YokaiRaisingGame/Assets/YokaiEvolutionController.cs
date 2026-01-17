@@ -229,7 +229,7 @@ public class YokaiEvolutionController : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        bool isKegareMax = stateController != null && stateController.currentState == YokaiState.KegareMax;
+        bool isKegareMax = stateController != null && stateController.currentState == YokaiState.PurityEmpty;
         bool isEnergyEmpty = stateController != null && stateController.currentState == YokaiState.EnergyEmpty;
         if (!isKegareMax && !isEnergyEmpty)
         {

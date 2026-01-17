@@ -173,9 +173,9 @@ public class YokaiStatePresentationController : MonoBehaviour
         else if (previousState == YokaiState.EnergyEmpty && newState != YokaiState.EnergyEmpty)
             PlayEnergyEmptyExitEffects();
 
-        if (newState == YokaiState.KegareMax && previousState != YokaiState.KegareMax)
+        if (newState == YokaiState.PurityEmpty && previousState != YokaiState.PurityEmpty)
             EnterKegareMax();
-        else if (previousState == YokaiState.KegareMax && newState != YokaiState.KegareMax)
+        else if (previousState == YokaiState.PurityEmpty && newState != YokaiState.PurityEmpty)
             RequestReleaseKegareMax();
 
         HandleStateMessages(previousState, newState);
@@ -197,9 +197,9 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController == null)
             return;
 
-        if (stateController.currentState == YokaiState.KegareMax && !isKegareMaxVisualsActive)
+        if (stateController.currentState == YokaiState.PurityEmpty && !isKegareMaxVisualsActive)
             EnterKegareMax();
-        else if (stateController.currentState != YokaiState.KegareMax && isKegareMaxVisualsActive)
+        else if (stateController.currentState != YokaiState.PurityEmpty && isKegareMaxVisualsActive)
             RequestReleaseKegareMax();
     }
 
@@ -209,7 +209,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         YokaiState visualState = ResolveVisualState();
-        bool isKegareMaxState = visualState == YokaiState.KegareMax;
+        bool isKegareMaxState = visualState == YokaiState.PurityEmpty;
         bool showKegareMaxVisuals = isKegareMaxVisualsActive && isKegareMaxState;
         bool isEnergyEmptyState = visualState == YokaiState.EnergyEmpty;
         bool showActionPanel =
@@ -251,7 +251,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             return YokaiState.EnergyEmpty;
 
         if (stateController != null && stateController.IsKegareMax)
-            return YokaiState.KegareMax;
+            return YokaiState.PurityEmpty;
 
         return YokaiState.Normal;
     }
@@ -400,7 +400,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void UpdateKegareMaxMotion()
     {
-        if (!isKegareMaxVisualsActive || ResolveVisualState() != YokaiState.KegareMax)
+        if (!isKegareMaxVisualsActive || ResolveVisualState() != YokaiState.PurityEmpty)
         {
             if (isKegareMaxMotionApplied)
             {

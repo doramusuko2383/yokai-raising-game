@@ -2,7 +2,7 @@ public enum YokaiState
 {
     Normal,
     Purifying,
-    KegareMax,
+    PurityEmpty,
     EvolutionReady,
     Evolving,
     EnergyEmpty

@@ -167,7 +167,7 @@ public class KegareManager : MonoBehaviour
         if (stateController == null)
             stateController = CurrentYokaiContext.ResolveStateController();
 
-        if (stateController != null && stateController.currentState != YokaiState.KegareMax)
+        if (stateController != null && stateController.currentState != YokaiState.PurityEmpty)
             return;
 
         EmergencyPurifyRequested?.Invoke();
