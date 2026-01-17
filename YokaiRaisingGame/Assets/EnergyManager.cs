@@ -116,7 +116,7 @@ public class EnergyManager : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        if (stateController != null && (stateController.isPurifying || stateController.IsEnergyEmpty()))
+        if (stateController != null && stateController.isPurifying)
         {
             return;
         }
