@@ -28,7 +28,6 @@ public class EnergyManager : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
-    bool isWeak;
     float decayTimer;
 
     System.Action<float, float> energyChanged;
@@ -47,8 +46,6 @@ public class EnergyManager : MonoBehaviour
             energyChanged -= value;
         }
     }
-
-    public event System.Action<bool> WeakStateChanged;
 
     bool initialized;
 
@@ -89,15 +86,6 @@ public class EnergyManager : MonoBehaviour
         if (!hasEverHadEnergy && (previousEnergy > 0f || energy > 0f))
         {
             hasEverHadEnergy = true;
-        }
-
-        if (energy <= 0 && !isWeak && hasEverHadEnergy)
-        {
-            EnterWeakState();
-        }
-        else if (energy > 0 && isWeak)
-        {
-            RecoverFromWeak();
         }
 
         NotifyEnergyChanged("ChangeEnergy");
@@ -161,40 +149,6 @@ public class EnergyManager : MonoBehaviour
         ChangeEnergy(-decayAmount);
     }
 
-    void EnterWeakState()
-    {
-        if (isWeak)
-            return; // すでに弱体なら何もしない
-
-        isWeak = true;
-
-        WeakStateChanged?.Invoke(true);
-
-        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
-        MentorMessageService.ShowHint(OnmyojiHintType.EnergyZero);
-
-        Debug.Log("[STATE] StateChange: Normal -> EnergyEmpty");
-    }
-
-
-
-
-    void RecoverFromWeak()
-    {
-        if (!isWeak)
-            return; // すでに回復済みなら何もしない
-
-        isWeak = false;
-
-        WeakStateChanged?.Invoke(false);
-
-        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
-        MentorMessageService.NotifyRecovered();
-
-        Debug.Log("[STATE] Energy recovered from weak");
-    }
-
-
     // 📺 広告を見る（仮）
     public void OnClickAdWatch()
     {
@@ -213,7 +167,6 @@ public class EnergyManager : MonoBehaviour
 
         if (wasEmpty && energy > 0f)
         {
-            AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
             MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
         }
     }
@@ -226,20 +179,9 @@ public class EnergyManager : MonoBehaviour
     void InitializeIfNeeded(string reason)
     {
         if (initialized)
-        {
             return;
-        }
 
         EnsureDefaults();
-        if (energy <= 0f && hasEverHadEnergy)
-        {
-            EnterWeakState();
-        }
-        else
-        {
-            RecoverFromWeak();
-        }
-
         initialized = true;
         NotifyEnergyChanged(reason);
     }
