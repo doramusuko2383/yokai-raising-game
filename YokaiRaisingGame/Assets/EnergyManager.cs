@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using Yokai;
 
 public class EnergyManager : MonoBehaviour
 {
@@ -23,10 +22,6 @@ public class EnergyManager : MonoBehaviour
     [Header("World")]
     [SerializeField]
     WorldConfig worldConfig;
-
-    [Header("Dependencies")]
-    [SerializeField]
-    YokaiStateController stateController;
 
     float decayTimer;
 
@@ -113,19 +108,6 @@ public class EnergyManager : MonoBehaviour
 
     void ApplyHealInternal(float healRatio, bool allowWhenCritical, string logContext)
     {
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
-
-        if (stateController != null && stateController.isPurifying)
-        {
-            return;
-        }
-
-        if (!allowWhenCritical && stateController != null && stateController.IsEnergyEmpty())
-        {
-            return;
-        }
-
         float healAmount = maxEnergy * healRatio;
         ChangeEnergy(healAmount);
     }
@@ -158,14 +140,6 @@ public class EnergyManager : MonoBehaviour
     public void OnClickAdWatch()
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
-
-        if (stateController != null && !stateController.IsEnergyEmpty())
-        {
-            return;
-        }
-
         bool wasEmpty = isEnergyEmpty;
         float recoveryAmount = Random.Range(30f, 40f);
         ChangeEnergy(recoveryAmount);
