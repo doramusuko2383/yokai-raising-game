@@ -51,21 +51,11 @@ public class YokaiStatePresentationController : MonoBehaviour
     float kegareMaxJitterAmplitude = 0.015f;
 
     [Header("Energy Empty Visuals")]
-    [SerializeField]
-    float energyEmptyAlpha = 0.45f;
-
-    [SerializeField]
-    float energyEmptyScaleMultiplier = 0.85f;
-
     [SerializeField] private Button specialDangoButton;
 
-    GameObject energyEmptyTargetRoot;
     GameObject kegareMaxTargetRoot;
-    readonly Dictionary<SpriteRenderer, Color> energyEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
-    readonly Dictionary<Image, Color> energyEmptyImageColors = new Dictionary<Image, Color>();
     readonly Dictionary<SpriteRenderer, Color> kegareMaxSpriteColors = new Dictionary<SpriteRenderer, Color>();
     readonly Dictionary<Image, Color> kegareMaxImageColors = new Dictionary<Image, Color>();
-    Vector3 energyEmptyBaseScale;
     Vector3 kegareMaxBasePosition;
     Vector3 kegareMaxBaseScale;
     float kegareMaxNoiseSeed;
@@ -171,7 +161,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void HandleCurrentYokaiChanged(GameObject activeYokai)
     {
-        CacheEnergyEmptyTargets(activeYokai);
         CacheKegareMaxTargets(activeYokai);
         RefreshDangerEffectOriginalColors();
         RefreshPresentation();
@@ -199,7 +188,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (CurrentYokaiContext.Current != null)
         {
-            CacheEnergyEmptyTargets(CurrentYokaiContext.Current);
             CacheKegareMaxTargets(CurrentYokaiContext.Current);
         }
     }
@@ -250,7 +238,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
 
         UpdateActionPanelButtons(isKegareMaxState, isEnergyEmptyState);
-        UpdateEnergyEmptyVisuals(isEnergyEmptyState);
         UpdateDangerEffects();
         UpdateKegareMaxVisuals(showKegareMaxVisuals);
     }
@@ -359,69 +346,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             effect.SetBlinking(shouldBlink);
             effect.SetIntensityLevel(intensityLevel);
         }
-    }
-
-    void UpdateEnergyEmptyVisuals(bool isEnergyEmpty)
-    {
-        if (energyEmptyTargetRoot == null || CurrentYokaiContext.Current != energyEmptyTargetRoot)
-        {
-            CacheEnergyEmptyTargets(CurrentYokaiContext.Current);
-        }
-
-        if (isEnergyEmpty)
-        {
-            if (energyEmptyTargetRoot != null)
-            {
-                float scaleMultiplier = Mathf.Max(0f, energyEmptyScaleMultiplier);
-                energyEmptyTargetRoot.transform.localScale = energyEmptyBaseScale * scaleMultiplier;
-            }
-
-            foreach (var pair in energyEmptySpriteColors)
-            {
-                if (pair.Key == null)
-                    continue;
-
-                Color color = pair.Value;
-                color.a *= Mathf.Clamp01(energyEmptyAlpha);
-                pair.Key.color = color;
-            }
-
-            foreach (var pair in energyEmptyImageColors)
-            {
-                if (pair.Key == null)
-                    continue;
-
-                Color color = pair.Value;
-                color.a *= Mathf.Clamp01(energyEmptyAlpha);
-                pair.Key.color = color;
-            }
-        }
-        else
-        {
-            ResetEnergyEmptyVisuals();
-        }
-    }
-
-    void ResetEnergyEmptyVisuals()
-    {
-        foreach (var pair in energyEmptySpriteColors)
-        {
-            if (pair.Key == null)
-                continue;
-
-            pair.Key.color = pair.Value;
-        }
-
-        foreach (var pair in energyEmptyImageColors)
-        {
-            if (pair.Key == null)
-                continue;
-
-            pair.Key.color = pair.Value;
-        }
-
-        if (energyEmptyTargetRoot != null)
-            energyEmptyTargetRoot.transform.localScale = energyEmptyBaseScale;
     }
 
     void UpdateKegareMaxVisuals(bool enable)
@@ -572,35 +496,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         kegareMaxBasePosition = kegareMaxTargetRoot.transform.localPosition;
         kegareMaxBaseScale = kegareMaxTargetRoot.transform.localScale;
-    }
-
-    void CacheEnergyEmptyTargets(GameObject targetRoot)
-    {
-        energyEmptyTargetRoot = targetRoot;
-        energyEmptySpriteColors.Clear();
-        energyEmptyImageColors.Clear();
-        energyEmptyBaseScale = Vector3.one;
-
-        if (energyEmptyTargetRoot == null)
-            return;
-
-        energyEmptyBaseScale = energyEmptyTargetRoot.transform.localScale;
-
-        foreach (var sprite in energyEmptyTargetRoot.GetComponentsInChildren<SpriteRenderer>(true))
-        {
-            if (sprite == null)
-                continue;
-
-            energyEmptySpriteColors[sprite] = sprite.color;
-        }
-
-        foreach (var image in energyEmptyTargetRoot.GetComponentsInChildren<Image>(true))
-        {
-            if (image == null)
-                continue;
-
-            energyEmptyImageColors[image] = image.color;
-        }
     }
 
     void CacheKegareMaxTargets(GameObject targetRoot)
