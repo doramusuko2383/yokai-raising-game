@@ -6,6 +6,7 @@ public class EnergyUIController : MonoBehaviour
 {
     [Header("Dependencies")]
     [SerializeField] private EnergyManager energyManager;
+    [SerializeField] private Yokai.YokaiStateController stateController;
 
     [Header("UI")]
     [SerializeField] private Slider energySlider;
@@ -18,6 +19,12 @@ public class EnergyUIController : MonoBehaviour
         {
             energyManager.EnergyChanged += OnEnergyChanged;
         }
+
+        if (stateController == null)
+            stateController = CurrentYokaiContext.ResolveStateController();
+
+        if (stateController != null)
+            stateController.StateChanged += OnStateChanged;
     }
 
     void OnDisable()
@@ -26,16 +33,26 @@ public class EnergyUIController : MonoBehaviour
         {
             energyManager.EnergyChanged -= OnEnergyChanged;
         }
+
+        if (stateController != null)
+            stateController.StateChanged -= OnStateChanged;
     }
 
     void Start()
     {
         RefreshUI();
+        if (stateController != null)
+            ApplyState(stateController.currentState);
     }
 
     void OnEnergyChanged(float current, float max)
     {
         RefreshUI();
+    }
+
+    void OnStateChanged(YokaiState previousState, YokaiState newState)
+    {
+        ApplyState(newState);
     }
 
     void RefreshUI()
@@ -53,10 +70,13 @@ public class EnergyUIController : MonoBehaviour
         {
             energyText.text = $"{energyManager.energy:0}/{energyManager.maxEnergy}";
         }
+    }
 
+    void ApplyState(YokaiState state)
+    {
         if (adWatchButton != null)
         {
-            adWatchButton.SetActive(energyManager.energy <= 0);
+            adWatchButton.SetActive(state == YokaiState.EnergyEmpty);
         }
     }
 }

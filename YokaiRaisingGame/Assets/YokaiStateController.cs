@@ -150,7 +150,6 @@ public class YokaiStateController : MonoBehaviour
     {
         yield return null;
         ResolveDependencies();
-        UpdateEnergyEmptyState(forceApplyUI: true);
         UpdateKegareMaxState(forceApplyUI: true);
         ApplyStateFromManagers(forceApplyUI: true);
         hasStarted = true;
@@ -243,12 +242,18 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         if (registeredEnergyManager != null)
-            registeredEnergyManager.EnergyChanged -= OnEnergyChanged;
+        {
+            registeredEnergyManager.OnEnergyEmpty -= OnEnergyEmpty;
+            registeredEnergyManager.OnEnergyRecovered -= OnEnergyRecovered;
+        }
 
         registeredEnergyManager = energyManager;
 
         if (registeredEnergyManager != null)
-            registeredEnergyManager.EnergyChanged += OnEnergyChanged;
+        {
+            registeredEnergyManager.OnEnergyEmpty += OnEnergyEmpty;
+            registeredEnergyManager.OnEnergyRecovered += OnEnergyRecovered;
+        }
     }
 
     void OnKegareChanged(float current, float max)
@@ -256,28 +261,23 @@ public class YokaiStateController : MonoBehaviour
         UpdateKegareMaxState(forceApplyUI: true);
     }
 
-    void OnEnergyChanged(float current, float max)
+    public void OnEnergyEmpty()
     {
-        UpdateEnergyEmptyState(forceApplyUI: true);
+        if (isEnergyEmpty)
+            return;
+
+        isEnergyEmpty = true;
+        EnterEnergyEmpty();
+        ApplyStateFromManagers(forceApplyUI: true);
     }
 
-    void UpdateEnergyEmptyState(bool forceApplyUI)
+    public void OnEnergyRecovered()
     {
-        if (energyManager == null)
+        if (!isEnergyEmpty)
             return;
 
-        bool shouldBeEmpty = energyManager.energy <= 0f && energyManager.HasEverHadEnergy;
-        if (shouldBeEmpty == isEnergyEmpty && !forceApplyUI)
-            return;
-
-        bool wasEmpty = isEnergyEmpty;
-        isEnergyEmpty = shouldBeEmpty;
-
-        if (isEnergyEmpty && !wasEmpty)
-            EnterEnergyEmpty();
-        else if (!isEnergyEmpty && wasEmpty)
-            ExitEnergyEmpty();
-
+        isEnergyEmpty = false;
+        ExitEnergyEmpty();
         ApplyStateFromManagers(forceApplyUI: true);
     }
 
@@ -291,12 +291,18 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         bool wasMax = isKegareMax;
-        isKegareMax = shouldBeMax;
-
-        if (isKegareMax && !wasMax)
-            EnterKegareMax();
-        else if (!isKegareMax && wasMax)
+        if (shouldBeMax && !wasMax)
+        {
+            OnKegareMax();
+            return;
+        }
+        else if (!shouldBeMax && wasMax)
+        {
+            isKegareMax = false;
             RequestReleaseKegareMax();
+            ApplyStateFromManagers(forceApplyUI: true);
+            return;
+        }
 
         ApplyStateFromManagers(forceApplyUI: true);
     }
@@ -478,7 +484,6 @@ public class YokaiStateController : MonoBehaviour
         dangerEffects = activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true);
         CacheEnergyEmptyTargets(activeYokai);
         CacheKegareMaxTargets(activeYokai);
-        UpdateEnergyEmptyState(forceApplyUI: true);
         UpdateKegareMaxState(forceApplyUI: true);
     }
 
@@ -509,6 +514,16 @@ public class YokaiStateController : MonoBehaviour
     public void ExecuteEmergencyPurifyFromButton()
     {
         ExecuteEmergencyPurifyInternal(isExplicitRequest: true);
+    }
+
+    public void OnKegareMax()
+    {
+        if (isKegareMax)
+            return;
+
+        isKegareMax = true;
+        EnterKegareMax();
+        ApplyStateFromManagers(forceApplyUI: true);
     }
 
     void ExecuteEmergencyPurifyInternal(bool isExplicitRequest)

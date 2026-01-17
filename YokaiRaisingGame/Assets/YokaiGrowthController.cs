@@ -33,9 +33,6 @@ public class YokaiGrowthController : MonoBehaviour
     [SerializeField]
     private YokaiStateController stateController;
 
-    [SerializeField]
-    EnergyManager energyManager;
-
     [Header("Growth Particles")]
     [SerializeField]
     ParticleSystem[] growthParticles;
@@ -149,7 +146,7 @@ public class YokaiGrowthController : MonoBehaviour
                 return true;
         }
 
-        return energyManager != null && energyManager.energy <= 0f;
+        return false;
     }
 
     void LogGrowthStoppedReason()
@@ -166,10 +163,6 @@ public class YokaiGrowthController : MonoBehaviour
                 reason = "energy-empty";
             else if (stateController.currentState == YokaiState.KegareMax)
                 reason = "kegare-max";
-        }
-        else if (energyManager != null && energyManager.energy <= 0f)
-        {
-            reason = "energy-empty";
         }
 
 #if UNITY_EDITOR
