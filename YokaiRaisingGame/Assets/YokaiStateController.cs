@@ -425,11 +425,6 @@ public class YokaiStateController : MonoBehaviour
         return isKegareMax;
     }
 
-    public bool IsEnergyEmpty()
-    {
-        return currentState == YokaiState.EnergyEmpty;
-    }
-
     bool HasReachedEvolutionScale()
     {
         if (growthController == null)
