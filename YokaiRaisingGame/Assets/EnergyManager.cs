@@ -66,6 +66,7 @@ public class EnergyManager : MonoBehaviour
 
     void Start()
     {
+        SetEnergyRatio(0.8f);
         InitializeIfNeeded("Start");
     }
 
@@ -94,6 +95,30 @@ public class EnergyManager : MonoBehaviour
     public void AddEnergy(float amount)
     {
         ChangeEnergy(amount);
+    }
+
+    public void AddEnergyRatio(float ratio)
+    {
+        ChangeEnergy(maxEnergy * ratio);
+    }
+
+    public void SetEnergy(float value, string reason = "SetEnergy")
+    {
+        float previousEnergy = energy;
+        energy = Mathf.Clamp(value, 0f, maxEnergy);
+
+        if (!hasEverHadEnergy && (previousEnergy > 0f || energy > 0f))
+        {
+            hasEverHadEnergy = true;
+        }
+
+        NotifyEnergyChanged(reason);
+        UpdateEnergyEmptyState(previousEnergy);
+    }
+
+    public void SetEnergyRatio(float ratio)
+    {
+        SetEnergy(maxEnergy * Mathf.Clamp01(ratio), "SetEnergyRatio");
     }
 
     public void ApplyHeal(float healRatio = 0.4f)

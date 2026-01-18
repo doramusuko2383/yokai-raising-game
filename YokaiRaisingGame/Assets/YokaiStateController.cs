@@ -371,6 +371,44 @@ public class YokaiStateController : MonoBehaviour
         ExecuteEmergencyPurifyInternal(isExplicitRequest: true);
     }
 
+    public void RecoverFromEnergyEmptyAd()
+    {
+        if (energyManager == null)
+            energyManager = FindObjectOfType<EnergyManager>();
+
+        if (kegareManager == null)
+            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+
+        if (energyManager == null || kegareManager == null)
+        {
+            Debug.LogWarning("[STATE] Ad recovery failed: manager not found.");
+            return;
+        }
+
+        energyManager.SetEnergyRatio(0.5f);
+        kegareManager.AddKegareRatio(-0.2f);
+        EvaluateState(reason: "EnergyAdRecover");
+    }
+
+    public void RecoverFromPurityEmptyAd()
+    {
+        if (energyManager == null)
+            energyManager = FindObjectOfType<EnergyManager>();
+
+        if (kegareManager == null)
+            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+
+        if (energyManager == null || kegareManager == null)
+        {
+            Debug.LogWarning("[STATE] Ad recovery failed: manager not found.");
+            return;
+        }
+
+        kegareManager.SetKegareRatio(1.0f);
+        energyManager.AddEnergyRatio(0.2f);
+        EvaluateState(reason: "PurityAdRecover");
+    }
+
     public void OnKegareMax()
     {
         HandleThresholdReached(ref isKegareMax, "KegareMax");
