@@ -23,7 +23,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     GameObject actionPanel;
 
     [SerializeField]
-    GameObject emergencyPurifyButton;
+    GameObject purityRecoverAdButton;
 
     [SerializeField]
     GameObject purifyStopButton;
@@ -57,8 +57,9 @@ public class YokaiStatePresentationController : MonoBehaviour
     [SerializeField]
     float kegareMaxJitterAmplitude = 0.015f;
 
-    [Header("Energy Empty Visuals")]
-    [SerializeField] private Button specialDangoButton;
+    [Header("Recovery Ad Buttons")]
+    [SerializeField]
+    GameObject energyRecoverAdButton;
 
     GameObject kegareMaxTargetRoot;
     readonly Dictionary<SpriteRenderer, Color> kegareMaxSpriteColors = new Dictionary<SpriteRenderer, Color>();
@@ -130,8 +131,11 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (actionPanel == null)
             actionPanel = GameObject.Find("UI_Action");
 
-        if (emergencyPurifyButton == null)
-            emergencyPurifyButton = GameObject.Find("Button_MononokeHeal");
+        if (energyRecoverAdButton == null)
+            energyRecoverAdButton = GameObject.Find("Btn_EnergyRecover_Ad");
+
+        if (purityRecoverAdButton == null)
+            purityRecoverAdButton = GameObject.Find("Btn_PurityRecover_Ad");
 
         if (purifyStopButton == null)
             purifyStopButton = GameObject.Find("Btn_StopPurify");
@@ -254,13 +258,11 @@ public class YokaiStatePresentationController : MonoBehaviour
             || isEnergyEmptyState)
             && !stateController.isPurifying
             && visualState != YokaiState.Evolving;
-        bool showEmergency = isKegareMaxState;
         bool showMagicCircle = stateController.isPurifying;
         bool showStopPurify = stateController.isPurifying;
         bool showDangerOverlay = showKegareMaxVisuals;
 
         ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
-        ApplyCanvasGroup(emergencyPurifyButton, showEmergency, showEmergency);
         ApplyCanvasGroup(purifyStopButton, showStopPurify, showStopPurify);
         if (magicCircleOverlay != null)
             magicCircleOverlay.SetActive(showMagicCircle);
@@ -272,6 +274,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             dangerOverlay.interactable = showDangerOverlay;
         }
 
+        UpdateRecoveryButtons(visualState);
         UpdateActionPanelButtons(isKegareMaxState, isEnergyEmptyState);
         UpdateDangerEffects();
         UpdateKegareMaxVisuals(showKegareMaxVisuals);
@@ -296,7 +299,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController == null)
             return false;
 
-        if (actionPanel == null || emergencyPurifyButton == null || purifyStopButton == null || magicCircleOverlay == null)
+        if (actionPanel == null || purifyStopButton == null || magicCircleOverlay == null)
             return false;
 
         return true;
@@ -313,37 +316,48 @@ public class YokaiStatePresentationController : MonoBehaviour
             if (button == null)
                 continue;
 
-            bool isEmergency =
-                emergencyPurifyButton != null &&
-                button.gameObject == emergencyPurifyButton;
+            bool isEnergyRecoverAd =
+                energyRecoverAdButton != null &&
+                button.gameObject == energyRecoverAdButton;
 
-            bool isSpecialDango =
-                specialDangoButton != null &&
-                button == specialDangoButton;
+            bool isPurityRecoverAd =
+                purityRecoverAdButton != null &&
+                button.gameObject == purityRecoverAdButton;
 
             bool shouldShow;
 
             bool isPurifyButton =
-                !isEmergency &&
                 button.GetComponent<PurifyButtonHandler>() != null;
+
+            if (isEnergyRecoverAd || isPurityRecoverAd)
+                continue;
 
             if (isEnergyEmpty)
             {
-                shouldShow = isSpecialDango || isPurifyButton;
+                shouldShow = isPurifyButton;
             }
             else if (isKegareMax)
             {
-                shouldShow = isEmergency;
+                shouldShow = false;
             }
             else
             {
-                shouldShow = !isEmergency && !isSpecialDango;
+                shouldShow = true;
             }
 
             ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
             button.interactable = shouldShow;
             button.enabled = shouldShow;
         }
+    }
+
+    void UpdateRecoveryButtons(YokaiState state)
+    {
+        if (energyRecoverAdButton != null)
+            energyRecoverAdButton.SetActive(state == YokaiState.EnergyEmpty);
+
+        if (purityRecoverAdButton != null)
+            purityRecoverAdButton.SetActive(state == YokaiState.PurityEmpty);
     }
 
     void ApplyCanvasGroup(GameObject target, bool visible, bool interactable)

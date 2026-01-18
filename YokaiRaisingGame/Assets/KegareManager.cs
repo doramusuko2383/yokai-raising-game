@@ -96,6 +96,7 @@ public class KegareManager : MonoBehaviour
 
     void Start()
     {
+        SetKegareRatio(0.8f);
         InitializeIfNeeded("Start");
     }
 
@@ -114,6 +115,11 @@ public class KegareManager : MonoBehaviour
         AddPurity(-amount, "AddKegare");
     }
 
+    public void AddKegareRatio(float ratio)
+    {
+        AddKegare(maxKegare * ratio);
+    }
+
     public void AddPurity(float amount, string reason = "AddPurity")
     {
         purity = Mathf.Clamp(purity + amount, 0f, maxPurity);
@@ -125,6 +131,11 @@ public class KegareManager : MonoBehaviour
     public void SetKegare(float value, string reason = null)
     {
         SetPurity(maxPurity - value, reason ?? "SetKegare");
+    }
+
+    public void SetKegareRatio(float ratio)
+    {
+        SetKegare(maxKegare * Mathf.Clamp01(ratio), "SetKegareRatio");
     }
 
     public void SetPurity(float value, string reason = null)

@@ -14,16 +14,13 @@ public class EnergyUIController : MonoBehaviour
     [SerializeField] private Transform yokaiTransform;
     [SerializeField] private float weakAlpha = 0.45f;
     [SerializeField] private float weakBrightness = 0.75f;
-    [SerializeField] private float weakScale = 0.85f;
 
     [Header("UI")]
     [SerializeField] private Slider energySlider;
     [SerializeField] private TMP_Text energyText;
-    [SerializeField] private GameObject adWatchButton;
 
     float baseCanvasAlpha = 1f;
     Color baseImageColor = Color.white;
-    Vector3 baseScale = Vector3.one;
     bool hasCachedWeakVisuals;
     bool isWeakVisualsApplied;
 
@@ -65,7 +62,6 @@ public class EnergyUIController : MonoBehaviour
         RefreshUI();
         if (stateController != null)
         {
-            UpdateAdWatchButton(stateController.currentState);
             SyncWeakVisualsWithState();
         }
     }
@@ -78,7 +74,6 @@ public class EnergyUIController : MonoBehaviour
 
     void OnStateChanged(YokaiState previousState, YokaiState newState)
     {
-        UpdateAdWatchButton(newState);
         SetWeakVisuals(IsWeakState(newState));
     }
 
@@ -96,14 +91,6 @@ public class EnergyUIController : MonoBehaviour
         if (energyText != null)
         {
             energyText.text = $"{energyManager.energy:0}/{energyManager.maxEnergy}";
-        }
-    }
-
-    void UpdateAdWatchButton(YokaiState state)
-    {
-        if (adWatchButton != null)
-        {
-            adWatchButton.SetActive(state == YokaiState.EnergyEmpty);
         }
     }
 
@@ -154,9 +141,6 @@ public class EnergyUIController : MonoBehaviour
         if (yokaiImage != null)
             baseImageColor = yokaiImage.color;
 
-        if (yokaiTransform != null)
-            baseScale = yokaiTransform.localScale;
-
         hasCachedWeakVisuals = true;
     }
 
@@ -181,7 +165,7 @@ public class EnergyUIController : MonoBehaviour
 
     bool IsWeakState(YokaiState state)
     {
-        return state == YokaiState.EnergyEmpty || state == YokaiState.PurityEmpty;
+        return state == YokaiState.EnergyEmpty;
     }
 
     void ApplyWeakVisuals()
@@ -203,12 +187,6 @@ public class EnergyUIController : MonoBehaviour
                 baseImageColor.a);
         }
 
-        if (yokaiTransform != null)
-        {
-            float scaleMultiplier = Mathf.Max(0f, weakScale);
-            yokaiTransform.localScale = baseScale * scaleMultiplier;
-        }
-
         isWeakVisualsApplied = true;
     }
 
@@ -222,9 +200,6 @@ public class EnergyUIController : MonoBehaviour
 
         if (yokaiImage != null)
             yokaiImage.color = baseImageColor;
-
-        if (yokaiTransform != null)
-            yokaiTransform.localScale = baseScale;
 
         isWeakVisualsApplied = false;
     }

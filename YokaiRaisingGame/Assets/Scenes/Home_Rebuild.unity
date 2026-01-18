@@ -248,40 +248,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5481682468745329004, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_Name
-      value: Button_MononokeHeal
+      value: Btn_PurityRecover_Ad
       objectReference: {fileID: 0}
-    - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
-      propertyPath: kegareManager
-      value: 
-      objectReference: {fileID: 308681470}
     - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: stateController
       value: 
       objectReference: {fileID: 1388627842}
-    - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
-      propertyPath: magicCircleActivator
-      value: 
-      objectReference: {fileID: 1554015419}
-    - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 308681470}
-    - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnClickAdWatch
-      objectReference: {fileID: 0}
-    - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: KegareManager, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2589,7 +2561,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 656228942389283711, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_Name
-      value: Btn_AdWatch
+      value: Btn_EnergyRecover_Ad
       objectReference: {fileID: 0}
     - target: {fileID: 4729676478636256463, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_Pivot.x
