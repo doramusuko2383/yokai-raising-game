@@ -168,6 +168,13 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void HandleStateChanged(YokaiState previousState, YokaiState newState)
     {
+        HandleEmptyStatePresentation(previousState, newState, () => HandleStateMessages(previousState, newState));
+        if (stateController != null)
+            lastPurifying = stateController.isPurifying;
+    }
+
+    void HandleEmptyStatePresentation(YokaiState previousState, YokaiState newState, System.Action afterEffects)
+    {
         if (newState == YokaiState.EnergyEmpty && previousState != YokaiState.EnergyEmpty)
             PlayEnergyEmptyEnterEffects();
         else if (previousState == YokaiState.EnergyEmpty && newState != YokaiState.EnergyEmpty)
@@ -178,10 +185,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         else if (previousState == YokaiState.PurityEmpty && newState != YokaiState.PurityEmpty)
             RequestReleaseKegareMax();
 
-        HandleStateMessages(previousState, newState);
+        afterEffects?.Invoke();
         RefreshPresentation();
-        if (stateController != null)
-            lastPurifying = stateController.isPurifying;
     }
 
     void SyncCurrentYokai()
