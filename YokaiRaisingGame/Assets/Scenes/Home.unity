@@ -167,11 +167,6 @@ Transform:
   - {fileID: 515532833}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &243570841 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 656228942389283711, guid: 366e9576cd92a104e916717384432116, type: 3}
-  m_PrefabInstance: {fileID: 664355983866959897}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &252916619 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1773064882957594954, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
@@ -234,7 +229,6 @@ MonoBehaviour:
   naturalDecayPerMinute: 2.5
   decayIntervalSeconds: 60
   worldConfig: {fileID: 0}
-  stateController: {fileID: 1786705811}
 --- !u!4 &515532833
 Transform:
   m_ObjectHideFlags: 0
@@ -263,10 +257,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   energyManager: {fileID: 515532832}
-  stateController: {fileID: 0}
+  stateController: {fileID: 1786705811}
+  yokaiCanvasGroup: {fileID: 992496717}
+  yokaiImage: {fileID: 8218868374499439926}
+  yokaiTransform: {fileID: 0}
+  weakAlpha: 0.45
+  weakBrightness: 0.75
   energySlider: {fileID: 20035157}
   energyText: {fileID: 0}
-  adWatchButton: {fileID: 243570841}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -585,6 +583,7 @@ MonoBehaviour:
   kegareManager: {fileID: 604884281}
   kegareSlider: {fileID: 676147554}
   stateController: {fileID: 1786705811}
+  presentationController: {fileID: 0}
   pulseScale: 1.08
   pulseSpeed: 3.2
   pulseAlpha: 0.85
@@ -1113,17 +1112,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4729676478636256463, guid: 366e9576cd92a104e916717384432116, type: 3}
   m_PrefabInstance: {fileID: 664355983866959897}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1469008923 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
-  m_PrefabInstance: {fileID: 664355983866959897}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 243570841}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1478606781
 GameObject:
   m_ObjectHideFlags: 0
@@ -1481,29 +1469,10 @@ MonoBehaviour:
   growthController: {fileID: 0}
   kegareManager: {fileID: 604884281}
   energyManager: {fileID: 515532832}
-  actionPanel: {fileID: 1563096701}
-  emergencyPurifyButton: {fileID: 1796825459}
-  purifyStopButton: {fileID: 243570841}
-  magicCircleOverlay: {fileID: 1902766323}
-  dangerOverlay: {fileID: 0}
-  dangerEffects: []
-  kegareMaxOverlayAlpha: 0.2
-  kegareMaxDarkenIntensity: 0.2
-  kegareMaxReleaseDelay: 0.15
-  kegareMaxWobbleScale: 0.02
-  kegareMaxWobbleSpeed: 2.6
-  kegareMaxJitterAmplitude: 0.015
   purifyTickInterval: 1
   purifyTickAmount: 2
   enablePurifyTick: 0
-  energyEmptyAlpha: 0.45
   enableStateLogs: 0
-  specialDangoButton: {fileID: 1469008923}
---- !u!1 &1796825459 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5481682468745329004, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
-  m_PrefabInstance: {fileID: 4728112825340963316}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1803633755
 GameObject:
   m_ObjectHideFlags: 0
@@ -2148,6 +2117,10 @@ PrefabInstance:
       propertyPath: m_fontSizeBase
       value: 40
       objectReference: {fileID: 0}
+    - target: {fileID: 9021745638291456789, guid: 366e9576cd92a104e916717384432116, type: 3}
+      propertyPath: stateController
+      value: 
+      objectReference: {fileID: 1786705811}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2262,6 +2235,10 @@ PrefabInstance:
     - target: {fileID: 5481682468745329004, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_Name
       value: Btn_PurityRecover_Ad
+      objectReference: {fileID: 0}
+    - target: {fileID: 5481682468745329004, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: stateController
@@ -2824,6 +2801,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: FireBall
       objectReference: {fileID: 0}
+    - target: {fileID: 7204756624554123556, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2862,7 +2843,6 @@ MonoBehaviour:
   isEvolutionReady: 0
   hasEvolved: 0
   stateController: {fileID: 1786705811}
-  energyManager: {fileID: 515532832}
   growthParticles: []
 --- !u!114 &8218868374499439926 stripped
 MonoBehaviour:
