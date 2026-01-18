@@ -8,7 +8,7 @@ public class DebugOverlay : MonoBehaviour
     const float PanelPadding = 8f;
     const float ButtonHeight = 24f;
 
-    KegareManager kegareManager;
+    PurityManager purityManager;
     EnergyManager energyManager;
     YokaiStateController stateController;
     YokaiGrowthController growthController;
@@ -65,7 +65,7 @@ public class DebugOverlay : MonoBehaviour
 
     void ResolveDependencies()
     {
-        kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        purityManager = CurrentYokaiContext.ResolvePurityManager();
         energyManager = FindObjectOfType<EnergyManager>();
         stateController = CurrentYokaiContext.ResolveStateController();
         ResolveGrowthController(CurrentYokaiContext.Current);
@@ -128,8 +128,8 @@ public class DebugOverlay : MonoBehaviour
         string growthLabel = growthController != null
             ? $"{growthController.currentScale:0.##}/{growthController.maxScale:0.##}"
             : "Unknown";
-        string kegareLabel = kegareManager != null
-            ? $"{kegareManager.kegare:0.##}/{kegareManager.maxKegare:0.##}"
+        string purityLabel = purityManager != null
+            ? $"{purityManager.purityValue:0.##}/{purityManager.maxPurity:0.##}"
             : "Unknown";
         string energyLabel = energyManager != null
             ? $"{energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}"
@@ -138,17 +138,17 @@ public class DebugOverlay : MonoBehaviour
         GUILayout.Label($"State: {stateLabel}", labelStyle);
         GUILayout.Label($"Yokai: {yokaiName}", labelStyle);
         GUILayout.Label($"Stage: {growthLabel}", labelStyle);
-        GUILayout.Label($"Kegare: {kegareLabel}", labelStyle);
+        GUILayout.Label($"Purity: {purityLabel}", labelStyle);
         GUILayout.Label($"Energy: {energyLabel}", labelStyle);
     }
 
     void DrawControls()
     {
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button("穢れ +", buttonStyle, GUILayout.Height(ButtonHeight)))
-            AdjustKegare(10f);
-        if (GUILayout.Button("穢れ -", buttonStyle, GUILayout.Height(ButtonHeight)))
-            AdjustKegare(-10f);
+        if (GUILayout.Button("清浄度 +", buttonStyle, GUILayout.Height(ButtonHeight)))
+            AdjustPurity(10f);
+        if (GUILayout.Button("清浄度 -", buttonStyle, GUILayout.Height(ButtonHeight)))
+            AdjustPurity(-10f);
         GUILayout.EndHorizontal();
 
         if (GUILayout.Button("Energy -", buttonStyle, GUILayout.Height(ButtonHeight)))
@@ -165,10 +165,10 @@ public class DebugOverlay : MonoBehaviour
     void HandleEditorShortcuts()
     {
         if (Input.GetKeyDown(KeyCode.K))
-            AdjustKegare(10f);
+            AdjustPurity(10f);
 
         if (Input.GetKeyDown(KeyCode.J))
-            AdjustKegare(-10f);
+            AdjustPurity(-10f);
 
         if (Input.GetKeyDown(KeyCode.E))
             SetEvolutionReady();
@@ -178,15 +178,15 @@ public class DebugOverlay : MonoBehaviour
     }
 #endif
 
-    void AdjustKegare(float amount)
+    void AdjustPurity(float amount)
     {
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (purityManager == null)
+            purityManager = CurrentYokaiContext.ResolvePurityManager();
 
-        if (kegareManager == null)
+        if (purityManager == null)
             return;
 
-        kegareManager.AddKegare(amount);
+        purityManager.AddPurity(amount);
     }
 
     void AdjustEnergy(float amount)

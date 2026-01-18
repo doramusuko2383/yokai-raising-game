@@ -15,10 +15,10 @@ MonoBehaviour:
   mentorName: おんみょうじい
   mentorSpeechStyle: "〜じゃ／〜のう"
   energyStatusName: 霊力
-  corruptionStatusName: けがれ
+  corruptionStatusName: 清浄度
   recoveryItemName: だんご
   normalMessage: いつも元気でえらいのう。
   weakMessage: すこし休むのじゃ。
-  dangerMessage: けがれがたまっておるのう。
+  dangerMessage: 清浄度がさがっておるのう。
   mononokeMessage: このままではモノノケになってしまうのじゃ。
   recoveredMessage: ほら、回復したのじゃ。

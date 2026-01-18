@@ -331,7 +331,7 @@ GameObject:
   - component: {fileID: 2661757613229561159}
   - component: {fileID: 1727210084470384739}
   m_Layer: 5
-  m_Name: Kegare Slider
+  m_Name: Purity Slider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

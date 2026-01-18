@@ -11,7 +11,7 @@ public class YokaiStateController : MonoBehaviour
     public bool isPurifying;
     public event System.Action<YokaiState, YokaiState> OnStateChanged;
     bool isEnergyEmpty;
-    bool isKegareMax;
+    bool isPurityEmpty;
     bool isEvolving;
 
     [Header("Dependencies")]
@@ -19,7 +19,7 @@ public class YokaiStateController : MonoBehaviour
     private YokaiGrowthController growthController;
 
     [SerializeField]
-    KegareManager kegareManager;
+    PurityManager purityManager;
 
     [SerializeField]
     EnergyManager energyManager;
@@ -38,7 +38,7 @@ public class YokaiStateController : MonoBehaviour
     bool enableStateLogs = false;
 
     float purifyTimer;
-    KegareManager registeredKegareManager;
+    PurityManager registeredPurityManager;
     EnergyManager registeredEnergyManager;
     bool evolutionResultPending;
     YokaiEvolutionStage evolutionResultStage;
@@ -46,7 +46,7 @@ public class YokaiStateController : MonoBehaviour
     bool hasStarted;
 
     public bool IsEnergyEmpty => isEnergyEmpty;
-    public bool IsKegareMax => isKegareMax;
+    public bool IsPurityEmpty => isPurityEmpty;
     public bool IsEvolving => isEvolving;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -114,33 +114,33 @@ public class YokaiStateController : MonoBehaviour
                 SetActiveYokai(growthController.gameObject);
         }
 
-        if (kegareManager == null)
-            kegareManager = FindObjectOfType<KegareManager>();
+        if (purityManager == null)
+            purityManager = FindObjectOfType<PurityManager>();
 
         if (energyManager == null)
             energyManager = FindObjectOfType<EnergyManager>();
 
-        RegisterKegareEvents();
+        RegisterPurityEvents();
         RegisterEnergyEvents();
     }
 
-    void RegisterKegareEvents()
+    void RegisterPurityEvents()
     {
-        if (registeredKegareManager == kegareManager)
+        if (registeredPurityManager == purityManager)
             return;
 
-        if (registeredKegareManager != null)
+        if (registeredPurityManager != null)
         {
-            registeredKegareManager.EmergencyPurifyRequested -= ExecuteEmergencyPurifyFromButton;
-            registeredKegareManager.KegareChanged -= OnKegareChanged;
+            registeredPurityManager.EmergencyPurifyRequested -= ExecuteEmergencyPurifyFromButton;
+            registeredPurityManager.PurityChanged -= OnPurityChanged;
         }
 
-        registeredKegareManager = kegareManager;
+        registeredPurityManager = purityManager;
 
-        if (registeredKegareManager != null)
+        if (registeredPurityManager != null)
         {
-            registeredKegareManager.EmergencyPurifyRequested += ExecuteEmergencyPurifyFromButton;
-            registeredKegareManager.KegareChanged += OnKegareChanged;
+            registeredPurityManager.EmergencyPurifyRequested += ExecuteEmergencyPurifyFromButton;
+            registeredPurityManager.PurityChanged += OnPurityChanged;
         }
     }
 
@@ -169,18 +169,18 @@ public class YokaiStateController : MonoBehaviour
         if (energyManager != null)
             isEnergyEmpty = energyManager.HasNoEnergy() && energyManager.HasEverHadEnergy;
 
-        if (kegareManager != null)
-            isKegareMax = kegareManager.isKegareMax;
+        if (purityManager != null)
+            isPurityEmpty = purityManager.isPurityEmpty;
     }
 
-    void OnKegareChanged(float current, float max)
+    void OnPurityChanged(float current, float max)
     {
-        bool previous = isKegareMax;
-        if (kegareManager != null)
-            isKegareMax = kegareManager.isKegareMax;
+        bool previous = isPurityEmpty;
+        if (purityManager != null)
+            isPurityEmpty = purityManager.isPurityEmpty;
 
-        if (previous != isKegareMax)
-            EvaluateState(reason: "KegareChanged");
+        if (previous != isPurityEmpty)
+            EvaluateState(reason: "PurityChanged");
     }
 
     public void OnEnergyEmpty()
@@ -199,7 +199,7 @@ public class YokaiStateController : MonoBehaviour
 
     void EvaluateState(YokaiState? requestedState = null, string reason = "Auto")
     {
-        if (energyManager == null || kegareManager == null)
+        if (energyManager == null || purityManager == null)
             return;
 
         YokaiState nextState = DetermineNextState(requestedState);
@@ -213,7 +213,7 @@ public class YokaiStateController : MonoBehaviour
             return YokaiState.EnergyEmpty;
         }
 
-        if (isKegareMax)
+        if (isPurityEmpty)
         {
             return YokaiState.PurityEmpty;
         }
@@ -329,9 +329,9 @@ public class YokaiStateController : MonoBehaviour
         if (activeYokai == null)
             return;
 
-        kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        purityManager = CurrentYokaiContext.ResolvePurityManager();
         energyManager = FindObjectOfType<EnergyManager>();
-        RegisterKegareEvents();
+        RegisterPurityEvents();
         RegisterEnergyEvents();
 
         if (currentState != YokaiState.Evolving)
@@ -376,17 +376,17 @@ public class YokaiStateController : MonoBehaviour
         if (energyManager == null)
             energyManager = FindObjectOfType<EnergyManager>();
 
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (purityManager == null)
+            purityManager = CurrentYokaiContext.ResolvePurityManager();
 
-        if (energyManager == null || kegareManager == null)
+        if (energyManager == null || purityManager == null)
         {
             Debug.LogWarning("[STATE] Ad recovery failed: manager not found.");
             return;
         }
 
         energyManager.SetEnergyRatio(0.5f);
-        kegareManager.AddKegareRatio(-0.2f);
+        purityManager.AddPurityRatio(-0.2f);
         EvaluateState(reason: "EnergyAdRecover");
     }
 
@@ -395,23 +395,23 @@ public class YokaiStateController : MonoBehaviour
         if (energyManager == null)
             energyManager = FindObjectOfType<EnergyManager>();
 
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (purityManager == null)
+            purityManager = CurrentYokaiContext.ResolvePurityManager();
 
-        if (energyManager == null || kegareManager == null)
+        if (energyManager == null || purityManager == null)
         {
             Debug.LogWarning("[STATE] Ad recovery failed: manager not found.");
             return;
         }
 
-        kegareManager.SetKegareRatio(1.0f);
+        purityManager.SetPurityRatio(1.0f);
         energyManager.AddEnergyRatio(0.2f);
         EvaluateState(reason: "PurityAdRecover");
     }
 
-    public void OnKegareMax()
+    public void OnPurityEmpty()
     {
-        HandleThresholdReached(ref isKegareMax, "KegareMax");
+        HandleThresholdReached(ref isPurityEmpty, "PurityEmpty");
     }
 
     void HandleThresholdReached(ref bool stateFlag, string reason)
@@ -425,33 +425,33 @@ public class YokaiStateController : MonoBehaviour
 
     void ExecuteEmergencyPurifyInternal(bool isExplicitRequest)
     {
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (purityManager == null)
+            purityManager = CurrentYokaiContext.ResolvePurityManager();
 
         if (!isExplicitRequest)
         {
-            if (kegareManager == null || kegareManager.kegare < kegareManager.maxKegare)
+            if (purityManager == null || purityManager.purityValue < purityManager.maxPurity)
                 return;
 
             if (currentState != YokaiState.PurityEmpty)
                 return;
         }
 
-        if (kegareManager != null)
-            kegareManager.ExecuteEmergencyPurify();
+        if (purityManager != null)
+            purityManager.ExecuteEmergencyPurify();
 
         EvaluateState(reason: "EmergencyPurify");
     }
 
     bool IsPurityEmpty()
     {
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (purityManager == null)
+            purityManager = CurrentYokaiContext.ResolvePurityManager();
 
-        RegisterKegareEvents();
-        if (kegareManager != null)
-            isKegareMax = kegareManager.isKegareMax;
-        return isKegareMax;
+        RegisterPurityEvents();
+        if (purityManager != null)
+            isPurityEmpty = purityManager.isPurityEmpty;
+        return isPurityEmpty;
     }
 
     bool HasReachedEvolutionScale()
@@ -465,18 +465,18 @@ public class YokaiStateController : MonoBehaviour
 
     bool IsEvolutionBlocked(out string reason)
     {
-        bool hasKegareMax = isKegareMax;
+        bool hasPurityEmpty = isPurityEmpty;
         bool hasEnergyEmpty = isEnergyEmpty;
-        if (!hasKegareMax && !hasEnergyEmpty)
+        if (!hasPurityEmpty && !hasEnergyEmpty)
         {
             reason = string.Empty;
             return false;
         }
 
-        if (hasKegareMax && hasEnergyEmpty)
-            reason = "穢れMAX / 霊力0";
-        else if (hasKegareMax)
-            reason = "穢れMAX";
+        if (hasPurityEmpty && hasEnergyEmpty)
+            reason = "清浄度0 / 霊力0";
+        else if (hasPurityEmpty)
+            reason = "清浄度0";
         else
             reason = "霊力0";
 
@@ -491,10 +491,10 @@ public class YokaiStateController : MonoBehaviour
         if (!enablePurifyTick)
             return;
 
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (purityManager == null)
+            purityManager = CurrentYokaiContext.ResolvePurityManager();
 
-        if (kegareManager == null)
+        if (purityManager == null)
             return;
 
         purifyTimer += Time.deltaTime;
@@ -502,7 +502,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         purifyTimer = 0f;
-        kegareManager.AddKegare(-purifyTickAmount);
+        purityManager.AddPurity(-purifyTickAmount);
     }
 
     public void EnterEnergyEmpty()
@@ -510,9 +510,9 @@ public class YokaiStateController : MonoBehaviour
         OnEnergyEmpty();
     }
 
-    public void EnterKegareMax()
+    public void EnterPurityEmpty()
     {
-        OnKegareMax();
+        OnPurityEmpty();
     }
 
     public bool TryConsumeEvolutionResult(out YokaiEvolutionStage stage)
@@ -549,12 +549,12 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         string yokaiName = CurrentYokaiContext.CurrentName();
-        float currentKegare = kegareManager != null ? kegareManager.kegare : 0f;
-        float maxKegare = kegareManager != null ? kegareManager.maxKegare : 0f;
+        float currentPurity = purityManager != null ? purityManager.purityValue : 0f;
+        float maxPurity = purityManager != null ? purityManager.maxPurity : 0f;
         float currentEnergy = energyManager != null ? energyManager.energy : 0f;
         float maxEnergy = energyManager != null ? energyManager.maxEnergy : 0f;
 #if UNITY_EDITOR
-        Debug.Log($"[STATE] {yokaiName} {previousState}->{nextState} reason={reason} energy={currentEnergy:0.##}/{maxEnergy:0.##} kegare={currentKegare:0.##}/{maxKegare:0.##}");
+        Debug.Log($"[STATE] {yokaiName} {previousState}->{nextState} reason={reason} energy={currentEnergy:0.##}/{maxEnergy:0.##} purity={currentPurity:0.##}/{maxPurity:0.##}");
 #endif
     }
 }

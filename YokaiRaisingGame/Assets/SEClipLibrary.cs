@@ -18,12 +18,12 @@ public class SEClipLibrary : ScriptableObject
     [SerializeField]
     AudioClip evolutionStart;
 
-    [Header("Kegare")]
+    [Header("Purity")]
     [SerializeField]
-    AudioClip kegareMaxEnter;
+    AudioClip purityEmptyEnter;
 
     [SerializeField]
-    AudioClip kegareMaxRelease;
+    AudioClip purityEmptyRelease;
 
     [Header("Spirit")]
     [SerializeField]
@@ -44,10 +44,10 @@ public class SEClipLibrary : ScriptableObject
                 return purifySuccess;
             case YokaiSE.SE_EVOLUTION_START:
                 return evolutionStart;
-            case YokaiSE.SE_KEGARE_MAX_ENTER:
-                return kegareMaxEnter;
-            case YokaiSE.SE_KEGARE_MAX_RELEASE:
-                return kegareMaxRelease;
+            case YokaiSE.SE_PURITY_EMPTY_ENTER:
+                return purityEmptyEnter;
+            case YokaiSE.SE_PURITY_EMPTY_RELEASE:
+                return purityEmptyRelease;
             case YokaiSE.SE_SPIRIT_EMPTY:
                 return spiritEmpty;
             case YokaiSE.SE_SPIRIT_RECOVER:

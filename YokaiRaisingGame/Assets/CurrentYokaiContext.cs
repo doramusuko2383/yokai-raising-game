@@ -25,16 +25,16 @@ public static class CurrentYokaiContext
         return currentYokai != null ? currentYokai.name : "null";
     }
 
-    public static KegareManager ResolveKegareManager()
+    public static PurityManager ResolvePurityManager()
     {
         if (currentYokai != null)
         {
-            var kegare = currentYokai.GetComponentInChildren<KegareManager>(true);
-            if (kegare != null)
-                return kegare;
+            var purity = currentYokai.GetComponentInChildren<PurityManager>(true);
+            if (purity != null)
+                return purity;
         }
 
-        return Object.FindObjectOfType<KegareManager>();
+        return Object.FindObjectOfType<PurityManager>();
     }
 
     public static YokaiStateController ResolveStateController()

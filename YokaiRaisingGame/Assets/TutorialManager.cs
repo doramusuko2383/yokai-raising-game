@@ -20,7 +20,7 @@ public class TutorialManager : MonoBehaviour
     TutorialStep currentStep = TutorialStep.None;
     TutorialStep displayedStep = TutorialStep.None;
 
-    KegareManager kegareManager;
+    PurityManager purityManager;
     YokaiStateController stateController;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -59,7 +59,7 @@ public class TutorialManager : MonoBehaviour
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
-        UnbindKegareManager();
+        UnbindPurityManager();
     }
 
     void Update()
@@ -75,29 +75,29 @@ public class TutorialManager : MonoBehaviour
 
     void BindDependencies()
     {
-        var foundKegareManager = FindObjectOfType<KegareManager>();
-        if (foundKegareManager != kegareManager)
+        var foundPurityManager = FindObjectOfType<PurityManager>();
+        if (foundPurityManager != purityManager)
         {
-            UnbindKegareManager();
-            kegareManager = foundKegareManager;
-            if (kegareManager != null)
-                kegareManager.KegareChanged += OnKegareChanged;
+            UnbindPurityManager();
+            purityManager = foundPurityManager;
+            if (purityManager != null)
+                purityManager.PurityChanged += OnPurityChanged;
         }
 
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
     }
 
-    void UnbindKegareManager()
+    void UnbindPurityManager()
     {
-        if (kegareManager != null)
-            kegareManager.KegareChanged -= OnKegareChanged;
+        if (purityManager != null)
+            purityManager.PurityChanged -= OnPurityChanged;
     }
 
-    void OnKegareChanged(float current, float max)
+    void OnPurityChanged(float current, float max)
     {
-        if (currentStep == TutorialStep.KegareNotice && current > 0f)
-            CompleteIfCurrent(TutorialStep.KegareNotice);
+        if (currentStep == TutorialStep.PurityNotice && current > 0f)
+            CompleteIfCurrent(TutorialStep.PurityNotice);
     }
 
     void EnsureUI()
@@ -202,8 +202,8 @@ public class TutorialManager : MonoBehaviour
         {
             case TutorialStep.Dango:
                 return TutorialStep.Dango;
-            case TutorialStep.KegareNotice:
-                return TutorialStep.KegareNotice;
+            case TutorialStep.PurityNotice:
+                return TutorialStep.PurityNotice;
             case TutorialStep.Purify:
                 return TutorialStep.Purify;
             case TutorialStep.Evolution:
@@ -251,10 +251,10 @@ public class TutorialManager : MonoBehaviour
         {
             case TutorialStep.Dango:
                 return "だんごをあげてみよう！";
-            case TutorialStep.KegareNotice:
-                return "放っておくと穢れがたまるよ。ゲージを見てね！";
+            case TutorialStep.PurityNotice:
+                return "放っておくと清浄度が下がるよ。ゲージを見てね！";
             case TutorialStep.Purify:
-                return "おきよめして穢れを減らそう！";
+                return "おきよめして清浄度を回復しよう！";
             case TutorialStep.Evolution:
                 return "進化できるよ！ヨウカイをタップ！";
             default:
@@ -277,8 +277,8 @@ public class TutorialManager : MonoBehaviour
         switch (step)
         {
             case TutorialStep.Dango:
-                return TutorialStep.KegareNotice;
-            case TutorialStep.KegareNotice:
+                return TutorialStep.PurityNotice;
+            case TutorialStep.PurityNotice:
                 return TutorialStep.Purify;
             case TutorialStep.Purify:
                 return TutorialStep.Evolution;

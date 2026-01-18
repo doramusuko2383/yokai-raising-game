@@ -10,7 +10,7 @@ public class MagicCircleActivator : MonoBehaviour
     Yokai.YokaiStateController subscribedStateController;
 
     [SerializeField]
-    KegareManager kegareManager;
+    PurityManager purityManager;
 
     PurifyRequestType pendingRequest = PurifyRequestType.None;
 
@@ -122,7 +122,7 @@ public class MagicCircleActivator : MonoBehaviour
     void OnHealRequested()
     {
         Debug.Log($"[MagicCircleActivator][OnHealRequested][Enter] pendingRequest={pendingRequest}");
-        Debug.Log("[MagicCircleActivator][OnHealRequested][ENTER] pendingRequest=" + pendingRequest + " kegareManager=" + (kegareManager == null ? "null" : "ok"));
+        Debug.Log("[MagicCircleActivator][OnHealRequested][ENTER] pendingRequest=" + pendingRequest + " purityManager=" + (purityManager == null ? "null" : "ok"));
         NotifySuccessHooks();
 
         if (pendingRequest == PurifyRequestType.Normal)
@@ -197,17 +197,17 @@ public class MagicCircleActivator : MonoBehaviour
     void ApplyPurifySuccess()
     {
         Debug.Log("[MagicCircleActivator][ApplyPurifySuccess][Enter]");
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (purityManager == null)
+            purityManager = CurrentYokaiContext.ResolvePurityManager();
 
-        if (kegareManager != null)
+        if (purityManager != null)
         {
-            kegareManager.ApplyPurifyFromMagicCircle();
+            purityManager.ApplyPurifyFromMagicCircle();
             Debug.Log("[PURIFY] おきよめ成功");
         }
         else
         {
-            Debug.LogWarning("[PURIFY] KegareManager が見つからないため穢れを減らせません。");
+            Debug.LogWarning("[PURIFY] PurityManager が見つからないため清浄度を回復できません。");
         }
 
         MentorMessageService.ShowHint(OnmyojiHintType.OkIYomeSuccess);
