@@ -468,12 +468,12 @@ public class YokaiStateController : MonoBehaviour
 
     public void EnterEnergyEmpty()
     {
-        SetState(YokaiState.EnergyEmpty, "EnergyZero");
+        OnEnergyEmpty();
     }
 
     public void EnterKegareMax()
     {
-        SetState(YokaiState.PurityEmpty, "KegareMax");
+        OnKegareMax();
     }
 
     public bool TryConsumeEvolutionResult(out YokaiEvolutionStage stage)
