@@ -173,16 +173,24 @@ public class YokaiStatePresentationController : MonoBehaviour
             lastPurifying = stateController.isPurifying;
     }
 
+    bool IsEmptyState(YokaiState state)
+    {
+        return state == YokaiState.EnergyEmpty || state == YokaiState.PurityEmpty;
+    }
+
     void HandleEmptyStatePresentation(YokaiState previousState, YokaiState newState, System.Action afterEffects)
     {
-        if (newState == YokaiState.EnergyEmpty && previousState != YokaiState.EnergyEmpty)
+        bool wasEmptyState = IsEmptyState(previousState);
+        bool isEmptyState = IsEmptyState(newState);
+
+        if (newState == YokaiState.EnergyEmpty && (!wasEmptyState || previousState == YokaiState.PurityEmpty))
             PlayEnergyEmptyEnterEffects();
-        else if (previousState == YokaiState.EnergyEmpty && newState != YokaiState.EnergyEmpty)
+        else if (previousState == YokaiState.EnergyEmpty && (!isEmptyState || newState == YokaiState.PurityEmpty))
             PlayEnergyEmptyExitEffects();
 
-        if (newState == YokaiState.PurityEmpty && previousState != YokaiState.PurityEmpty)
+        if (newState == YokaiState.PurityEmpty && (!wasEmptyState || previousState == YokaiState.EnergyEmpty))
             EnterKegareMax();
-        else if (previousState == YokaiState.PurityEmpty && newState != YokaiState.PurityEmpty)
+        else if (previousState == YokaiState.PurityEmpty && (!isEmptyState || newState == YokaiState.EnergyEmpty))
             RequestReleaseKegareMax();
 
         afterEffects?.Invoke();
