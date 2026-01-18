@@ -185,11 +185,7 @@ public class YokaiStateController : MonoBehaviour
 
     public void OnEnergyEmpty()
     {
-        if (isEnergyEmpty)
-            return;
-
-        isEnergyEmpty = true;
-        EvaluateState(reason: "EnergyZero");
+        HandleThresholdReached(ref isEnergyEmpty, "EnergyZero");
     }
 
     public void OnEnergyRecovered()
@@ -377,11 +373,16 @@ public class YokaiStateController : MonoBehaviour
 
     public void OnKegareMax()
     {
-        if (isKegareMax)
+        HandleThresholdReached(ref isKegareMax, "KegareMax");
+    }
+
+    void HandleThresholdReached(ref bool stateFlag, string reason)
+    {
+        if (stateFlag)
             return;
 
-        isKegareMax = true;
-        EvaluateState(reason: "KegareMax");
+        stateFlag = true;
+        EvaluateState(reason: reason);
     }
 
     void ExecuteEmergencyPurifyInternal(bool isExplicitRequest)
