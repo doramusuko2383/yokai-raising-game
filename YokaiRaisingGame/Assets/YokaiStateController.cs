@@ -9,7 +9,6 @@ public class YokaiStateController : MonoBehaviour
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
     public bool isPurifying;
-
     public event System.Action<YokaiState, YokaiState> OnStateChanged;
     bool isEnergyEmpty;
     bool isKegareMax;
@@ -48,7 +47,6 @@ public class YokaiStateController : MonoBehaviour
 
     public bool IsEnergyEmpty => isEnergyEmpty;
     public bool IsKegareMax => isKegareMax;
-    public bool IsPurityEmpty => isKegareMax;
     public bool IsEvolving => isEvolving;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -445,7 +443,7 @@ public class YokaiStateController : MonoBehaviour
         EvaluateState(reason: "EmergencyPurify");
     }
 
-    bool IsPurityEmpty()
+    public bool IsPurityEmpty()
     {
         if (kegareManager == null)
             kegareManager = CurrentYokaiContext.ResolveKegareManager();
