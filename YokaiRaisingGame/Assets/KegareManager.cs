@@ -36,7 +36,10 @@ public class KegareManager : MonoBehaviour
         get => isPurityEmpty;
         private set => isPurityEmpty = value;
     }
+    public float Purity => purity;
+    public float MaxPurity => maxPurity;
     public bool IsPurityEmpty => isPurityEmpty;
+    public bool IsPurityEmptyPublic => IsPurityEmpty;
     GameObject currentYokai;
     float increaseTimer;
     bool isInDanger;
@@ -49,6 +52,7 @@ public class KegareManager : MonoBehaviour
     }
 
     public event System.Action EmergencyPurifyRequested;
+    public event System.Action<float, float> PurityChanged;
     System.Action<float, float> kegareChanged;
     public event System.Action<float, float> KegareChanged
     {
@@ -250,6 +254,7 @@ public class KegareManager : MonoBehaviour
     {
         UpdateDangerState();
         kegareChanged?.Invoke(kegare, maxKegare);
+        PurityChanged?.Invoke(kegare, maxKegare);
     }
 
     void InitializeIfNeeded(string reason)
