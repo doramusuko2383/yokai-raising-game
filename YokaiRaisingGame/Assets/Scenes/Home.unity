@@ -205,7 +205,7 @@ GameObject:
   - component: {fileID: 515532832}
   - component: {fileID: 515532834}
   m_Layer: 0
-  m_Name: EnergyManager
+  m_Name: SpiritController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -223,8 +223,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 091029a6a9999b64f9dc6b5348983bc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  energy: 0
-  maxEnergy: 100
+  spirit: 0
+  maxSpirit: 100
   hasEverHadEnergy: 0
   naturalDecayPerMinute: 2.5
   decayIntervalSeconds: 60
@@ -256,7 +256,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44e424736d7740128ddae2dce39c7051, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  energyManager: {fileID: 515532832}
+  spiritController: {fileID: 515532832}
   stateController: {fileID: 1786705811}
   yokaiCanvasGroup: {fileID: 992496717}
   yokaiImage: {fileID: 8218868374499439926}
@@ -527,7 +527,7 @@ GameObject:
   - component: {fileID: 604884281}
   - component: {fileID: 604884283}
   m_Layer: 0
-  m_Name: KegareManager
+  m_Name: PurityController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -545,8 +545,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 613daf9fab54c0a49be98a601d982631, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  kegare: 0
-  maxKegare: 100
+  purity: 100
+  maxPurity: 100
   naturalIncreasePerMinute: 2
   increaseIntervalSeconds: 60
   worldConfig: {fileID: 0}
@@ -580,8 +580,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbf51fb3421f4de683e683348642758e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  kegareManager: {fileID: 604884281}
-  kegareSlider: {fileID: 676147554}
+  purityController: {fileID: 604884281}
+  puritySlider: {fileID: 676147554}
   stateController: {fileID: 1786705811}
   presentationController: {fileID: 0}
   pulseScale: 1.08
@@ -1467,8 +1467,8 @@ MonoBehaviour:
   currentState: 0
   isPurifying: 0
   growthController: {fileID: 0}
-  kegareManager: {fileID: 604884281}
-  energyManager: {fileID: 515532832}
+  purityController: {fileID: 604884281}
+  spiritController: {fileID: 515532832}
   purifyTickInterval: 1
   purifyTickAmount: 2
   enablePurifyTick: 0
@@ -1585,7 +1585,7 @@ MonoBehaviour:
   successPulseScale: 1.1
   successPulseDuration: 0.2
   stateController: {fileID: 1786705811}
-  kegareManager: {fileID: 604884281}
+  purityController: {fileID: 604884281}
 --- !u!1 &1902766323
 GameObject:
   m_ObjectHideFlags: 0
@@ -1648,7 +1648,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stateController: {fileID: 1786705811}
-  kegareManager: {fileID: 604884281}
+  purityController: {fileID: 604884281}
 --- !u!4 &1905322488
 Transform:
   m_ObjectHideFlags: 0
@@ -1799,7 +1799,7 @@ MonoBehaviour:
   successPulseScale: 1.1
   successPulseDuration: 0.2
   stateController: {fileID: 1786705811}
-  kegareManager: {fileID: 604884281}
+  purityController: {fileID: 604884281}
 --- !u!224 &2068515356 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3754476293137327125, guid: 34832eb000682f540abdfbd27a7f5027, type: 3}
@@ -2362,7 +2362,7 @@ PrefabInstance:
       value: 80
       objectReference: {fileID: 0}
     - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: energyManager
+      propertyPath: spiritController
       value: 
       objectReference: {fileID: 515532832}
     - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
@@ -2426,7 +2426,7 @@ PrefabInstance:
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: kegareManager
+      propertyPath: purityController
       value: 
       objectReference: {fileID: 604884281}
     - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
@@ -2575,11 +2575,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7410728811607350943, guid: f2c4fb29fe97dba4a8d083d0c08ee85c, type: 3}
-      propertyPath: energyManager
+      propertyPath: spiritController
       value: 
       objectReference: {fileID: 515532832}
     - target: {fileID: 7410728811607350943, guid: f2c4fb29fe97dba4a8d083d0c08ee85c, type: 3}
-      propertyPath: kegareManager
+      propertyPath: purityController
       value: 
       objectReference: {fileID: 604884281}
     - target: {fileID: 7410728811607350943, guid: f2c4fb29fe97dba4a8d083d0c08ee85c, type: 3}
@@ -2604,11 +2604,11 @@ PrefabInstance:
       value: YokaiAdult
       objectReference: {fileID: 0}
     - target: {fileID: 5916421641666367254, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}
-      propertyPath: energyManager
+      propertyPath: spiritController
       value: 
       objectReference: {fileID: 515532832}
     - target: {fileID: 5916421641666367254, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}
-      propertyPath: kegareManager
+      propertyPath: purityController
       value: 
       objectReference: {fileID: 604884281}
     - target: {fileID: 5916421641666367254, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}

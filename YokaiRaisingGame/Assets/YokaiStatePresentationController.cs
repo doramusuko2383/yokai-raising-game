@@ -38,41 +38,41 @@ public class YokaiStatePresentationController : MonoBehaviour
     [SerializeField]
     YokaiDangerEffect[] dangerEffects;
 
-    [Header("Kegare Max Visuals")]
+    [Header("Purity Empty Visuals")]
     [SerializeField]
-    float kegareMaxOverlayAlpha = 0.2f;
+    float purityEmptyOverlayAlpha = 0.2f;
 
     [SerializeField]
-    float kegareMaxDarkenIntensity = 0.2f;
+    float purityEmptyDarkenIntensity = 0.2f;
 
     [SerializeField]
-    float kegareMaxReleaseDelay = 0.15f;
+    float purityEmptyReleaseDelay = 0.15f;
 
     [SerializeField]
-    float kegareMaxWobbleScale = 0.02f;
+    float purityEmptyWobbleScale = 0.02f;
 
     [SerializeField]
-    float kegareMaxWobbleSpeed = 2.6f;
+    float purityEmptyWobbleSpeed = 2.6f;
 
     [SerializeField]
-    float kegareMaxJitterAmplitude = 0.015f;
+    float purityEmptyJitterAmplitude = 0.015f;
 
     [Header("Recovery Ad Buttons")]
     [SerializeField]
     GameObject energyRecoverAdButton;
 
-    GameObject kegareMaxTargetRoot;
-    readonly Dictionary<SpriteRenderer, Color> kegareMaxSpriteColors = new Dictionary<SpriteRenderer, Color>();
-    readonly Dictionary<Image, Color> kegareMaxImageColors = new Dictionary<Image, Color>();
-    Vector3 kegareMaxBasePosition;
-    Vector3 kegareMaxBaseScale;
-    float kegareMaxNoiseSeed;
-    bool isKegareMaxVisualsActive;
-    bool isKegareMaxMotionApplied;
-    Coroutine kegareMaxReleaseRoutine;
+    GameObject purityEmptyTargetRoot;
+    readonly Dictionary<SpriteRenderer, Color> purityEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
+    readonly Dictionary<Image, Color> purityEmptyImageColors = new Dictionary<Image, Color>();
+    Vector3 purityEmptyBasePosition;
+    Vector3 purityEmptyBaseScale;
+    float purityEmptyNoiseSeed;
+    bool isPurityEmptyVisualsActive;
+    bool isPurityEmptyMotionApplied;
+    Coroutine purityEmptyReleaseRoutine;
     bool lastPurifying;
 
-    public bool IsKegareMaxVisualsActive => isKegareMaxVisualsActive;
+    public bool IsPurityEmptyVisualsActive => isPurityEmptyVisualsActive;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void EnsurePresentationController()
@@ -120,7 +120,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void LateUpdate()
     {
-        UpdateKegareMaxMotion();
+        UpdatePurityEmptyMotion();
     }
 
     void ResolveDependencies()
@@ -172,7 +172,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void HandleCurrentYokaiChanged(GameObject activeYokai)
     {
-        CacheKegareMaxTargets(activeYokai);
+        CachePurityEmptyTargets(activeYokai);
         RefreshDangerEffectOriginalColors();
         RefreshPresentation();
     }
@@ -215,9 +215,9 @@ public class YokaiStatePresentationController : MonoBehaviour
             PlayEnergyEmptyExitEffects();
 
         if (newEmptyState == EmptyStateType.Purity && (!wasEmptyState || previousEmptyState == EmptyStateType.Energy))
-            EnterKegareMax();
+            EnterPurityEmpty();
         else if (previousEmptyState == EmptyStateType.Purity && (!isEmptyState || newEmptyState == EmptyStateType.Energy))
-            RequestReleaseKegareMax();
+            RequestReleasePurityEmpty();
 
         afterEffects?.Invoke();
         RefreshPresentation();
@@ -227,7 +227,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (CurrentYokaiContext.Current != null)
         {
-            CacheKegareMaxTargets(CurrentYokaiContext.Current);
+            CachePurityEmptyTargets(CurrentYokaiContext.Current);
         }
     }
 
@@ -236,10 +236,10 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController == null)
             return;
 
-        if (stateController.currentState == YokaiState.PurityEmpty && !isKegareMaxVisualsActive)
-            EnterKegareMax();
-        else if (stateController.currentState != YokaiState.PurityEmpty && isKegareMaxVisualsActive)
-            RequestReleaseKegareMax();
+        if (stateController.currentState == YokaiState.PurityEmpty && !isPurityEmptyVisualsActive)
+            EnterPurityEmpty();
+        else if (stateController.currentState != YokaiState.PurityEmpty && isPurityEmptyVisualsActive)
+            RequestReleasePurityEmpty();
     }
 
     void RefreshPresentation()
@@ -248,19 +248,19 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         YokaiState visualState = ResolveVisualState();
-        bool isKegareMaxState = visualState == YokaiState.PurityEmpty;
-        bool showKegareMaxVisuals = isKegareMaxVisualsActive && isKegareMaxState;
+        bool isPurityEmptyState = visualState == YokaiState.PurityEmpty;
+        bool showPurityEmptyVisuals = isPurityEmptyVisualsActive && isPurityEmptyState;
         bool isEnergyEmptyState = visualState == YokaiState.EnergyEmpty;
         bool showActionPanel =
             (stateController.currentState == YokaiState.Normal
             || stateController.currentState == YokaiState.EvolutionReady
-            || isKegareMaxState
+            || isPurityEmptyState
             || isEnergyEmptyState)
             && !stateController.isPurifying
             && visualState != YokaiState.Evolving;
         bool showMagicCircle = stateController.isPurifying;
         bool showStopPurify = stateController.isPurifying;
-        bool showDangerOverlay = showKegareMaxVisuals;
+        bool showDangerOverlay = showPurityEmptyVisuals;
 
         ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
         ApplyCanvasGroup(purifyStopButton, showStopPurify, showStopPurify);
@@ -269,15 +269,15 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (dangerOverlay != null)
         {
-            dangerOverlay.alpha = showDangerOverlay ? Mathf.Clamp01(kegareMaxOverlayAlpha) : 0f;
+            dangerOverlay.alpha = showDangerOverlay ? Mathf.Clamp01(purityEmptyOverlayAlpha) : 0f;
             dangerOverlay.blocksRaycasts = showDangerOverlay;
             dangerOverlay.interactable = showDangerOverlay;
         }
 
         UpdateRecoveryButtons(visualState);
-        UpdateActionPanelButtons(isKegareMaxState, isEnergyEmptyState);
+        UpdateActionPanelButtons(isPurityEmptyState, isEnergyEmptyState);
         UpdateDangerEffects();
-        UpdateKegareMaxVisuals(showKegareMaxVisuals);
+        UpdatePurityEmptyVisuals(showPurityEmptyVisuals);
     }
 
     YokaiState ResolveVisualState()
@@ -285,7 +285,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController != null && stateController.IsEvolving)
             return YokaiState.Evolving;
 
-        if (stateController != null && stateController.IsEnergyEmpty)
+        if (stateController != null && stateController.IsSpiritEmpty)
             return YokaiState.EnergyEmpty;
 
     if (stateController != null && stateController.IsPurityEmpty())
@@ -305,7 +305,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         return true;
     }
 
-    void UpdateActionPanelButtons(bool isKegareMax, bool isEnergyEmpty)
+    void UpdateActionPanelButtons(bool isPurityEmpty, bool isEnergyEmpty)
     {
         if (actionPanel == null)
             return;
@@ -336,7 +336,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             {
                 shouldShow = isPurifyButton;
             }
-            else if (isKegareMax)
+            else if (isPurityEmpty)
             {
                 shouldShow = false;
             }
@@ -383,8 +383,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (dangerEffects == null || dangerEffects.Length == 0)
             return;
 
-        bool enableBlink = isKegareMaxVisualsActive;
-        int intensityLevel = isKegareMaxVisualsActive ? 2 : 1;
+        bool enableBlink = isPurityEmptyVisualsActive;
+        int intensityLevel = isPurityEmptyVisualsActive ? 2 : 1;
 
         foreach (var effect in dangerEffects)
         {
@@ -397,40 +397,40 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
     }
 
-    void UpdateKegareMaxVisuals(bool enable)
+    void UpdatePurityEmptyVisuals(bool enable)
     {
-        if (kegareMaxTargetRoot == null || CurrentYokaiContext.Current != kegareMaxTargetRoot)
+        if (purityEmptyTargetRoot == null || CurrentYokaiContext.Current != purityEmptyTargetRoot)
         {
-            CacheKegareMaxTargets(CurrentYokaiContext.Current);
+            CachePurityEmptyTargets(CurrentYokaiContext.Current);
         }
 
         if (enable)
         {
-            foreach (var pair in kegareMaxSpriteColors)
+            foreach (var pair in purityEmptySpriteColors)
             {
                 if (pair.Key == null)
                     continue;
 
-                pair.Key.color = Color.Lerp(pair.Value, Color.black, Mathf.Clamp01(kegareMaxDarkenIntensity));
+                pair.Key.color = Color.Lerp(pair.Value, Color.black, Mathf.Clamp01(purityEmptyDarkenIntensity));
             }
 
-            foreach (var pair in kegareMaxImageColors)
+            foreach (var pair in purityEmptyImageColors)
             {
                 if (pair.Key == null)
                     continue;
 
-                pair.Key.color = Color.Lerp(pair.Value, Color.black, Mathf.Clamp01(kegareMaxDarkenIntensity));
+                pair.Key.color = Color.Lerp(pair.Value, Color.black, Mathf.Clamp01(purityEmptyDarkenIntensity));
             }
         }
         else
         {
-            ResetKegareMaxVisuals();
+            ResetPurityEmptyVisuals();
         }
     }
 
-    void ResetKegareMaxVisuals()
+    void ResetPurityEmptyVisuals()
     {
-        foreach (var pair in kegareMaxSpriteColors)
+        foreach (var pair in purityEmptySpriteColors)
         {
             if (pair.Key == null)
                 continue;
@@ -438,7 +438,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             pair.Key.color = pair.Value;
         }
 
-        foreach (var pair in kegareMaxImageColors)
+        foreach (var pair in purityEmptyImageColors)
         {
             if (pair.Key == null)
                 continue;
@@ -447,134 +447,134 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
     }
 
-    void UpdateKegareMaxMotion()
+    void UpdatePurityEmptyMotion()
     {
-        if (!isKegareMaxVisualsActive || ResolveVisualState() != YokaiState.PurityEmpty)
+        if (!isPurityEmptyVisualsActive || ResolveVisualState() != YokaiState.PurityEmpty)
         {
-            if (isKegareMaxMotionApplied)
+            if (isPurityEmptyMotionApplied)
             {
-                ResetKegareMaxMotion();
-                isKegareMaxMotionApplied = false;
+                ResetPurityEmptyMotion();
+                isPurityEmptyMotionApplied = false;
             }
             return;
         }
 
-        if (kegareMaxTargetRoot == null || CurrentYokaiContext.Current != kegareMaxTargetRoot)
+        if (purityEmptyTargetRoot == null || CurrentYokaiContext.Current != purityEmptyTargetRoot)
         {
-            CacheKegareMaxTargets(CurrentYokaiContext.Current);
+            CachePurityEmptyTargets(CurrentYokaiContext.Current);
         }
 
-        if (kegareMaxTargetRoot == null)
+        if (purityEmptyTargetRoot == null)
             return;
 
-        float time = Time.time * kegareMaxWobbleSpeed;
-        float pulse = Mathf.Sin(time) * kegareMaxWobbleScale;
-        float noise = (Mathf.PerlinNoise(kegareMaxNoiseSeed, time) - 0.5f) * 2f * kegareMaxWobbleScale;
+        float time = Time.time * purityEmptyWobbleSpeed;
+        float pulse = Mathf.Sin(time) * purityEmptyWobbleScale;
+        float noise = (Mathf.PerlinNoise(purityEmptyNoiseSeed, time) - 0.5f) * 2f * purityEmptyWobbleScale;
         float scaleMultiplier = 1f + pulse + noise;
 
-        float jitterX = (Mathf.PerlinNoise(kegareMaxNoiseSeed + 1.4f, time) - 0.5f) * 2f * kegareMaxJitterAmplitude;
-        float jitterY = (Mathf.PerlinNoise(kegareMaxNoiseSeed + 2.1f, time + 3.7f) - 0.5f) * 2f * kegareMaxJitterAmplitude;
+        float jitterX = (Mathf.PerlinNoise(purityEmptyNoiseSeed + 1.4f, time) - 0.5f) * 2f * purityEmptyJitterAmplitude;
+        float jitterY = (Mathf.PerlinNoise(purityEmptyNoiseSeed + 2.1f, time + 3.7f) - 0.5f) * 2f * purityEmptyJitterAmplitude;
 
-        kegareMaxTargetRoot.transform.localScale = kegareMaxBaseScale * scaleMultiplier;
-        kegareMaxTargetRoot.transform.localPosition = kegareMaxBasePosition + new Vector3(jitterX, jitterY, 0f);
-        isKegareMaxMotionApplied = true;
+        purityEmptyTargetRoot.transform.localScale = purityEmptyBaseScale * scaleMultiplier;
+        purityEmptyTargetRoot.transform.localPosition = purityEmptyBasePosition + new Vector3(jitterX, jitterY, 0f);
+        isPurityEmptyMotionApplied = true;
     }
 
-    void ResetKegareMaxMotion()
+    void ResetPurityEmptyMotion()
     {
-        if (kegareMaxTargetRoot == null)
+        if (purityEmptyTargetRoot == null)
             return;
 
-        kegareMaxTargetRoot.transform.localScale = kegareMaxBaseScale;
-        kegareMaxTargetRoot.transform.localPosition = kegareMaxBasePosition;
+        purityEmptyTargetRoot.transform.localScale = purityEmptyBaseScale;
+        purityEmptyTargetRoot.transform.localPosition = purityEmptyBasePosition;
     }
 
-    void EnterKegareMax()
+    void EnterPurityEmpty()
     {
-        if (kegareMaxReleaseRoutine != null)
+        if (purityEmptyReleaseRoutine != null)
         {
-            StopCoroutine(kegareMaxReleaseRoutine);
-            kegareMaxReleaseRoutine = null;
+            StopCoroutine(purityEmptyReleaseRoutine);
+            purityEmptyReleaseRoutine = null;
         }
 
-        if (isKegareMaxVisualsActive)
+        if (isPurityEmptyVisualsActive)
             return;
 
-        if (kegareMaxTargetRoot == null || CurrentYokaiContext.Current != kegareMaxTargetRoot)
+        if (purityEmptyTargetRoot == null || CurrentYokaiContext.Current != purityEmptyTargetRoot)
         {
-            CacheKegareMaxTargets(CurrentYokaiContext.Current);
+            CachePurityEmptyTargets(CurrentYokaiContext.Current);
         }
 
-        CaptureKegareMaxBaseTransform();
-        isKegareMaxVisualsActive = true;
+        CapturePurityEmptyBaseTransform();
+        isPurityEmptyVisualsActive = true;
         RefreshDangerEffectOriginalColors();
-        AudioHook.RequestPlay(YokaiSE.SE_KEGARE_MAX_ENTER);
-        MentorMessageService.ShowHint(OnmyojiHintType.KegareMax);
+        AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_ENTER);
+        MentorMessageService.ShowHint(OnmyojiHintType.PurityEmpty);
     }
 
-    void RequestReleaseKegareMax()
+    void RequestReleasePurityEmpty()
     {
-        if (kegareMaxReleaseRoutine != null)
+        if (purityEmptyReleaseRoutine != null)
         {
-            StopCoroutine(kegareMaxReleaseRoutine);
-            kegareMaxReleaseRoutine = null;
+            StopCoroutine(purityEmptyReleaseRoutine);
+            purityEmptyReleaseRoutine = null;
         }
 
-        if (!isKegareMaxVisualsActive)
+        if (!isPurityEmptyVisualsActive)
             return;
 
-        kegareMaxReleaseRoutine = StartCoroutine(ReleaseKegareMaxAfterDelay());
+        purityEmptyReleaseRoutine = StartCoroutine(ReleasePurityEmptyAfterDelay());
     }
 
-    IEnumerator ReleaseKegareMaxAfterDelay()
+    IEnumerator ReleasePurityEmptyAfterDelay()
     {
-        float delay = Mathf.Clamp(kegareMaxReleaseDelay, 0.1f, 0.2f);
+        float delay = Mathf.Clamp(purityEmptyReleaseDelay, 0.1f, 0.2f);
         yield return new WaitForSeconds(delay);
-        isKegareMaxVisualsActive = false;
+        isPurityEmptyVisualsActive = false;
         RefreshPresentation();
         RefreshDangerEffectOriginalColors();
-        AudioHook.RequestPlay(YokaiSE.SE_KEGARE_MAX_RELEASE);
-        MentorMessageService.ShowHint(OnmyojiHintType.KegareRecovered);
-        kegareMaxReleaseRoutine = null;
+        AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_RELEASE);
+        MentorMessageService.ShowHint(OnmyojiHintType.PurityRecovered);
+        purityEmptyReleaseRoutine = null;
     }
 
-    void CaptureKegareMaxBaseTransform()
+    void CapturePurityEmptyBaseTransform()
     {
-        if (kegareMaxTargetRoot == null)
+        if (purityEmptyTargetRoot == null)
             return;
 
-        kegareMaxBasePosition = kegareMaxTargetRoot.transform.localPosition;
-        kegareMaxBaseScale = kegareMaxTargetRoot.transform.localScale;
+        purityEmptyBasePosition = purityEmptyTargetRoot.transform.localPosition;
+        purityEmptyBaseScale = purityEmptyTargetRoot.transform.localScale;
     }
 
-    void CacheKegareMaxTargets(GameObject targetRoot)
+    void CachePurityEmptyTargets(GameObject targetRoot)
     {
-        kegareMaxTargetRoot = targetRoot;
-        kegareMaxSpriteColors.Clear();
-        kegareMaxImageColors.Clear();
-        kegareMaxBasePosition = Vector3.zero;
-        kegareMaxBaseScale = Vector3.zero;
-        kegareMaxNoiseSeed = Random.value * 10f;
+        purityEmptyTargetRoot = targetRoot;
+        purityEmptySpriteColors.Clear();
+        purityEmptyImageColors.Clear();
+        purityEmptyBasePosition = Vector3.zero;
+        purityEmptyBaseScale = Vector3.zero;
+        purityEmptyNoiseSeed = Random.value * 10f;
 
-        if (kegareMaxTargetRoot == null)
+        if (purityEmptyTargetRoot == null)
             return;
 
-        CaptureKegareMaxBaseTransform();
+        CapturePurityEmptyBaseTransform();
 
-        foreach (var sprite in kegareMaxTargetRoot.GetComponentsInChildren<SpriteRenderer>(true))
+        foreach (var sprite in purityEmptyTargetRoot.GetComponentsInChildren<SpriteRenderer>(true))
         {
             if (sprite == null)
                 continue;
 
-            kegareMaxSpriteColors[sprite] = sprite.color;
+            purityEmptySpriteColors[sprite] = sprite.color;
         }
 
-        foreach (var image in kegareMaxTargetRoot.GetComponentsInChildren<Image>(true))
+        foreach (var image in purityEmptyTargetRoot.GetComponentsInChildren<Image>(true))
         {
             if (image == null)
                 continue;
 
-            kegareMaxImageColors[image] = image.color;
+            purityEmptyImageColors[image] = image.color;
         }
     }
 

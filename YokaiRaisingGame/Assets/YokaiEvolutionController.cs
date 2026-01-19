@@ -229,18 +229,18 @@ public class YokaiEvolutionController : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        bool isKegareMax = stateController != null && stateController.currentState == YokaiState.PurityEmpty;
+        bool isPurityEmpty = stateController != null && stateController.currentState == YokaiState.PurityEmpty;
         bool isEnergyEmpty = stateController != null && stateController.currentState == YokaiState.EnergyEmpty;
-        if (!isKegareMax && !isEnergyEmpty)
+        if (!isPurityEmpty && !isEnergyEmpty)
         {
             reason = string.Empty;
             return false;
         }
 
-        if (isKegareMax && isEnergyEmpty)
-            reason = "穢れMAX / 霊力0";
-        else if (isKegareMax)
-            reason = "穢れMAX";
+        if (isPurityEmpty && isEnergyEmpty)
+            reason = "清浄度0 / 霊力0";
+        else if (isPurityEmpty)
+            reason = "清浄度0";
         else
             reason = "霊力0";
 
@@ -283,9 +283,9 @@ public class YokaiEvolutionController : MonoBehaviour
         if (activeYokai == null)
             return;
 
-        var kegareManager = CurrentYokaiContext.ResolveKegareManager();
-        if (kegareManager != null)
-            kegareManager.BindCurrentYokai(activeYokai);
+        var purityController = CurrentYokaiContext.ResolvePurityController();
+        if (purityController != null)
+            purityController.BindCurrentYokai(activeYokai);
 
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();

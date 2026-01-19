@@ -23,6 +23,6 @@ public class EnergyRecoverAdButtonHandler : MonoBehaviour
         if (stateController == null || stateController.currentState != YokaiState.EnergyEmpty)
             return;
 
-        stateController.RecoverFromEnergyEmptyAd();
+        stateController.RecoverFromSpiritEmptyAd();
     }
 }

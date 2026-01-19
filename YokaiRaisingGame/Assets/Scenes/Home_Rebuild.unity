@@ -393,11 +393,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7410728811607350943, guid: f2c4fb29fe97dba4a8d083d0c08ee85c, type: 3}
-      propertyPath: energyManager
+      propertyPath: spiritController
       value: 
       objectReference: {fileID: 987239465}
     - target: {fileID: 7410728811607350943, guid: f2c4fb29fe97dba4a8d083d0c08ee85c, type: 3}
-      propertyPath: kegareManager
+      propertyPath: purityController
       value: 
       objectReference: {fileID: 308681470}
     - target: {fileID: 7410728811607350943, guid: f2c4fb29fe97dba4a8d083d0c08ee85c, type: 3}
@@ -432,11 +432,11 @@ PrefabInstance:
       value: YokaiAdult
       objectReference: {fileID: 0}
     - target: {fileID: 5916421641666367254, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}
-      propertyPath: energyManager
+      propertyPath: spiritController
       value: 
       objectReference: {fileID: 987239465}
     - target: {fileID: 5916421641666367254, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}
-      propertyPath: kegareManager
+      propertyPath: purityController
       value: 
       objectReference: {fileID: 308681470}
     - target: {fileID: 5916421641666367254, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}
@@ -855,7 +855,7 @@ GameObject:
   - component: {fileID: 308681470}
   - component: {fileID: 308681471}
   m_Layer: 0
-  m_Name: KegareManager
+  m_Name: PurityController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -888,11 +888,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 613daf9fab54c0a49be98a601d982631, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  kegare: 0
-  maxKegare: 100
+  purity: 100
+  maxPurity: 100
   warningThreshold: 70
   worldConfig: {fileID: 0}
-  energyManager: {fileID: 987239465}
+  spiritController: {fileID: 987239465}
   stateController: {fileID: 1388627842}
   warningIcon: {fileID: 2311641824882478505}
   dangerOverlay: {fileID: 1615978446}
@@ -914,8 +914,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbf51fb3421f4de683e683348642758e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  kegareManager: {fileID: 308681470}
-  kegareSlider: {fileID: 2422507606306711152}
+  purityController: {fileID: 308681470}
+  puritySlider: {fileID: 2422507606306711152}
 --- !u!1 &387324152
 GameObject:
   m_ObjectHideFlags: 0
@@ -1603,7 +1603,7 @@ GameObject:
   - component: {fileID: 987239465}
   - component: {fileID: 987239467}
   m_Layer: 0
-  m_Name: EnergyManager
+  m_Name: SpiritController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1621,10 +1621,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 091029a6a9999b64f9dc6b5348983bc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  energy: 0
-  maxEnergy: 100
+  spirit: 0
+  maxSpirit: 100
   worldConfig: {fileID: 0}
-  kegareManager: {fileID: 308681470}
+  purityController: {fileID: 308681470}
   stateController: {fileID: 1388627842}
   yokaiSprite: {fileID: 381708304978251678, guid: 5cfe4b2824147eb439fd1783aeedddcf, type: 3}
   weakScale: 0.8
@@ -1641,7 +1641,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44e424736d7740128ddae2dce39c7051, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  energyManager: {fileID: 987239465}
+  spiritController: {fileID: 987239465}
   energySlider: {fileID: 6761044948119671804}
   adWatchButton: {fileID: 0}
   weakMessage: {fileID: 0}
@@ -2211,7 +2211,7 @@ GameObject:
   - component: {fileID: 1306751946}
   - component: {fileID: 1306751947}
   m_Layer: 5
-  m_Name: Kegare Slider
+  m_Name: Purity Slider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2456,8 +2456,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentState: 0
   growthController: {fileID: 0}
-  kegareManager: {fileID: 308681470}
-  energyManager: {fileID: 987239465}
+  purityController: {fileID: 308681470}
+  spiritController: {fileID: 987239465}
   purifyButtonHandler: {fileID: 0}
 --- !u!4 &1388627843
 Transform:
@@ -2891,8 +2891,8 @@ MonoBehaviour:
   isGrowthStopped: 0
   isEvolutionReady: 0
   stateController: {fileID: 1388627842}
-  kegareManager: {fileID: 308681470}
-  energyManager: {fileID: 987239465}
+  purityController: {fileID: 308681470}
+  spiritController: {fileID: 987239465}
 --- !u!1 &1554015418
 GameObject:
   m_ObjectHideFlags: 0
@@ -3186,7 +3186,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: energyManager
+      propertyPath: spiritController
       value: 
       objectReference: {fileID: 987239465}
     - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
@@ -3194,7 +3194,7 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1388627842}
     - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: kegareManager
+      propertyPath: purityController
       value: 
       objectReference: {fileID: 308681470}
     - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
@@ -3782,7 +3782,7 @@ GameObject:
   - component: {fileID: 1339336884387502932}
   - component: {fileID: 2422507606306711152}
   m_Layer: 5
-  m_Name: Kegare Slider
+  m_Name: Purity Slider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

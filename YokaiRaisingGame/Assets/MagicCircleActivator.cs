@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 using Yokai;
 
 public class MagicCircleActivator : MonoBehaviour
@@ -9,8 +10,9 @@ public class MagicCircleActivator : MonoBehaviour
     Yokai.YokaiStateController stateController;
     Yokai.YokaiStateController subscribedStateController;
 
+    [FormerlySerializedAs("kegareManager")]
     [SerializeField]
-    KegareManager kegareManager;
+    PurityController purityController;
 
     PurifyRequestType pendingRequest = PurifyRequestType.None;
 
@@ -122,7 +124,7 @@ public class MagicCircleActivator : MonoBehaviour
     void OnHealRequested()
     {
         Debug.Log($"[MagicCircleActivator][OnHealRequested][Enter] pendingRequest={pendingRequest}");
-        Debug.Log("[MagicCircleActivator][OnHealRequested][ENTER] pendingRequest=" + pendingRequest + " kegareManager=" + (kegareManager == null ? "null" : "ok"));
+        Debug.Log("[MagicCircleActivator][OnHealRequested][ENTER] pendingRequest=" + pendingRequest + " purityController=" + (purityController == null ? "null" : "ok"));
         NotifySuccessHooks();
 
         if (pendingRequest == PurifyRequestType.Normal)
@@ -197,17 +199,17 @@ public class MagicCircleActivator : MonoBehaviour
     void ApplyPurifySuccess()
     {
         Debug.Log("[MagicCircleActivator][ApplyPurifySuccess][Enter]");
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (purityController == null)
+            purityController = CurrentYokaiContext.ResolvePurityController();
 
-        if (kegareManager != null)
+        if (purityController != null)
         {
-            kegareManager.ApplyPurifyFromMagicCircle();
+            purityController.ApplyPurifyFromMagicCircle();
             Debug.Log("[PURIFY] おきよめ成功");
         }
         else
         {
-            Debug.LogWarning("[PURIFY] KegareManager が見つからないため穢れを減らせません。");
+            Debug.LogWarning("[PURIFY] PurityController が見つからないため清浄度を回復できません。");
         }
 
         MentorMessageService.ShowHint(OnmyojiHintType.OkIYomeSuccess);

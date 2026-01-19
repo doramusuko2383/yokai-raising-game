@@ -140,7 +140,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u7A62\u308C"
+  m_text: "\u6E05\u6D44\u5EA6"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 951f82a3816d9544c8772a7a2e40a621, type: 2}
   m_sharedMaterial: {fileID: -6018652842305128838, guid: 951f82a3816d9544c8772a7a2e40a621, type: 2}
@@ -331,7 +331,7 @@ GameObject:
   - component: {fileID: 2661757613229561159}
   - component: {fileID: 1727210084470384739}
   m_Layer: 5
-  m_Name: Kegare Slider
+  m_Name: Purity Slider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

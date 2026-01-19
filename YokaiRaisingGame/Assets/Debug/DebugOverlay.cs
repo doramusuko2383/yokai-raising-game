@@ -8,8 +8,8 @@ public class DebugOverlay : MonoBehaviour
     const float PanelPadding = 8f;
     const float ButtonHeight = 24f;
 
-    KegareManager kegareManager;
-    EnergyManager energyManager;
+    PurityController purityController;
+    SpiritController spiritController;
     YokaiStateController stateController;
     YokaiGrowthController growthController;
 
@@ -65,8 +65,8 @@ public class DebugOverlay : MonoBehaviour
 
     void ResolveDependencies()
     {
-        kegareManager = CurrentYokaiContext.ResolveKegareManager();
-        energyManager = FindObjectOfType<EnergyManager>();
+        purityController = CurrentYokaiContext.ResolvePurityController();
+        spiritController = FindObjectOfType<SpiritController>();
         stateController = CurrentYokaiContext.ResolveStateController();
         ResolveGrowthController(CurrentYokaiContext.Current);
     }
@@ -128,31 +128,31 @@ public class DebugOverlay : MonoBehaviour
         string growthLabel = growthController != null
             ? $"{growthController.currentScale:0.##}/{growthController.maxScale:0.##}"
             : "Unknown";
-        string kegareLabel = kegareManager != null
-            ? $"{kegareManager.kegare:0.##}/{kegareManager.maxKegare:0.##}"
+        string purityLabel = purityController != null
+            ? $"{purityController.purity:0.##}/{purityController.maxPurity:0.##}"
             : "Unknown";
-        string energyLabel = energyManager != null
-            ? $"{energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}"
+        string spiritLabel = spiritController != null
+            ? $"{spiritController.spirit:0.##}/{spiritController.maxSpirit:0.##}"
             : "Unknown";
 
         GUILayout.Label($"State: {stateLabel}", labelStyle);
         GUILayout.Label($"Yokai: {yokaiName}", labelStyle);
         GUILayout.Label($"Stage: {growthLabel}", labelStyle);
-        GUILayout.Label($"Kegare: {kegareLabel}", labelStyle);
-        GUILayout.Label($"Energy: {energyLabel}", labelStyle);
+        GUILayout.Label($"Purity: {purityLabel}", labelStyle);
+        GUILayout.Label($"Spirit: {spiritLabel}", labelStyle);
     }
 
     void DrawControls()
     {
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button("穢れ +", buttonStyle, GUILayout.Height(ButtonHeight)))
-            AdjustKegare(10f);
-        if (GUILayout.Button("穢れ -", buttonStyle, GUILayout.Height(ButtonHeight)))
-            AdjustKegare(-10f);
+        if (GUILayout.Button("清浄度 +", buttonStyle, GUILayout.Height(ButtonHeight)))
+            AdjustPurity(10f);
+        if (GUILayout.Button("清浄度 -", buttonStyle, GUILayout.Height(ButtonHeight)))
+            AdjustPurity(-10f);
         GUILayout.EndHorizontal();
 
-        if (GUILayout.Button("Energy -", buttonStyle, GUILayout.Height(ButtonHeight)))
-            AdjustEnergy(-10f);
+        if (GUILayout.Button("Spirit -", buttonStyle, GUILayout.Height(ButtonHeight)))
+            AdjustSpirit(-10f);
 
         if (GUILayout.Button("進化Ready", buttonStyle, GUILayout.Height(ButtonHeight)))
             SetEvolutionReady();
@@ -165,10 +165,10 @@ public class DebugOverlay : MonoBehaviour
     void HandleEditorShortcuts()
     {
         if (Input.GetKeyDown(KeyCode.K))
-            AdjustKegare(10f);
+            AdjustPurity(10f);
 
         if (Input.GetKeyDown(KeyCode.J))
-            AdjustKegare(-10f);
+            AdjustPurity(-10f);
 
         if (Input.GetKeyDown(KeyCode.E))
             SetEvolutionReady();
@@ -178,26 +178,26 @@ public class DebugOverlay : MonoBehaviour
     }
 #endif
 
-    void AdjustKegare(float amount)
+    void AdjustPurity(float amount)
     {
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (purityController == null)
+            purityController = CurrentYokaiContext.ResolvePurityController();
 
-        if (kegareManager == null)
+        if (purityController == null)
             return;
 
-        kegareManager.AddKegare(amount);
+        purityController.AddPurity(amount);
     }
 
-    void AdjustEnergy(float amount)
+    void AdjustSpirit(float amount)
     {
-        if (energyManager == null)
-            energyManager = FindObjectOfType<EnergyManager>();
+        if (spiritController == null)
+            spiritController = FindObjectOfType<SpiritController>();
 
-        if (energyManager == null)
+        if (spiritController == null)
             return;
 
-        energyManager.ChangeEnergy(amount);
+        spiritController.ChangeSpirit(amount);
     }
 
     void SetEvolutionReady()

@@ -2,9 +2,9 @@ public enum OnmyojiHintType
 {
     EnergyZero,
     EnergyRecovered,
-    KegareWarning,
-    KegareMax,
-    KegareRecovered,
+    PurityWarning,
+    PurityEmpty,
+    PurityRecovered,
     OkIYomeGuide,
     OkIYomeSuccess,
     EvolutionStart,

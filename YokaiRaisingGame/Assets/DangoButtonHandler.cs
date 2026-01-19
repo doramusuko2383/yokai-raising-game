@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using Yokai;
 
 public class DangoButtonHandler : MonoBehaviour
@@ -6,8 +7,9 @@ public class DangoButtonHandler : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
+    [FormerlySerializedAs("energyManager")]
     [SerializeField]
-    EnergyManager energyManager;
+    SpiritController spiritController;
 
     [SerializeField]
     float dangoAmount = 30f;
@@ -21,19 +23,19 @@ public class DangoButtonHandler : MonoBehaviour
         if (IsActionBlocked())
             return;
 
-        if (energyManager == null)
-            energyManager = FindObjectOfType<EnergyManager>();
+        if (spiritController == null)
+            spiritController = FindObjectOfType<SpiritController>();
 
-        if (energyManager != null)
+        if (spiritController != null)
         {
-            energyManager.AddEnergy(dangoAmount);
-            Debug.Log($"[ENERGY] Dango +{dangoAmount:0.##} energy={energyManager.energy:0.##}/{energyManager.maxEnergy:0.##}");
+            spiritController.AddSpirit(dangoAmount);
+            Debug.Log($"[SPIRIT] Dango +{dangoAmount:0.##} spirit={spiritController.spirit:0.##}/{spiritController.maxSpirit:0.##}");
             TutorialManager.NotifyDangoUsed();
             MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
         }
         else
         {
-            Debug.LogWarning("[ENERGY] EnergyManager が見つからないためだんごが使えません。");
+            Debug.LogWarning("[SPIRIT] SpiritController が見つからないためだんごが使えません。");
         }
     }
 

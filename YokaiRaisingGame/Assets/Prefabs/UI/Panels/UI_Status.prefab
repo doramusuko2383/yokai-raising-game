@@ -266,7 +266,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4548586593917124687, guid: b433b530afcd3564ea20aab9436557c8, type: 3}
       propertyPath: m_Name
-      value: Kegare Slider
+      value: Purity Slider
       objectReference: {fileID: 0}
     - target: {fileID: 7100119194780724930, guid: b433b530afcd3564ea20aab9436557c8, type: 3}
       propertyPath: m_AnchorMax.x

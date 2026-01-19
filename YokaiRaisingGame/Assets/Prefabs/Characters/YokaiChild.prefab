@@ -99,8 +99,8 @@ MonoBehaviour:
   isGrowthStopped: 0
   isEvolutionReady: 0
   stateController: {fileID: 0}
-  kegareManager: {fileID: 0}
-  energyManager: {fileID: 0}
+  purityController: {fileID: 0}
+  spiritController: {fileID: 0}
 --- !u!114 &3893367593602657110
 MonoBehaviour:
   m_ObjectHideFlags: 0
