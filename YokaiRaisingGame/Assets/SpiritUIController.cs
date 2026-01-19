@@ -1,11 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 using TMPro;
 
-public class EnergyUIController : MonoBehaviour
+public class SpiritUIController : MonoBehaviour
 {
     [Header("Dependencies")]
-    [SerializeField] private EnergyManager energyManager;
+    [FormerlySerializedAs("energyManager")]
+    [SerializeField] private SpiritController spiritController;
     [SerializeField] private Yokai.YokaiStateController stateController;
 
     [Header("Weak Visuals")]
@@ -16,8 +18,10 @@ public class EnergyUIController : MonoBehaviour
     [SerializeField] private float weakBrightness = 0.75f;
 
     [Header("UI")]
-    [SerializeField] private Slider energySlider;
-    [SerializeField] private TMP_Text energyText;
+    [FormerlySerializedAs("energySlider")]
+    [SerializeField] private Slider spiritSlider;
+    [FormerlySerializedAs("energyText")]
+    [SerializeField] private TMP_Text spiritText;
 
     float baseCanvasAlpha = 1f;
     Color baseImageColor = Color.white;
@@ -26,9 +30,9 @@ public class EnergyUIController : MonoBehaviour
 
     void OnEnable()
     {
-        if (energyManager != null)
+        if (spiritController != null)
         {
-            energyManager.EnergyChanged += OnEnergyChanged;
+            spiritController.SpiritChanged += OnSpiritChanged;
         }
 
         if (stateController == null)
@@ -45,9 +49,9 @@ public class EnergyUIController : MonoBehaviour
 
     void OnDisable()
     {
-        if (energyManager != null)
+        if (spiritController != null)
         {
-            energyManager.EnergyChanged -= OnEnergyChanged;
+            spiritController.SpiritChanged -= OnSpiritChanged;
         }
 
         if (stateController != null)
@@ -66,7 +70,7 @@ public class EnergyUIController : MonoBehaviour
         }
     }
 
-    void OnEnergyChanged(float current, float max)
+    void OnSpiritChanged(float current, float max)
     {
         RefreshUI();
         SyncWeakVisualsWithState();
@@ -79,18 +83,18 @@ public class EnergyUIController : MonoBehaviour
 
     void RefreshUI()
     {
-        if (energyManager == null)
+        if (spiritController == null)
             return;
 
-        if (energySlider != null)
+        if (spiritSlider != null)
         {
-            energySlider.maxValue = energyManager.maxEnergy;
-            energySlider.value = energyManager.energy;
+            spiritSlider.maxValue = 1f;
+            spiritSlider.value = spiritController.SpiritNormalized;
         }
 
-        if (energyText != null)
+        if (spiritText != null)
         {
-            energyText.text = $"{energyManager.energy:0}/{energyManager.maxEnergy}";
+            spiritText.text = $"{Mathf.RoundToInt(spiritController.SpiritNormalized * 100f)}%";
         }
     }
 

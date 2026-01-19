@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 using Yokai;
 
 public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
@@ -65,8 +66,9 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     [SerializeField]
     YokaiStateController stateController;
 
+    [FormerlySerializedAs("kegareManager")]
     [SerializeField]
-    KegareManager kegareManager;
+    PurityController purityController;
 
     bool isTracking;
     bool isCompleted;
@@ -235,12 +237,12 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         if (hasAppliedPurify)
             return;
 
-        if (kegareManager == null)
-            kegareManager = CurrentYokaiContext.ResolveKegareManager();
+        if (purityController == null)
+            purityController = CurrentYokaiContext.ResolvePurityController();
 
-        if (kegareManager == null)
+        if (purityController == null)
         {
-            Debug.LogWarning("[PURIFY] KegareManager が見つからないためおきよめできません。");
+            Debug.LogWarning("[PURIFY] PurityController が見つからないためおきよめできません。");
             return;
         }
 
@@ -249,7 +251,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         ClearTrail(immediate: true);
         PulseMagicCircle();
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
-        kegareManager.ApplyPurifyFromMagicCircle();
+        purityController.ApplyPurifyFromMagicCircle();
         hasAppliedPurify = true;
         stateController.StopPurifyingForSuccess();
         ToggleGuide(false, immediate: false);

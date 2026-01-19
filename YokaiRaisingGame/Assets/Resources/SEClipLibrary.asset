@@ -16,7 +16,7 @@ MonoBehaviour:
   purifyStart: {fileID: 8300000, guid: fdb610981c20d434d819e9d89cdd083f, type: 3}
   purifySuccess: {fileID: 8300000, guid: b5b6b73cfe07f18478131c6bf7733b02, type: 3}
   evolutionStart: {fileID: 8300000, guid: 548c3b33720d8ef4088d99e108c7cc17, type: 3}
-  kegareMaxEnter: {fileID: 8300000, guid: e1773e348ff9c0b40af6e132be563c26, type: 3}
-  kegareMaxRelease: {fileID: 8300000, guid: f92fdd220708e664e9e5e9820a55855e, type: 3}
+  purityEmptyEnter: {fileID: 8300000, guid: e1773e348ff9c0b40af6e132be563c26, type: 3}
+  purityEmptyRelease: {fileID: 8300000, guid: f92fdd220708e664e9e5e9820a55855e, type: 3}
   spiritEmpty: {fileID: 0}
   spiritRecover: {fileID: 0}

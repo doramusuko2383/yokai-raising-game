@@ -1,13 +1,16 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 
-public class KegareUIController : MonoBehaviour
+public class PurityUIController : MonoBehaviour
 {
+    [FormerlySerializedAs("kegareManager")]
     [SerializeField]
-    KegareManager kegareManager;
+    PurityController purityController;
 
     [SerializeField]
-    Slider kegareSlider;
+    [FormerlySerializedAs("kegareSlider")]
+    Slider puritySlider;
 
     [SerializeField]
     Yokai.YokaiStateController stateController;
@@ -31,8 +34,8 @@ public class KegareUIController : MonoBehaviour
 
     void OnEnable()
     {
-        if (kegareManager == null)
-            kegareManager = FindObjectOfType<KegareManager>();
+        if (purityController == null)
+            purityController = FindObjectOfType<PurityController>();
 
         if (stateController == null)
             stateController = CurrentYokaiContext.ResolveStateController();
@@ -43,8 +46,8 @@ public class KegareUIController : MonoBehaviour
         if (presentationController == null)
             presentationController = FindObjectOfType<Yokai.YokaiStatePresentationController>();
 
-        if (kegareManager != null)
-            kegareManager.KegareChanged += OnKegareChanged;
+        if (purityController != null)
+            purityController.PurityChanged += OnPurityChanged;
 
         CacheFillReferences();
         RefreshUI();
@@ -52,8 +55,8 @@ public class KegareUIController : MonoBehaviour
 
     void OnDisable()
     {
-        if (kegareManager != null)
-            kegareManager.KegareChanged -= OnKegareChanged;
+        if (purityController != null)
+            purityController.PurityChanged -= OnPurityChanged;
 
         ResetPulse();
     }
@@ -63,18 +66,21 @@ public class KegareUIController : MonoBehaviour
         UpdatePulse();
     }
 
-    void OnKegareChanged(float current, float max)
+    void OnPurityChanged(float current, float max)
     {
-        if (kegareSlider != null)
-            kegareSlider.value = max > 0f ? Mathf.Clamp01((max - current) / max) : 0f;
+        if (puritySlider != null)
+        {
+            puritySlider.maxValue = 1f;
+            puritySlider.value = purityController != null ? purityController.PurityNormalized : 0f;
+        }
     }
 
     void CacheFillReferences()
     {
-        if (kegareSlider == null)
+        if (puritySlider == null)
             return;
 
-        fillRect = kegareSlider.fillRect;
+        fillRect = puritySlider.fillRect;
         if (fillRect != null)
             fillBaseScale = fillRect.localScale;
 
@@ -90,7 +96,7 @@ public class KegareUIController : MonoBehaviour
         if (fillRect == null)
             return;
 
-        bool shouldPulse = presentationController != null && presentationController.IsKegareMaxVisualsActive;
+        bool shouldPulse = presentationController != null && presentationController.IsPurityEmptyVisualsActive;
         if (!shouldPulse)
         {
             ResetPulse();
@@ -120,9 +126,9 @@ public class KegareUIController : MonoBehaviour
 
     void RefreshUI()
     {
-        if (kegareManager == null)
+        if (purityController == null)
             return;
 
-        OnKegareChanged(kegareManager.kegare, kegareManager.maxKegare);
+        OnPurityChanged(purityController.purity, purityController.maxPurity);
     }
 }

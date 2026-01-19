@@ -147,7 +147,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stateController: {fileID: 0}
-  energyManager: {fileID: 0}
+  spiritController: {fileID: 0}
 --- !u!1 &5466507885048558983
 GameObject:
   m_ObjectHideFlags: 0

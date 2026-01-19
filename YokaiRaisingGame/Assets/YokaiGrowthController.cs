@@ -162,7 +162,7 @@ public class YokaiGrowthController : MonoBehaviour
             if (stateController.currentState == YokaiState.EnergyEmpty)
                 reason = "energy-empty";
             else if (stateController.currentState == YokaiState.PurityEmpty)
-                reason = "kegare-max";
+                reason = "purity-empty";
         }
 
 #if UNITY_EDITOR

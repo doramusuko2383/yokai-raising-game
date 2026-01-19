@@ -6,9 +6,9 @@ public static class OnmyojiHintCatalog
     {
         { OnmyojiHintType.EnergyZero, "ちからが なくなっておる" },
         { OnmyojiHintType.EnergyRecovered, "うむ、げんきが もどったのう" },
-        { OnmyojiHintType.KegareWarning, "けがれが たまってきとるのう" },
-        { OnmyojiHintType.KegareMax, "けがれが たまりすぎて モノノケに なってしもうた" },
-        { OnmyojiHintType.KegareRecovered, "あぶない ところじゃったわい" },
+        { OnmyojiHintType.PurityWarning, "せいじょうどが さがってきとるのう" },
+        { OnmyojiHintType.PurityEmpty, "せいじょうどが なくなって モノノケに なってしもうた" },
+        { OnmyojiHintType.PurityRecovered, "あぶない ところじゃったわい" },
         { OnmyojiHintType.OkIYomeGuide, "まわりを なぞって おきよめ するのじゃ" },
         { OnmyojiHintType.OkIYomeSuccess, "よしよし、きれいに なったぞい" },
         { OnmyojiHintType.EvolutionStart, "なにか ようすが おかしいようじゃ" },

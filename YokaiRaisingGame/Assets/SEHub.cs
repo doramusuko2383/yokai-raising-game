@@ -24,7 +24,7 @@ public static class SEHub
 
     // SE設計メモ:
     // - 命名規則（将来の音ファイル名）: se_<category>_<action>.wav
-    //   例: se_evolution_charge.wav / se_purify_start.wav / se_kegare_max_enter.wav
+    //   例: se_evolution_charge.wav / se_purify_start.wav / se_purity_empty_enter.wav
     // - AudioSource は SEHubRuntime に一元管理する
     // - ミュート/親AudioGroup設定は AudioManager 側で一元管理
 
@@ -93,8 +93,8 @@ public static class SEHub
                     blockLowerSeconds = 0f,
                     priority = SEPriority.Normal
                 };
-            case YokaiSE.SE_KEGARE_MAX_ENTER:
-            case YokaiSE.SE_KEGARE_MAX_RELEASE:
+            case YokaiSE.SE_PURITY_EMPTY_ENTER:
+            case YokaiSE.SE_PURITY_EMPTY_RELEASE:
                 return new SEPlaybackPolicy
                 {
                     cooldownSeconds = 0.4f,
