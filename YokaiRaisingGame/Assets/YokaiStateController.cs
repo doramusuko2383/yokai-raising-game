@@ -9,6 +9,7 @@ public class YokaiStateController : MonoBehaviour
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
     public bool isPurifying;
+
     public event System.Action<YokaiState, YokaiState> OnStateChanged;
     bool isEnergyEmpty;
     bool isKegareMax;
