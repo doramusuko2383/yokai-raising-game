@@ -48,6 +48,7 @@ public class YokaiStateController : MonoBehaviour
 
     public bool IsEnergyEmpty => isEnergyEmpty;
     public bool IsKegareMax => isKegareMax;
+    public bool IsPurityEmpty => isKegareMax;
     public bool IsEvolving => isEvolving;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]

@@ -288,7 +288,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController != null && stateController.IsEnergyEmpty)
             return YokaiState.EnergyEmpty;
 
-        if (stateController != null && stateController.IsKegareMax)
+        if (stateController != null && stateController.IsPurityEmpty)
             return YokaiState.PurityEmpty;
 
         return YokaiState.Normal;
