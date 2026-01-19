@@ -249,7 +249,7 @@ public class SpiritController : MonoBehaviour
             hasEverHadSpirit = true;
         }
 
-        bool shouldBeEmpty = spirit <= 0f && hasEverHadSpirit;
+        bool shouldBeEmpty = spirit <= 0f;
         if (shouldBeEmpty == isSpiritEmpty)
             return;
 

@@ -133,9 +133,21 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (energyRecoverAdButton == null)
             energyRecoverAdButton = GameObject.Find("Btn_EnergyRecover_Ad");
+        if (energyRecoverAdButton == null)
+        {
+            var handler = FindObjectOfType<EnergyRecoverAdButtonHandler>(true);
+            if (handler != null)
+                energyRecoverAdButton = handler.gameObject;
+        }
 
         if (purityRecoverAdButton == null)
             purityRecoverAdButton = GameObject.Find("Btn_PurityRecover_Ad");
+        if (purityRecoverAdButton == null)
+        {
+            var handler = FindObjectOfType<PurityRecoverAdButtonHandler>(true);
+            if (handler != null)
+                purityRecoverAdButton = handler.gameObject;
+        }
 
         if (purifyStopButton == null)
             purifyStopButton = GameObject.Find("Btn_StopPurify");
