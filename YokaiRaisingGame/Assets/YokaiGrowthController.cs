@@ -24,6 +24,9 @@ public class YokaiGrowthController : MonoBehaviour
     [SerializeField]
     float growthMultiplier = 1.0f;
 
+    [SerializeField]
+    bool resetEvolutionReadyOnStartup = true;
+
     public float growthRatePerSecond;
     public bool isGrowthStopped;
     public bool isEvolutionReady;
@@ -44,6 +47,15 @@ public class YokaiGrowthController : MonoBehaviour
         InitializeGrowthParticles();
         CalculateGrowthRate();
         LoadState();
+        if (resetEvolutionReadyOnStartup && currentScale >= maxScale - 0.001f)
+        {
+            currentScale = initialScale;
+            isEvolutionReady = false;
+            hasEvolved = false;
+            lastUpdateTime = DateTime.Now;
+            ApplyScale();
+            SaveState();
+        }
         ApplyElapsedTime(DateTime.Now);
         ApplyScale();
         SaveState();
