@@ -202,6 +202,15 @@ public class YokaiStateController : MonoBehaviour
 
     void EvaluateState(YokaiState? requestedState = null, string reason = "Auto")
     {
+        if (spiritController == null)
+            spiritController = FindObjectOfType<SpiritController>();
+
+        if (purityController == null)
+            purityController = CurrentYokaiContext.ResolvePurityController();
+
+        RegisterPurityEvents();
+        RegisterSpiritEvents();
+
         if (spiritController == null || purityController == null)
             return;
 
@@ -505,7 +514,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         purifyTimer = 0f;
-        purityController.AddPurity(-purifyTickAmount);
+        purityController.AddPurity(purifyTickAmount);
     }
 
     public void EnterSpiritEmpty()

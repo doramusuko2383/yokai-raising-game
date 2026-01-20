@@ -182,6 +182,20 @@ public class MagicCircleActivator : MonoBehaviour
     Transform FindMagicCircleRoot()
     {
         Debug.Log("[MagicCircleActivator][FindMagicCircleRoot][Enter]");
+        var existingController = FindObjectOfType<MagicCircleSwipeController>(true);
+        if (existingController != null)
+        {
+            Debug.Log("[MagicCircleActivator][FindMagicCircleRoot][Exit] result=controller");
+            return existingController.transform;
+        }
+
+        var legacyHandler = FindObjectOfType<MagicCircleSwipeHandler>(true);
+        if (legacyHandler != null)
+        {
+            Debug.Log("[MagicCircleActivator][FindMagicCircleRoot][Exit] result=legacy-handler");
+            return legacyHandler.transform;
+        }
+
         var rects = FindObjectsOfType<RectTransform>(true);
         foreach (var rect in rects)
         {
