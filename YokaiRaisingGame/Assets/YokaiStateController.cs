@@ -193,7 +193,13 @@ public class YokaiStateController : MonoBehaviour
 
     public void OnSpiritEmpty()
     {
-        HandleThresholdReached(ref isSpiritEmpty, "SpiritZero");
+#if UNITY_EDITOR
+        Debug.Log("[STATE] SpiritEmpty detected");
+#endif
+        if (!isSpiritEmpty)
+            isSpiritEmpty = true;
+
+        EvaluateState(reason: "SpiritEmpty");
     }
 
     public void OnSpiritRecovered()
@@ -207,8 +213,20 @@ public class YokaiStateController : MonoBehaviour
 
     void EvaluateState(YokaiState? requestedState = null, string reason = "Auto")
     {
+#if UNITY_EDITOR
+        Debug.Log("[STATE] EvaluateState START");
+#endif
         if (spiritController == null || purityController == null)
-            return;
+        {
+            ResolveDependencies();
+            if (spiritController == null || purityController == null)
+            {
+#if UNITY_EDITOR
+                Debug.Log("[STATE] EvaluateState EARLY RETURN");
+#endif
+                return;
+            }
+        }
 
         YokaiState nextState = DetermineNextState(requestedState);
         SetState(nextState, reason);
@@ -260,6 +278,9 @@ public class YokaiStateController : MonoBehaviour
         if (enableStateLogs)
             Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
 
+#if UNITY_EDITOR
+        Debug.Log($"[STATE] StateChanged {prev} -> {currentState}");
+#endif
         OnStateChanged?.Invoke(prev, newState);
         LogStateChange(prev, newState, reason);
     }
@@ -420,7 +441,13 @@ public class YokaiStateController : MonoBehaviour
 
     public void OnPurityEmpty()
     {
-        HandleThresholdReached(ref isPurityEmpty, "PurityEmpty");
+#if UNITY_EDITOR
+        Debug.Log("[STATE] PurityEmpty detected");
+#endif
+        if (!isPurityEmpty)
+            isPurityEmpty = true;
+
+        EvaluateState(reason: "PurityEmpty");
     }
 
     public void OnPurityRecovered()
