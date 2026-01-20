@@ -47,6 +47,7 @@ public class YokaiGrowthController : MonoBehaviour
         InitializeGrowthParticles();
         CalculateGrowthRate();
         LoadState();
+        bool resetDone = false;
         if (resetEvolutionReadyOnStartup && currentScale >= maxScale - 0.001f)
         {
             currentScale = initialScale;
@@ -55,8 +56,10 @@ public class YokaiGrowthController : MonoBehaviour
             lastUpdateTime = DateTime.Now;
             ApplyScale();
             SaveState();
+            resetDone = true;
         }
-        ApplyElapsedTime(DateTime.Now);
+        if (!resetDone)
+            ApplyElapsedTime(DateTime.Now);
         ApplyScale();
         SaveState();
         isGrowthStopped = ShouldStopGrowth();
