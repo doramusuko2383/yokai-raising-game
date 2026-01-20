@@ -254,10 +254,14 @@ public class SpiritController : MonoBehaviour
             return;
 
         isSpiritEmpty = shouldBeEmpty;
+        var stateController = CurrentYokaiContext.ResolveStateController();
+        if (stateController == null)
+            return;
+
         if (isSpiritEmpty)
-            OnSpiritEmpty?.Invoke();
+            stateController.OnSpiritEmpty();
         else
-            OnSpiritRecovered?.Invoke();
+            stateController.OnSpiritRecovered();
     }
 
     void LogSpiritInitialized(string context)

@@ -94,6 +94,11 @@ public class YokaiStateController : MonoBehaviour
         SyncManagerState();
         EvaluateState(reason: "InitialSync");
         hasStarted = true;
+        if (growthController != null)
+        {
+            growthController.currentScale = growthController.InitialScale;
+            growthController.ApplyScale();
+        }
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -410,11 +415,21 @@ public class YokaiStateController : MonoBehaviour
         purityController.SetPurityRatio(0.5f);
         spiritController.AddSpiritRatio(0.2f);
         EvaluateState(reason: "PurityAdRecover");
+        BeginPurifying();
     }
 
     public void OnPurityEmpty()
     {
         HandleThresholdReached(ref isPurityEmpty, "PurityEmpty");
+    }
+
+    public void OnPurityRecovered()
+    {
+        if (!isPurityEmpty)
+            return;
+
+        isPurityEmpty = false;
+        EvaluateState(reason: "PurityRecovered");
     }
 
     void HandleThresholdReached(ref bool stateFlag, string reason)
@@ -444,6 +459,7 @@ public class YokaiStateController : MonoBehaviour
             purityController.ExecuteEmergencyPurify();
 
         EvaluateState(reason: "EmergencyPurify");
+        BeginPurifying();
     }
 
     public bool IsPurityEmpty()

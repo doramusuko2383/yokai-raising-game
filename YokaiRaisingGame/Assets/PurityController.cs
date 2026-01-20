@@ -225,14 +225,19 @@ public class PurityController : MonoBehaviour
         bool isNowEmpty = purity <= 0f;
         isPurityEmpty = isNowEmpty;
 
-        if (isNowEmpty && !wasEmpty)
-        {
-            if (stateController == null)
-                stateController = CurrentYokaiContext.ResolveStateController();
+        if (wasEmpty == isNowEmpty)
+            return;
 
-            if (stateController != null)
-                stateController.OnPurityEmpty();
-        }
+        if (stateController == null)
+            stateController = CurrentYokaiContext.ResolveStateController();
+
+        if (stateController == null)
+            return;
+
+        if (isNowEmpty)
+            stateController.OnPurityEmpty();
+        else
+            stateController.OnPurityRecovered();
     }
 
     void NotifyPurityChanged(string reason)
