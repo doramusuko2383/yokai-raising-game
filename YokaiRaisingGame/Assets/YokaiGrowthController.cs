@@ -17,6 +17,7 @@ public class YokaiGrowthController : MonoBehaviour
 
     public float currentScale = 1.0f;
     public float maxScale = 2.0f;
+    public float InitialScale => initialScale;
 
     [SerializeField]
     float growthDurationHours = 48f;
@@ -185,7 +186,7 @@ public class YokaiGrowthController : MonoBehaviour
 #endif
     }
 
-    void ApplyScale()
+    public void ApplyScale()
     {
         transform.localScale = Vector3.one * currentScale;
     }

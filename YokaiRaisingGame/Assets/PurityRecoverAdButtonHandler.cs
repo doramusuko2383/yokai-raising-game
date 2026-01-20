@@ -59,5 +59,8 @@ public class PurityRecoverAdButtonHandler : MonoBehaviour
         float spiritAmount = spiritController.maxSpirit * spiritRecoverRatio;
         if (spiritAmount > 0f)
             spiritController.AddSpirit(spiritAmount);
+
+        if (stateController != null)
+            stateController.BeginPurifying();
     }
 }
