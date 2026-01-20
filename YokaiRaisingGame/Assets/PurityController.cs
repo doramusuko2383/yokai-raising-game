@@ -216,7 +216,7 @@ public class PurityController : MonoBehaviour
         int ticks = Mathf.FloorToInt(increaseTimer / increaseIntervalSeconds);
         increaseTimer -= ticks * increaseIntervalSeconds;
         float increaseAmount = naturalIncreasePerMinute * ticks;
-        AddPurity(-increaseAmount);
+        AddPurity(increaseAmount);
     }
 
     void SyncPurityEmptyState()
