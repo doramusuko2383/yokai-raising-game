@@ -43,6 +43,7 @@ public class PurityController : MonoBehaviour
     bool isInDanger;
     bool isPurityEmpty;
     bool initialized;
+    bool hasLoggedMissingStateController;
     StatGauge purityGauge;
 
     public float PurityNormalized => purityGauge != null ? purityGauge.Normalized : (maxPurity > 0f ? Mathf.Clamp01(purity / maxPurity) : 0f);
@@ -87,6 +88,7 @@ public class PurityController : MonoBehaviour
                 Debug.LogWarning("[PURIFY] WorldConfig が見つかりません: Resources/WorldConfig_Yokai");
             }
         }
+        LogMissingStateController();
 
         InitializeIfNeeded("Awake");
     }
@@ -165,7 +167,10 @@ public class PurityController : MonoBehaviour
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
+        {
+            LogMissingStateController();
+            return;
+        }
 
         if (stateController != null && stateController.currentState != YokaiState.PurityEmpty)
             return;
@@ -176,7 +181,11 @@ public class PurityController : MonoBehaviour
     bool TryGetRecoveryBlockReason(out string reason)
     {
         if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
+        {
+            LogMissingStateController();
+            reason = "StateController missing";
+            return true;
+        }
 
         bool isPurifying = stateController != null && stateController.isPurifying;
         bool isSpiritEmpty = stateController != null && stateController.currentState == YokaiState.EnergyEmpty;
@@ -229,10 +238,10 @@ public class PurityController : MonoBehaviour
             return;
 
         if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
-
-        if (stateController == null)
+        {
+            LogMissingStateController();
             return;
+        }
 
         if (isNowEmpty)
             stateController.OnPurityEmpty();
@@ -258,6 +267,15 @@ public class PurityController : MonoBehaviour
         CacheDangerState();
         initialized = true;
         NotifyPurityChanged(reason);
+    }
+
+    void LogMissingStateController()
+    {
+        if (stateController != null || hasLoggedMissingStateController)
+            return;
+
+        hasLoggedMissingStateController = true;
+        Debug.LogError("[PURITY] StateController not set in Inspector");
     }
 
     public bool HasNoPurity()

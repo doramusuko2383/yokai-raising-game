@@ -32,19 +32,14 @@ public class PurityUIController : MonoBehaviour
     Image fillImage;
     Color fillBaseColor = Color.white;
 
+    void Awake()
+    {
+        LogMissingDependencies();
+    }
+
     void OnEnable()
     {
-        if (purityController == null)
-            purityController = FindObjectOfType<PurityController>();
-
-        if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
-
-        if (presentationController == null && stateController != null)
-            presentationController = stateController.GetComponent<Yokai.YokaiStatePresentationController>();
-
-        if (presentationController == null)
-            presentationController = FindObjectOfType<Yokai.YokaiStatePresentationController>();
+        LogMissingDependencies();
 
         if (purityController != null)
             purityController.PurityChanged += OnPurityChanged;
@@ -59,6 +54,18 @@ public class PurityUIController : MonoBehaviour
             purityController.PurityChanged -= OnPurityChanged;
 
         ResetPulse();
+    }
+
+    void LogMissingDependencies()
+    {
+        if (purityController == null)
+            Debug.LogError("[PURITY UI] PurityController not set in Inspector");
+
+        if (stateController == null)
+            Debug.LogError("[PURITY UI] StateController not set in Inspector");
+
+        if (presentationController == null)
+            Debug.LogError("[PURITY UI] PresentationController not set in Inspector");
     }
 
     void Update()

@@ -26,6 +26,10 @@ public class SpiritController : MonoBehaviour
     [SerializeField]
     WorldConfig worldConfig;
 
+    [Header("Dependencies")]
+    [SerializeField]
+    Yokai.YokaiStateController stateController;
+
     float decayTimer;
 
     System.Action<float, float> spiritChanged;
@@ -58,6 +62,8 @@ public class SpiritController : MonoBehaviour
         hasEverHadSpirit = false;
         isSpiritEmpty = false;
         EnsureDefaults();
+        if (stateController == null)
+            Debug.LogError("[SPIRIT] StateController not set in Inspector");
         if (worldConfig == null)
         {
             worldConfig = WorldConfig.LoadDefault();
@@ -254,9 +260,11 @@ public class SpiritController : MonoBehaviour
             return;
 
         isSpiritEmpty = shouldBeEmpty;
-        var stateController = CurrentYokaiContext.ResolveStateController();
         if (stateController == null)
+        {
+            Debug.LogError("[SPIRIT] StateController not set in Inspector");
             return;
+        }
 
         if (isSpiritEmpty)
             stateController.OnSpiritEmpty();
