@@ -85,7 +85,6 @@ public class YokaiStateController : MonoBehaviour
     {
         yield return null;
         SyncManagerState();
-        EvaluateState(reason: "InitialSync");
         hasStarted = true;
         if (growthController != null)
         {
@@ -97,8 +96,6 @@ public class YokaiStateController : MonoBehaviour
     void Update()
     {
         HandlePurifyTick();
-        if (hasStarted)
-            EvaluateState(reason: "Update");
     }
 
     void RegisterPurityEvents()
@@ -322,7 +319,6 @@ public class YokaiStateController : MonoBehaviour
             evolutionResultPending = false;
 
         SyncManagerState();
-        EvaluateState(reason: "ActiveYokaiChanged");
     }
 
     public void SetEvolutionReady()
@@ -364,7 +360,6 @@ public class YokaiStateController : MonoBehaviour
 
         spiritController.SetSpiritRatio(0.5f);
         purityController.AddPurityRatio(0.2f);
-        EvaluateState(reason: "SpiritAdRecover");
     }
 
     public void RecoverFromPurityEmptyAd()
@@ -377,7 +372,6 @@ public class YokaiStateController : MonoBehaviour
 
         purityController.SetPurityRatio(0.5f);
         spiritController.AddSpiritRatio(0.2f);
-        EvaluateState(reason: "PurityAdRecover");
         BeginPurifying();
     }
 
@@ -424,7 +418,6 @@ public class YokaiStateController : MonoBehaviour
         if (purityController != null)
             purityController.ExecuteEmergencyPurify();
 
-        EvaluateState(reason: "EmergencyPurify");
         BeginPurifying();
     }
 
