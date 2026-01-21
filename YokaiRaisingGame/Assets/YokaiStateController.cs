@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
 namespace Yokai
@@ -52,45 +51,39 @@ public class YokaiStateController : MonoBehaviour
     public bool IsPurityEmptyState => isPurityEmpty;
     public bool IsEvolving => isEvolving;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    //static void Initialize()
-    //{
-    //    if (FindObjectOfType<YokaiStateController>() != null)
-    //        return;
-
-    //    var controllerObject = new GameObject("YokaiStateController");
-    //    controllerObject.AddComponent<YokaiStateController>();
-    //    DontDestroyOnLoad(controllerObject);
-    //}
-
     void OnEnable()
     {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-        CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
-        ResolveDependencies();
+        RegisterPurityEvents();
+        RegisterSpiritEvents();
+
+        if (!hasStarted)
+            StartCoroutine(InitialSync());
     }
 
     void Awake()
     {
-        isPurifying = false;
-        currentState = YokaiState.Normal;
+        if (spiritController == null || purityController == null || growthController == null)
+            Debug.LogError("[STATE] Dependencies not set in Inspector");
     }
 
     void OnDisable()
     {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-        CurrentYokaiContext.CurrentChanged -= BindCurrentYokai;
-    }
+        if (registeredPurityController != null)
+        {
+            registeredPurityController.EmergencyPurifyRequested -= ExecuteEmergencyPurifyFromButton;
+            registeredPurityController.PurityChanged -= OnPurityChanged;
+        }
 
-    void Start()
-    {
-        StartCoroutine(InitialSync());
+        if (registeredSpiritController != null)
+        {
+            registeredSpiritController.OnSpiritEmpty -= OnSpiritEmpty;
+            registeredSpiritController.OnSpiritRecovered -= OnSpiritRecovered;
+        }
     }
 
     IEnumerator InitialSync()
     {
         yield return null;
-        ResolveDependencies();
         SyncManagerState();
         EvaluateState(reason: "InitialSync");
         hasStarted = true;
@@ -101,35 +94,11 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
-    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        ResolveDependencies();
-    }
-
     void Update()
     {
         HandlePurifyTick();
         if (hasStarted)
             EvaluateState(reason: "Update");
-    }
-
-    void ResolveDependencies()
-    {
-        if (growthController == null || !growthController.gameObject.activeInHierarchy)
-        {
-            growthController = FindActiveGrowthController();
-            if (growthController != null)
-                SetActiveYokai(growthController.gameObject);
-        }
-
-        if (purityController == null)
-            purityController = FindObjectOfType<PurityController>();
-
-        if (spiritController == null)
-            spiritController = FindObjectOfType<SpiritController>();
-
-        RegisterPurityEvents();
-        RegisterSpiritEvents();
     }
 
     void RegisterPurityEvents()
@@ -217,16 +186,7 @@ public class YokaiStateController : MonoBehaviour
         Debug.Log("[STATE] EvaluateState START");
 #endif
         if (spiritController == null || purityController == null)
-        {
-            ResolveDependencies();
-            if (spiritController == null || purityController == null)
-            {
-#if UNITY_EDITOR
-                Debug.Log("[STATE] EvaluateState EARLY RETURN");
-#endif
-                return;
-            }
-        }
+            return;
 
         YokaiState nextState = DetermineNextState(requestedState);
         SetState(nextState, reason);
@@ -358,15 +318,9 @@ public class YokaiStateController : MonoBehaviour
         if (activeYokai == null)
             return;
 
-        purityController = CurrentYokaiContext.ResolvePurityController();
-        spiritController = FindObjectOfType<SpiritController>();
-        RegisterPurityEvents();
-        RegisterSpiritEvents();
-
         if (currentState != YokaiState.Evolving)
             evolutionResultPending = false;
 
-        growthController = activeYokai.GetComponent<YokaiGrowthController>();
         SyncManagerState();
         EvaluateState(reason: "ActiveYokaiChanged");
     }
@@ -402,12 +356,6 @@ public class YokaiStateController : MonoBehaviour
 
     public void RecoverFromSpiritEmptyAd()
     {
-        if (spiritController == null)
-            spiritController = FindObjectOfType<SpiritController>();
-
-        if (purityController == null)
-            purityController = CurrentYokaiContext.ResolvePurityController();
-
         if (spiritController == null || purityController == null)
         {
             Debug.LogWarning("[STATE] Ad recovery failed: manager not found.");
@@ -421,12 +369,6 @@ public class YokaiStateController : MonoBehaviour
 
     public void RecoverFromPurityEmptyAd()
     {
-        if (spiritController == null)
-            spiritController = FindObjectOfType<SpiritController>();
-
-        if (purityController == null)
-            purityController = CurrentYokaiContext.ResolvePurityController();
-
         if (spiritController == null || purityController == null)
         {
             Debug.LogWarning("[STATE] Ad recovery failed: manager not found.");
@@ -470,9 +412,6 @@ public class YokaiStateController : MonoBehaviour
 
     void ExecuteEmergencyPurifyInternal(bool isExplicitRequest)
     {
-        if (purityController == null)
-            purityController = CurrentYokaiContext.ResolvePurityController();
-
         if (!isExplicitRequest)
         {
             if (purityController == null || purityController.purity > 0f)
@@ -491,9 +430,6 @@ public class YokaiStateController : MonoBehaviour
 
     public bool IsPurityEmpty()
     {
-        if (purityController == null)
-            purityController = CurrentYokaiContext.ResolvePurityController();
-
         RegisterPurityEvents();
         if (purityController != null)
             isPurityEmpty = purityController.IsPurityEmpty;
@@ -538,9 +474,6 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         if (purityController == null)
-            purityController = CurrentYokaiContext.ResolvePurityController();
-
-        if (purityController == null)
             return;
 
         purifyTimer += Time.deltaTime;
@@ -574,27 +507,12 @@ public class YokaiStateController : MonoBehaviour
         return false;
     }
 
-    YokaiGrowthController FindActiveGrowthController()
-    {
-        var controllers = FindObjectsOfType<YokaiGrowthController>(true);
-        foreach (var controller in controllers)
-        {
-            if (controller != null && controller.gameObject.activeInHierarchy)
-                return controller;
-        }
-
-        if (controllers.Length == 1)
-            return controllers[0];
-
-        return null;
-    }
-
     void LogStateChange(YokaiState previousState, YokaiState nextState, string reason)
     {
         if (!enableStateLogs)
             return;
 
-        string yokaiName = CurrentYokaiContext.CurrentName();
+        string yokaiName = growthController != null ? growthController.gameObject.name : gameObject.name;
         float currentPurity = purityController != null ? purityController.purity : 0f;
         float maxPurity = purityController != null ? purityController.maxPurity : 0f;
         float currentSpirit = spiritController != null ? spiritController.spirit : 0f;
