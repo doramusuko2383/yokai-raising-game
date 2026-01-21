@@ -42,7 +42,7 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
 
     void Awake()
     {
-        ResolveReferences();
+        LogMissingReferences();
         EnsureGuideVisuals();
         InitializeHidden();
     }
@@ -161,10 +161,10 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
             return;
 
         if (guideRing == null)
-            guideRing = FindRing("MagicCircleGuide") ?? CreateRing("MagicCircleGuide", false, guideRingColor);
+            Debug.LogError("[MAGIC CIRCLE] Guide ring not set in Inspector");
 
         if (progressRing == null)
-            progressRing = FindRing("ProgressRing") ?? FindRing("MagicCircleProgress") ?? CreateRing("ProgressRing", true, progressRingColor);
+            Debug.LogError("[MAGIC CIRCLE] Progress ring not set in Inspector");
 
         if (progressRing != null)
             ConfigureProgressRing(progressRing);
@@ -193,20 +193,16 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
         UpdateProgress();
     }
 
-    void ResolveReferences()
+    void LogMissingReferences()
     {
         if (circleRect == null)
-            circleRect = GetComponent<RectTransform>();
+            Debug.LogError("[MAGIC CIRCLE] Circle rect not set in Inspector");
 
         if (canvasGroup == null)
-        {
-            canvasGroup = GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
-                canvasGroup = gameObject.AddComponent<CanvasGroup>();
-        }
+            Debug.LogError("[MAGIC CIRCLE] Canvas group not set in Inspector");
 
         if (instructionText == null)
-            instructionText = GetComponentInChildren<TMP_Text>(true);
+            Debug.LogError("[MAGIC CIRCLE] Instruction text not set in Inspector");
     }
 
     Image CreateRing(string name, bool filled, Color color)
@@ -265,15 +261,6 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
             progressRing.transform.SetSiblingIndex(Mathf.Min(parent.childCount - 1, circleRect.GetSiblingIndex() + 1));
     }
 
-    Image FindRing(string name)
-    {
-        var ringObject = GameObject.Find(name);
-        if (ringObject == null)
-            return null;
-
-        return ringObject.GetComponent<Image>();
-    }
-
     Sprite ResolveRingSprite()
     {
         if (guideRing != null && guideRing.sprite != null)
@@ -281,22 +268,6 @@ public class MagicCircleSwipeController : MonoBehaviour, IPointerDownHandler, ID
 
         if (progressRing != null && progressRing.sprite != null)
             return progressRing.sprite;
-
-        var guideObject = GameObject.Find("MagicCircleGuide");
-        if (guideObject != null)
-        {
-            var guideImage = guideObject.GetComponent<Image>();
-            if (guideImage != null && guideImage.sprite != null)
-                return guideImage.sprite;
-        }
-
-        var progressObject = GameObject.Find("ProgressRing");
-        if (progressObject != null)
-        {
-            var progressImage = progressObject.GetComponent<Image>();
-            if (progressImage != null && progressImage.sprite != null)
-                return progressImage.sprite;
-        }
 
         return Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
     }

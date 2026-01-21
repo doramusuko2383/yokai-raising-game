@@ -28,6 +28,12 @@ public class SpiritUIController : MonoBehaviour
     bool hasCachedWeakVisuals;
     bool isWeakVisualsApplied;
 
+    void Awake()
+    {
+        LogMissingDependencies();
+        LogMissingWeakVisualTargets();
+    }
+
     void OnEnable()
     {
         if (spiritController != null)
@@ -36,13 +42,12 @@ public class SpiritUIController : MonoBehaviour
         }
 
         if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
+            Debug.LogError("[SPIRIT UI] StateController not set in Inspector");
 
         if (stateController != null)
             stateController.OnStateChanged += OnStateChanged;
 
         CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
-        ResolveWeakVisualTargets();
         CacheWeakVisualBase();
         SyncWeakVisualsWithState();
     }
@@ -102,36 +107,29 @@ public class SpiritUIController : MonoBehaviour
     {
         bool shouldApply = stateController != null && IsWeakState(stateController.currentState);
         ResetWeakVisuals();
-        AssignWeakVisualTargets(activeYokai);
+        LogMissingWeakVisualTargets();
         CacheWeakVisualBase();
         SetWeakVisuals(shouldApply);
     }
 
-    void AssignWeakVisualTargets(GameObject activeYokai)
+    void LogMissingDependencies()
     {
-        if (activeYokai == null)
-            return;
+        if (spiritController == null)
+            Debug.LogError("[SPIRIT UI] SpiritController not set in Inspector");
 
-        yokaiTransform = activeYokai.transform;
-        if (yokaiCanvasGroup == null)
-            yokaiCanvasGroup = activeYokai.GetComponentInChildren<CanvasGroup>(true);
-        if (yokaiImage == null)
-            yokaiImage = activeYokai.GetComponentInChildren<Image>(true);
+        if (stateController == null)
+            Debug.LogError("[SPIRIT UI] StateController not set in Inspector");
     }
 
-    void ResolveWeakVisualTargets()
+    void LogMissingWeakVisualTargets()
     {
-        if (yokaiTransform == null && CurrentYokaiContext.Current != null)
-            yokaiTransform = CurrentYokaiContext.Current.transform;
+        if (yokaiTransform == null)
+            Debug.LogError("[SPIRIT UI] Yokai transform not set in Inspector");
 
-        if (yokaiTransform != null)
-        {
-            if (yokaiCanvasGroup == null)
-                yokaiCanvasGroup = yokaiTransform.GetComponentInChildren<CanvasGroup>(true);
-
-            if (yokaiImage == null)
-                yokaiImage = yokaiTransform.GetComponentInChildren<Image>(true);
-        }
+        if (yokaiCanvasGroup == null)
+            Debug.LogError("[SPIRIT UI] Yokai canvas group not set in Inspector");
+        if (yokaiImage == null)
+            Debug.LogError("[SPIRIT UI] Yokai image not set in Inspector");
     }
 
     void CacheWeakVisualBase()
@@ -174,7 +172,11 @@ public class SpiritUIController : MonoBehaviour
 
     void ApplyWeakVisuals()
     {
-        ResolveWeakVisualTargets();
+        if (yokaiCanvasGroup == null && yokaiImage == null)
+        {
+            LogMissingWeakVisualTargets();
+            return;
+        }
         if (!hasCachedWeakVisuals)
             CacheWeakVisualBase();
 

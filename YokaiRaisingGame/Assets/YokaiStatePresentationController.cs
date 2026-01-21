@@ -74,23 +74,9 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     public bool IsPurityEmptyVisualsActive => isPurityEmptyVisualsActive;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    static void EnsurePresentationController()
-    {
-        var controllers = Object.FindObjectsOfType<YokaiStateController>(true);
-        foreach (var controller in controllers)
-        {
-            if (controller == null)
-                continue;
-
-            if (controller.GetComponent<YokaiStatePresentationController>() == null)
-                controller.gameObject.AddComponent<YokaiStatePresentationController>();
-        }
-    }
-
     void OnEnable()
     {
-        ResolveDependencies();
+        LogMissingDependencies();
         RegisterStateEvents();
         CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
         SyncCurrentYokai();
@@ -123,47 +109,31 @@ public class YokaiStatePresentationController : MonoBehaviour
         UpdatePurityEmptyMotion();
     }
 
-    void ResolveDependencies()
+    void LogMissingDependencies()
     {
         if (stateController == null)
-            stateController = GetComponent<YokaiStateController>();
+            Debug.LogError("[PRESENTATION] StateController not set in Inspector");
 
         if (actionPanel == null)
-            actionPanel = GameObject.Find("UI_Action");
+            Debug.LogError("[PRESENTATION] Action panel not set in Inspector");
 
         if (energyRecoverAdButton == null)
-            energyRecoverAdButton = GameObject.Find("Btn_EnergyRecover_Ad");
-        if (energyRecoverAdButton == null)
-        {
-            var handler = FindObjectOfType<EnergyRecoverAdButtonHandler>(true);
-            if (handler != null)
-                energyRecoverAdButton = handler.gameObject;
-        }
+            Debug.LogError("[PRESENTATION] Energy recover ad button not set in Inspector");
 
         if (purityRecoverAdButton == null)
-            purityRecoverAdButton = GameObject.Find("Btn_PurityRecover_Ad");
-        if (purityRecoverAdButton == null)
-        {
-            var handler = FindObjectOfType<PurityRecoverAdButtonHandler>(true);
-            if (handler != null)
-                purityRecoverAdButton = handler.gameObject;
-        }
+            Debug.LogError("[PRESENTATION] Purity recover ad button not set in Inspector");
 
         if (purifyStopButton == null)
-            purifyStopButton = GameObject.Find("Btn_StopPurify");
+            Debug.LogError("[PRESENTATION] Purify stop button not set in Inspector");
 
         if (magicCircleOverlay == null)
-            magicCircleOverlay = GameObject.Find("MagicCircleImage");
+            Debug.LogError("[PRESENTATION] Magic circle overlay not set in Inspector");
 
         if (dangerOverlay == null)
-        {
-            var dangerObject = GameObject.Find("Overlay_Danger");
-            if (dangerObject != null)
-                dangerOverlay = dangerObject.GetComponent<CanvasGroup>();
-        }
+            Debug.LogError("[PRESENTATION] Danger overlay not set in Inspector");
 
         if (dangerEffects == null || dangerEffects.Length == 0)
-            dangerEffects = FindObjectsOfType<YokaiDangerEffect>(true);
+            Debug.LogError("[PRESENTATION] Danger effects not set in Inspector");
     }
 
     void RegisterStateEvents()
@@ -592,8 +562,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void RefreshDangerEffectOriginalColors()
     {
-        if (dangerEffects == null || dangerEffects.Length == 0)
-            dangerEffects = FindObjectsOfType<YokaiDangerEffect>(true);
         if (dangerEffects == null || dangerEffects.Length == 0)
             return;
 

@@ -42,12 +42,14 @@ public class YokaiGrowthController : MonoBehaviour
     ParticleSystem[] growthParticles;
 
     DateTime lastUpdateTime;
+    bool hasLoggedMissingStateController;
 
     void Awake()
     {
         InitializeGrowthParticles();
         CalculateGrowthRate();
         LoadState();
+        LogMissingStateController();
         bool resetDone = false;
         if (resetEvolutionReadyOnStartup && currentScale >= maxScale - 0.001f)
         {
@@ -118,7 +120,7 @@ public class YokaiGrowthController : MonoBehaviour
         isGrowthStopped = ShouldStopGrowth();
 
         if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
+            LogMissingStateController();
 
         bool shouldPlayParticles = stateController != null && stateController.currentState == YokaiState.Evolving;
         if (!shouldPlayParticles)
@@ -150,7 +152,7 @@ public class YokaiGrowthController : MonoBehaviour
         }
 
         if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
+            LogMissingStateController();
 
         if (stateController != null && stateController.isPurifying)
             return true;
@@ -267,7 +269,7 @@ public class YokaiGrowthController : MonoBehaviour
             return;
 
         if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
+            LogMissingStateController();
 
         if (stateController != null && stateController.isPurifying)
             return;
@@ -283,6 +285,15 @@ public class YokaiGrowthController : MonoBehaviour
 
         if (stateController != null)
             stateController.SetEvolutionReady();
+    }
+
+    void LogMissingStateController()
+    {
+        if (stateController != null || hasLoggedMissingStateController)
+            return;
+
+        hasLoggedMissingStateController = true;
+        Debug.LogError("[GROWTH] StateController not set in Inspector");
     }
 
     void InitializeGrowthParticles()

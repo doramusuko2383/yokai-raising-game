@@ -19,6 +19,9 @@ public class YokaiEvolutionController : MonoBehaviour
     YokaiStateController stateController;
 
     [SerializeField]
+    PurityController purityController;
+
+    [SerializeField]
     Transform characterRoot;
 
     [Header("Evolution Rules")]
@@ -33,6 +36,10 @@ public class YokaiEvolutionController : MonoBehaviour
 
     [SerializeField]
     string yokaiAdultName = "YokaiAdult";
+
+    [Header("UI References")]
+    [SerializeField]
+    PurifyButtonHandler[] purifyButtonHandlers;
 
     bool isEvolving;
     const float ChargeScaleMultiplier = 0.95f;
@@ -69,11 +76,8 @@ public class YokaiEvolutionController : MonoBehaviour
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
-
-        if (stateController == null)
         {
-            Debug.LogWarning("[EVOLUTION] StateController not found");
+            Debug.LogError("[EVOLUTION] StateController not set in Inspector");
             return;
         }
 
@@ -172,7 +176,6 @@ public class YokaiEvolutionController : MonoBehaviour
             if (nextGrowthController != null)
             {
                 nextGrowthController.ResetGrowthState();
-                growthController = nextGrowthController;
             }
             else if (growthController != null)
                 growthController.ResetGrowthState();
@@ -214,10 +217,9 @@ public class YokaiEvolutionController : MonoBehaviour
             ActivateOnly(active);
             currentYokaiPrefab = active;
             nextYokaiPrefab = FindNextYokaiPrefab(currentYokaiPrefab);
-            growthController = currentYokaiPrefab.GetComponent<YokaiGrowthController>();
             if (stateController == null)
-                stateController = FindObjectOfType<YokaiStateController>();
-            if (stateController != null)
+                Debug.LogError("[EVOLUTION] StateController not set in Inspector");
+            else
                 stateController.SetActiveYokai(currentYokaiPrefab);
             UpdateCurrentYokai(currentYokaiPrefab, "Initialize");
             RegisterEncyclopediaDiscovery(currentYokaiPrefab);
@@ -227,7 +229,11 @@ public class YokaiEvolutionController : MonoBehaviour
     bool IsEvolutionBlocked(out string reason)
     {
         if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
+        {
+            Debug.LogError("[EVOLUTION] StateController not set in Inspector");
+            reason = "StateController missing";
+            return true;
+        }
 
         bool isPurityEmpty = stateController != null && stateController.currentState == YokaiState.PurityEmpty;
         bool isEnergyEmpty = stateController != null && stateController.currentState == YokaiState.EnergyEmpty;
@@ -283,18 +289,34 @@ public class YokaiEvolutionController : MonoBehaviour
         if (activeYokai == null)
             return;
 
-        var purityController = CurrentYokaiContext.ResolvePurityController();
         if (purityController != null)
             purityController.BindCurrentYokai(activeYokai);
+        else
+            Debug.LogError("[EVOLUTION] PurityController not set in Inspector");
 
         if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>();
-
-        if (stateController != null)
+        {
+            Debug.LogError("[EVOLUTION] StateController not set in Inspector");
+        }
+        else
+        {
             stateController.BindCurrentYokai(activeYokai);
+        }
 
-        foreach (var handler in FindObjectsOfType<PurifyButtonHandler>(true))
-            handler.BindStateController(stateController);
+        if (purifyButtonHandlers != null && purifyButtonHandlers.Length > 0)
+        {
+            foreach (var handler in purifyButtonHandlers)
+            {
+                if (handler == null)
+                    continue;
+
+                handler.BindStateController(stateController);
+            }
+        }
+        else
+        {
+            Debug.LogError("[EVOLUTION] PurifyButtonHandlers not set in Inspector");
+        }
 
         foreach (var effect in activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true))
             effect.RefreshOriginalColor();
