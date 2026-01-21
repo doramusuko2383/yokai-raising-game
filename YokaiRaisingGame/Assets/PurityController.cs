@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.Serialization;
-using Yokai;
 
 public class PurityController : MonoBehaviour
 {
@@ -12,44 +11,24 @@ public class PurityController : MonoBehaviour
     [FormerlySerializedAs("maxKegare")]
     public float maxPurity = 100f;
 
-    [Header("自然増加")]
+    [Header("自然減少")]
     [SerializeField]
-    float naturalIncreasePerMinute = 2f;
+    [FormerlySerializedAs("naturalIncreasePerMinute")]
+    float naturalDecayPerMinute = 2f;
 
     [SerializeField]
-    float increaseIntervalSeconds = 60f;
+    [FormerlySerializedAs("increaseIntervalSeconds")]
+    float decayIntervalSeconds = 60f;
 
     [Header("World")]
     [SerializeField]
     WorldConfig worldConfig;
 
-    [Header("Dependencies")]
-    [SerializeField]
-    YokaiStateController stateController;
+    float decayTimer;
 
-    [Header("演出")]
-    public float emergencyPurifyValue = 30f;
-
-    [Header("Mentor Message")]
-    [SerializeField]
-    float dangerThresholdRatio = 0.7f;
-
-    public float MaxPurity => maxPurity;
-    public bool IsPurityEmpty => isPurityEmpty;
-    public bool IsPurityEmptyPublic => IsPurityEmpty;
-
-    GameObject currentYokai;
-    float increaseTimer;
-    bool isInDanger;
-    bool isPurityEmpty;
-    bool initialized;
-    bool hasLoggedMissingStateController;
-    StatGauge purityGauge;
-
-    public float PurityNormalized => purityGauge != null ? purityGauge.Normalized : (maxPurity > 0f ? Mathf.Clamp01(purity / maxPurity) : 0f);
-
-    public event System.Action EmergencyPurifyRequested;
     System.Action<float, float> purityChanged;
+    public event System.Action OnPurityEmpty;
+    public event System.Action OnPurityRecovered;
     public event System.Action<float, float> PurityChanged
     {
         add
@@ -66,29 +45,18 @@ public class PurityController : MonoBehaviour
         }
     }
 
-    void OnEnable()
-    {
-        CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
-    }
+    bool initialized;
+    bool isPurityEmpty;
+    StatGauge purityGauge;
 
-    void OnDisable()
-    {
-        CurrentYokaiContext.CurrentChanged -= BindCurrentYokai;
-    }
+    public float PurityNormalized => purityGauge != null ? purityGauge.Normalized : (maxPurity > 0f ? Mathf.Clamp01(purity / maxPurity) : 0f);
+    public bool IsPurityEmpty => isPurityEmpty;
 
     void Awake()
     {
         EnsureDefaults();
         if (worldConfig == null)
-        {
-            worldConfig = WorldConfig.LoadDefault();
-
-            if (worldConfig == null)
-            {
-                Debug.LogWarning("[PURIFY] WorldConfig が見つかりません: Resources/WorldConfig_Yokai");
-            }
-        }
-        LogMissingStateController();
+            Debug.LogError("[PURITY] WorldConfig not set in Inspector");
 
         InitializeIfNeeded("Awake");
     }
@@ -101,35 +69,35 @@ public class PurityController : MonoBehaviour
 
     void Update()
     {
-        HandleNaturalIncrease();
+        HandleNaturalDecay();
     }
 
-    public void BindCurrentYokai(GameObject yokai)
+    public void ChangePurity(float amount)
     {
-        currentYokai = yokai;
+        purityGauge.Add(amount);
+        SyncGaugeToValues();
+
+        NotifyPurityChanged("ChangePurity");
+        UpdatePurityEmptyState();
     }
 
     public void AddPurity(float amount, string reason = "AddPurity")
     {
-        purityGauge.Add(amount);
-        SyncGaugeToValues();
-        SyncPurityEmptyState();
-
-        NotifyPurityChanged(reason);
+        ChangePurity(amount);
     }
 
     public void AddPurityRatio(float ratio)
     {
-        AddPurity(maxPurity * ratio, "AddPurityRatio");
+        ChangePurity(maxPurity * ratio);
     }
 
-    public void SetPurity(float value, string reason = null)
+    public void SetPurity(float value, string reason = "SetPurity")
     {
         purityGauge.SetCurrent(value);
         SyncGaugeToValues();
-        SyncPurityEmptyState();
 
-        NotifyPurityChanged(reason ?? "SetPurity");
+        NotifyPurityChanged(reason);
+        UpdatePurityEmptyState();
     }
 
     public void SetPurityRatio(float ratio)
@@ -137,121 +105,26 @@ public class PurityController : MonoBehaviour
         SetPurity(maxPurity * Mathf.Clamp01(ratio), "SetPurityRatio");
     }
 
-    public void ApplyPurify(float purifyRatio = 0.25f)
+    void HandleNaturalDecay()
     {
-        ApplyPurifyInternal(purifyRatio, allowWhenCritical: false, logContext: "おきよめ");
-    }
-
-    public void Purify()
-    {
-        ApplyPurify();
-    }
-
-    public void ApplyPurifyFromMagicCircle(float purifyRatio = 0.45f)
-    {
-        ApplyPurifyInternal(purifyRatio, allowWhenCritical: true, logContext: "magic circle");
-    }
-
-    void ApplyPurifyInternal(float purifyRatio, bool allowWhenCritical, string logContext)
-    {
-        if (!allowWhenCritical && TryGetRecoveryBlockReason(out _))
-        {
-            return;
-        }
-
-        float purifyAmount = maxPurity * purifyRatio;
-        AddPurity(purifyAmount, "ApplyPurifyInternal");
-    }
-
-    public void OnClickAdWatch()
-    {
-        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
-        if (stateController == null)
-        {
-            LogMissingStateController();
-            return;
-        }
-
-        if (stateController != null && stateController.currentState != YokaiState.PurityEmpty)
+        if (naturalDecayPerMinute <= 0f)
             return;
 
-        EmergencyPurifyRequested?.Invoke();
-    }
-
-    bool TryGetRecoveryBlockReason(out string reason)
-    {
-        if (stateController == null)
-        {
-            LogMissingStateController();
-            reason = "StateController missing";
-            return true;
-        }
-
-        bool isPurifying = stateController != null && stateController.isPurifying;
-        bool isSpiritEmpty = stateController != null && stateController.currentState == YokaiState.EnergyEmpty;
-        if (!isPurifying && !isSpiritEmpty)
-        {
-            reason = string.Empty;
-            return false;
-        }
-
-        if (isPurifying && isSpiritEmpty)
-            reason = "魔法陣 / 霊力0";
-        else if (isPurifying)
-            reason = "魔法陣";
-        else
-            reason = "霊力0";
-
-        return true;
-    }
-
-    public void ExecuteEmergencyPurify()
-    {
-        AddPurity(emergencyPurifyValue, "ExecuteEmergencyPurify");
-    }
-
-    void HandleNaturalIncrease()
-    {
-        if (naturalIncreasePerMinute <= 0f)
+        if (purity <= 0f)
             return;
 
-        if (isPurityEmpty)
+        decayTimer += Time.deltaTime;
+        if (decayTimer < decayIntervalSeconds)
             return;
 
-        increaseTimer += Time.deltaTime;
-        if (increaseTimer < increaseIntervalSeconds)
-            return;
-
-        int ticks = Mathf.FloorToInt(increaseTimer / increaseIntervalSeconds);
-        increaseTimer -= ticks * increaseIntervalSeconds;
-        float increaseAmount = naturalIncreasePerMinute * ticks;
-        AddPurity(-increaseAmount);
-    }
-
-    void SyncPurityEmptyState()
-    {
-        bool wasEmpty = isPurityEmpty;
-        bool isNowEmpty = purity <= 0f;
-        isPurityEmpty = isNowEmpty;
-
-        if (wasEmpty == isNowEmpty)
-            return;
-
-        if (stateController == null)
-        {
-            LogMissingStateController();
-            return;
-        }
-
-        if (isNowEmpty)
-            stateController.OnPurityEmpty();
-        else
-            stateController.OnPurityRecovered();
+        int ticks = Mathf.FloorToInt(decayTimer / decayIntervalSeconds);
+        decayTimer -= ticks * decayIntervalSeconds;
+        float decayAmount = naturalDecayPerMinute * ticks;
+        ChangePurity(-decayAmount);
     }
 
     void NotifyPurityChanged(string reason)
     {
-        UpdateDangerState();
         purityChanged?.Invoke(purity, maxPurity);
     }
 
@@ -261,21 +134,10 @@ public class PurityController : MonoBehaviour
             return;
 
         EnsureDefaults();
-        BindCurrentYokai(CurrentYokaiContext.Current);
         InitializeGauge();
-        SyncPurityEmptyState();
-        CacheDangerState();
+        UpdatePurityEmptyState();
         initialized = true;
         NotifyPurityChanged(reason);
-    }
-
-    void LogMissingStateController()
-    {
-        if (stateController != null || hasLoggedMissingStateController)
-            return;
-
-        hasLoggedMissingStateController = true;
-        Debug.LogError("[PURITY] StateController not set in Inspector");
     }
 
     public bool HasNoPurity()
@@ -318,26 +180,16 @@ public class PurityController : MonoBehaviour
         maxPurity = purityGauge.Max;
     }
 
-    void CacheDangerState()
+    void UpdatePurityEmptyState()
     {
-        isInDanger = IsDangerState();
-    }
+        bool shouldBeEmpty = purity <= 0f;
+        if (shouldBeEmpty == isPurityEmpty)
+            return;
 
-    void UpdateDangerState()
-    {
-        bool isDanger = IsDangerState();
-        if (isDanger && !isInDanger)
-            MentorMessageService.ShowHint(OnmyojiHintType.PurityWarning);
-
-        isInDanger = isDanger;
-    }
-
-    bool IsDangerState()
-    {
+        isPurityEmpty = shouldBeEmpty;
         if (isPurityEmpty)
-            return false;
-
-        float threshold = maxPurity * Mathf.Clamp01(1f - dangerThresholdRatio);
-        return purity <= threshold;
+            OnPurityEmpty?.Invoke();
+        else
+            OnPurityRecovered?.Invoke();
     }
 }

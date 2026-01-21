@@ -289,9 +289,7 @@ public class YokaiEvolutionController : MonoBehaviour
         if (activeYokai == null)
             return;
 
-        if (purityController != null)
-            purityController.BindCurrentYokai(activeYokai);
-        else
+        if (purityController == null)
             Debug.LogError("[EVOLUTION] PurityController not set in Inspector");
 
         if (stateController == null)

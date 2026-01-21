@@ -1584,8 +1584,8 @@ MonoBehaviour:
   trailMinPointDistance: 2
   successPulseScale: 1.1
   successPulseDuration: 0.2
+  recoverRatio: 0.4
   stateController: {fileID: 1786705811}
-  purityController: {fileID: 604884281}
 --- !u!1 &1902766323
 GameObject:
   m_ObjectHideFlags: 0
@@ -1648,7 +1648,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stateController: {fileID: 1786705811}
-  purityController: {fileID: 604884281}
+  magicCircleRoot: {fileID: 1803633755}
 --- !u!4 &1905322488
 Transform:
   m_ObjectHideFlags: 0

@@ -7,16 +7,7 @@ public class PurityRecoverAdButtonHandler : MonoBehaviour
     YokaiStateController stateController;
 
     [SerializeField]
-    PurityController purityController;
-
-    [SerializeField]
-    SpiritController spiritController;
-
-    [SerializeField]
-    float purityRecoverRatio = 0.5f;
-
-    [SerializeField]
-    float spiritRecoverRatio = 0.2f;
+    float recoverRatio = 0.5f;
 
     public void BindStateController(YokaiStateController controller)
     {
@@ -30,37 +21,32 @@ public class PurityRecoverAdButtonHandler : MonoBehaviour
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
-
-        if (purityController == null)
-            purityController = CurrentYokaiContext.ResolvePurityController();
-
-        if (spiritController == null)
-            spiritController = FindObjectOfType<SpiritController>();
-
-        bool isPurityEmptyState = stateController != null
-            ? stateController.currentState == YokaiState.PurityEmpty
-            : purityController != null && purityController.IsPurityEmpty;
-
-        if (!isPurityEmptyState)
-            return;
-
-        if (purityController == null || spiritController == null)
         {
-            Debug.LogWarning("[PURIFY] Recovery failed: controller not found.");
+            Debug.LogError("[RECOVERY] StateController not set in Inspector");
             return;
         }
 
-        float targetPurity = purityController.maxPurity * purityRecoverRatio;
-        float purityDelta = targetPurity - purityController.purity;
-        if (purityDelta > 0f)
-            purityController.AddPurity(purityDelta, "PurityRecoverAd");
+        if (stateController.currentState == YokaiState.EnergyEmpty)
+        {
+            var spiritController = stateController.SpiritController;
+            if (spiritController == null)
+            {
+                Debug.LogError("[RECOVERY] SpiritController not set in Inspector");
+                return;
+            }
 
-        float spiritAmount = spiritController.maxSpirit * spiritRecoverRatio;
-        if (spiritAmount > 0f)
-            spiritController.AddSpirit(spiritAmount);
+            spiritController.SetSpiritRatio(recoverRatio);
+        }
+        else if (stateController.currentState == YokaiState.PurityEmpty)
+        {
+            var purityController = stateController.PurityController;
+            if (purityController == null)
+            {
+                Debug.LogError("[RECOVERY] PurityController not set in Inspector");
+                return;
+            }
 
-        if (stateController != null)
-            stateController.BeginPurifying();
+            purityController.SetPurityRatio(recoverRatio);
+        }
     }
 }

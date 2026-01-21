@@ -11,10 +11,6 @@ public class SpiritController : MonoBehaviour
     [FormerlySerializedAs("maxEnergy")]
     public float maxSpirit = 100f;
 
-    [Header("状態")]
-    [SerializeField]
-    bool hasEverHadSpirit;
-
     [Header("自然減少")]
     [SerializeField]
     float naturalDecayPerMinute = 2.5f;
@@ -25,10 +21,6 @@ public class SpiritController : MonoBehaviour
     [Header("World")]
     [SerializeField]
     WorldConfig worldConfig;
-
-    [Header("Dependencies")]
-    [SerializeField]
-    Yokai.YokaiStateController stateController;
 
     float decayTimer;
 
@@ -59,19 +51,10 @@ public class SpiritController : MonoBehaviour
 
     void Awake()
     {
-        hasEverHadSpirit = false;
         isSpiritEmpty = false;
         EnsureDefaults();
-        if (stateController == null)
-            Debug.LogError("[SPIRIT] StateController not set in Inspector");
         if (worldConfig == null)
-        {
-            worldConfig = WorldConfig.LoadDefault();
-
-            if (worldConfig == null)
-            {
-            }
-        }
+            Debug.LogError("[SPIRIT] WorldConfig not set in Inspector");
 
         InitializeIfNeeded("Awake");
     }
@@ -84,25 +67,16 @@ public class SpiritController : MonoBehaviour
 
     void Update()
     {
-        if (!hasEverHadSpirit && spirit > 0f)
-        {
-            hasEverHadSpirit = true;
-        }
         HandleNaturalDecay();
     }
 
     public void ChangeSpirit(float amount)
     {
-        float previousSpirit = spirit;
         spiritGauge.Add(amount);
         SyncGaugeToValues();
-        if (!hasEverHadSpirit && (previousSpirit > 0f || spirit > 0f))
-        {
-            hasEverHadSpirit = true;
-        }
 
         NotifySpiritChanged("ChangeSpirit");
-        UpdateSpiritEmptyState(previousSpirit);
+        UpdateSpiritEmptyState();
     }
 
     public void AddSpirit(float amount)
@@ -117,17 +91,11 @@ public class SpiritController : MonoBehaviour
 
     public void SetSpirit(float value, string reason = "SetSpirit")
     {
-        float previousSpirit = spirit;
         spiritGauge.SetCurrent(value);
         SyncGaugeToValues();
 
-        if (!hasEverHadSpirit && (previousSpirit > 0f || spirit > 0f))
-        {
-            hasEverHadSpirit = true;
-        }
-
         NotifySpiritChanged(reason);
-        UpdateSpiritEmptyState(previousSpirit);
+        UpdateSpiritEmptyState();
     }
 
     public void SetSpiritRatio(float ratio)
@@ -175,20 +143,6 @@ public class SpiritController : MonoBehaviour
         ChangeSpirit(-decayAmount);
     }
 
-    // 📺 広告を見る（仮）
-    public void OnClickAdWatch()
-    {
-        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
-        bool wasEmpty = isSpiritEmpty;
-        float recoveryAmount = Random.Range(30f, 40f);
-        ChangeSpirit(recoveryAmount);
-
-        if (wasEmpty && !isSpiritEmpty)
-        {
-            MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
-        }
-    }
-
     void NotifySpiritChanged(string reason)
     {
         spiritChanged?.Invoke(spirit, maxSpirit);
@@ -203,15 +157,13 @@ public class SpiritController : MonoBehaviour
         initialized = true;
         InitializeGauge();
         NotifySpiritChanged(reason);
-        UpdateSpiritEmptyState(spirit);
+        UpdateSpiritEmptyState();
     }
 
     public bool HasNoSpirit()
     {
         return spirit <= 0f;
     }
-
-    public bool HasEverHadSpirit => hasEverHadSpirit;
 
     public bool HasValidValues()
     {
@@ -247,29 +199,17 @@ public class SpiritController : MonoBehaviour
         maxSpirit = spiritGauge.Max;
     }
 
-    void UpdateSpiritEmptyState(float previousSpirit)
+    void UpdateSpiritEmptyState()
     {
-        bool hasEnergyNow = spirit > 0f;
-        if (!hasEverHadSpirit && (previousSpirit > 0f || hasEnergyNow))
-        {
-            hasEverHadSpirit = true;
-        }
-
         bool shouldBeEmpty = spirit <= 0f;
         if (shouldBeEmpty == isSpiritEmpty)
             return;
 
         isSpiritEmpty = shouldBeEmpty;
-        if (stateController == null)
-        {
-            Debug.LogError("[SPIRIT] StateController not set in Inspector");
-            return;
-        }
-
         if (isSpiritEmpty)
-            stateController.OnSpiritEmpty();
+            OnSpiritEmpty?.Invoke();
         else
-            stateController.OnSpiritRecovered();
+            OnSpiritRecovered?.Invoke();
     }
 
     void LogSpiritInitialized(string context)

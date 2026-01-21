@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 
 namespace Yokai
 {
@@ -59,7 +60,12 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     [Header("Recovery Ad Buttons")]
     [SerializeField]
-    GameObject energyRecoverAdButton;
+    [FormerlySerializedAs("energyRecoverAdButton")]
+    GameObject recoverAdButton;
+
+    [SerializeField]
+    [FormerlySerializedAs("purityRecoverAdButton")]
+    GameObject legacyPurityRecoverAdButton;
 
     GameObject purityEmptyTargetRoot;
     readonly Dictionary<SpriteRenderer, Color> purityEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
@@ -71,8 +77,17 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isPurityEmptyMotionApplied;
     Coroutine purityEmptyReleaseRoutine;
     bool lastPurifying;
+    static YokaiStatePresentationController instance;
 
     public bool IsPurityEmptyVisualsActive => isPurityEmptyVisualsActive;
+
+    void Awake()
+    {
+        if (instance != null && instance != this)
+            Debug.LogError("[PRESENTATION] Multiple YokaiStatePresentationController instances detected.");
+        else
+            instance = this;
+    }
 
     void OnEnable()
     {
@@ -89,6 +104,12 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         UnregisterStateEvents();
         CurrentYokaiContext.CurrentChanged -= HandleCurrentYokaiChanged;
+    }
+
+    void OnDestroy()
+    {
+        if (instance == this)
+            instance = null;
     }
 
     void Update()
@@ -117,11 +138,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (actionPanel == null)
             Debug.LogError("[PRESENTATION] Action panel not set in Inspector");
 
-        if (energyRecoverAdButton == null)
-            Debug.LogError("[PRESENTATION] Energy recover ad button not set in Inspector");
-
-        if (purityRecoverAdButton == null)
-            Debug.LogError("[PRESENTATION] Purity recover ad button not set in Inspector");
+        if (recoverAdButton == null)
+            Debug.LogError("[PRESENTATION] Recovery ad button not set in Inspector");
 
         if (purifyStopButton == null)
             Debug.LogError("[PRESENTATION] Purify stop button not set in Inspector");
@@ -270,8 +288,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController != null && stateController.IsSpiritEmpty)
             return YokaiState.EnergyEmpty;
 
-    if (stateController != null && stateController.IsPurityEmpty())
-                return YokaiState.PurityEmpty;
+        if (stateController != null && stateController.IsPurityEmptyState)
+            return YokaiState.PurityEmpty;
 
         return YokaiState.Normal;
     }
@@ -299,12 +317,12 @@ public class YokaiStatePresentationController : MonoBehaviour
                 continue;
 
             bool isEnergyRecoverAd =
-                energyRecoverAdButton != null &&
-                button.gameObject == energyRecoverAdButton;
+                recoverAdButton != null &&
+                button.gameObject == recoverAdButton;
 
             bool isPurityRecoverAd =
-                purityRecoverAdButton != null &&
-                button.gameObject == purityRecoverAdButton;
+                legacyPurityRecoverAdButton != null &&
+                button.gameObject == legacyPurityRecoverAdButton;
 
             bool shouldShow;
 
@@ -335,11 +353,12 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void UpdateRecoveryButtons(YokaiState state)
     {
-        if (energyRecoverAdButton != null)
-            energyRecoverAdButton.SetActive(state == YokaiState.EnergyEmpty);
+        bool shouldShow = state == YokaiState.EnergyEmpty || state == YokaiState.PurityEmpty;
+        if (recoverAdButton != null)
+            recoverAdButton.SetActive(shouldShow);
 
-        if (purityRecoverAdButton != null)
-            purityRecoverAdButton.SetActive(state == YokaiState.PurityEmpty);
+        if (legacyPurityRecoverAdButton != null)
+            legacyPurityRecoverAdButton.SetActive(false);
     }
 
     void ApplyCanvasGroup(GameObject target, bool visible, bool interactable)
