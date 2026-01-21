@@ -80,12 +80,11 @@ public class CharacterSwitcher : MonoBehaviour
         currentInstance.transform.localScale = Vector3.one;
 
         CurrentYokaiContext.SetCurrent(currentInstance, "CharacterSwitcher");
-        var purityController = CurrentYokaiContext.ResolvePurityController();
-        if (purityController != null)
-            purityController.BindCurrentYokai(currentInstance);
         var stateController = CurrentYokaiContext.ResolveStateController();
         if (stateController != null)
+        {
             stateController.BindCurrentYokai(currentInstance);
+        }
         Debug.Log($"[STATE] CurrentYokaiContext.CurrentName={CurrentYokaiContext.CurrentName()}");
     }
 
