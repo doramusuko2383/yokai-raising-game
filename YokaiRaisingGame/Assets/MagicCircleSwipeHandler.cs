@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using UnityEngine.Serialization;
 using Yokai;
 
 public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
@@ -64,11 +63,10 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     float successPulseDuration = 0.2f;
 
     [SerializeField]
-    YokaiStateController stateController;
+    float recoverRatio = 0.4f;
 
-    [FormerlySerializedAs("kegareManager")]
     [SerializeField]
-    PurityController purityController;
+    YokaiStateController stateController;
 
     bool isTracking;
     bool isCompleted;
@@ -221,11 +219,8 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     bool IsPurifying()
     {
         if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
-
-        if (stateController == null)
         {
-            Debug.LogWarning("[PURIFY] StateController が見つからないためスワイプ判定を停止します。");
+            Debug.LogError("[PURIFY] StateController not set in Inspector");
             return false;
         }
 
@@ -237,21 +232,46 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         if (hasAppliedPurify)
             return;
 
-        if (purityController == null)
-            purityController = CurrentYokaiContext.ResolvePurityController();
-
-        if (purityController == null)
+        if (stateController == null)
         {
-            Debug.LogWarning("[PURIFY] PurityController が見つからないためおきよめできません。");
+            Debug.LogError("[PURIFY] StateController not set in Inspector");
             return;
         }
+
+        var spiritController = stateController.SpiritController;
+        var purityController = stateController.PurityController;
 
         Debug.Log("[PURIFY] おきよめ成功");
         Debug.Log("[PURIFY] Trail success");
         ClearTrail(immediate: true);
         PulseMagicCircle();
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
-        purityController.ApplyPurifyFromMagicCircle();
+
+        if (stateController.currentState == YokaiState.EnergyEmpty)
+        {
+            if (spiritController == null)
+            {
+                Debug.LogError("[PURIFY] SpiritController not set in Inspector");
+                return;
+            }
+
+            spiritController.SetSpiritRatio(recoverRatio);
+        }
+        else if (stateController.currentState == YokaiState.PurityEmpty)
+        {
+            if (purityController == null)
+            {
+                Debug.LogError("[PURIFY] PurityController not set in Inspector");
+                return;
+            }
+
+            purityController.SetPurityRatio(recoverRatio);
+        }
+        else
+        {
+            Debug.LogWarning("[PURIFY] Recovery skipped: state is not empty.");
+        }
+
         hasAppliedPurify = true;
         stateController.StopPurifyingForSuccess();
         ToggleGuide(false, immediate: false);

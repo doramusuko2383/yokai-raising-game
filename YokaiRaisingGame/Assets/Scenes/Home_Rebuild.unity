@@ -2645,36 +2645,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 987239465}
-    - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
-      value: 
-      objectReference: {fileID: 1388627842}
-    - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
-      value: ExecuteEmergencyPurifyFromButton
-      objectReference: {fileID: 0}
-    - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
-      value: YokaiStateController, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2922,6 +2898,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f4b40857ddc4d45b86ef2f1e845b6da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  stateController: {fileID: 1388627842}
+  magicCircleRoot: {fileID: 0}
 --- !u!4 &1554015420
 Transform:
   m_ObjectHideFlags: 0

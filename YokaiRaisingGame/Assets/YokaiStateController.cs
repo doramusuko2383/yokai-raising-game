@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -26,38 +25,26 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     SpiritController spiritController;
 
-    [Header("Purify")]
-    [SerializeField]
-    float purifyTickInterval = 1f;
-
-    [SerializeField]
-    float purifyTickAmount = 2f;
-
-    [SerializeField]
-    bool enablePurifyTick = false;
-
     [SerializeField]
     bool enableStateLogs = false;
 
-    float purifyTimer;
     PurityController registeredPurityController;
     SpiritController registeredSpiritController;
     bool evolutionResultPending;
     YokaiEvolutionStage evolutionResultStage;
     const float EvolutionReadyScale = 2.0f;
-    bool hasStarted;
+    bool hasInitialized;
 
     public bool IsSpiritEmpty => isSpiritEmpty;
     public bool IsPurityEmptyState => isPurityEmpty;
     public bool IsEvolving => isEvolving;
+    public SpiritController SpiritController => spiritController;
+    public PurityController PurityController => purityController;
 
     void OnEnable()
     {
         RegisterPurityEvents();
         RegisterSpiritEvents();
-
-        if (!hasStarted)
-            StartCoroutine(InitialSync());
     }
 
     void Awake()
@@ -66,12 +53,19 @@ public class YokaiStateController : MonoBehaviour
             Debug.LogError("[STATE] Dependencies not set in Inspector");
     }
 
+    void Start()
+    {
+        SyncManagerState();
+        hasInitialized = true;
+        EvaluateState(reason: "InitialSync");
+    }
+
     void OnDisable()
     {
         if (registeredPurityController != null)
         {
-            registeredPurityController.EmergencyPurifyRequested -= ExecuteEmergencyPurifyFromButton;
-            registeredPurityController.PurityChanged -= OnPurityChanged;
+            registeredPurityController.OnPurityEmpty -= OnPurityEmpty;
+            registeredPurityController.OnPurityRecovered -= OnPurityRecovered;
         }
 
         if (registeredSpiritController != null)
@@ -81,23 +75,6 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
-    IEnumerator InitialSync()
-    {
-        yield return null;
-        SyncManagerState();
-        hasStarted = true;
-        if (growthController != null)
-        {
-            growthController.currentScale = growthController.InitialScale;
-            growthController.ApplyScale();
-        }
-    }
-
-    void Update()
-    {
-        HandlePurifyTick();
-    }
-
     void RegisterPurityEvents()
     {
         if (registeredPurityController == purityController)
@@ -105,16 +82,16 @@ public class YokaiStateController : MonoBehaviour
 
         if (registeredPurityController != null)
         {
-            registeredPurityController.EmergencyPurifyRequested -= ExecuteEmergencyPurifyFromButton;
-            registeredPurityController.PurityChanged -= OnPurityChanged;
+            registeredPurityController.OnPurityEmpty -= OnPurityEmpty;
+            registeredPurityController.OnPurityRecovered -= OnPurityRecovered;
         }
 
         registeredPurityController = purityController;
 
         if (registeredPurityController != null)
         {
-            registeredPurityController.EmergencyPurifyRequested += ExecuteEmergencyPurifyFromButton;
-            registeredPurityController.PurityChanged += OnPurityChanged;
+            registeredPurityController.OnPurityEmpty += OnPurityEmpty;
+            registeredPurityController.OnPurityRecovered += OnPurityRecovered;
         }
     }
 
@@ -147,16 +124,6 @@ public class YokaiStateController : MonoBehaviour
             isPurityEmpty = purityController.IsPurityEmpty;
     }
 
-    void OnPurityChanged(float current, float max)
-    {
-        bool previous = isPurityEmpty;
-        if (purityController != null)
-            isPurityEmpty = purityController.IsPurityEmpty;
-
-        if (previous != isPurityEmpty)
-            EvaluateState(reason: "PurityChanged");
-    }
-
     public void OnSpiritEmpty()
     {
 #if UNITY_EDITOR
@@ -182,7 +149,7 @@ public class YokaiStateController : MonoBehaviour
 #if UNITY_EDITOR
         Debug.Log("[STATE] EvaluateState START");
 #endif
-        if (spiritController == null || purityController == null)
+        if (!hasInitialized)
             return;
 
         YokaiState nextState = DetermineNextState(requestedState);
@@ -192,34 +159,18 @@ public class YokaiStateController : MonoBehaviour
     YokaiState DetermineNextState(YokaiState? requestedState = null)
     {
         if (isSpiritEmpty)
-        {
             return YokaiState.EnergyEmpty;
-        }
 
         if (isPurityEmpty)
-        {
             return YokaiState.PurityEmpty;
-        }
 
         if (requestedState.HasValue)
-        {
             return requestedState.Value;
-        }
 
-        if (isEvolving)
-        {
-            return YokaiState.Evolving;
-        }
-
-        if (isPurifying)
-        {
-            return YokaiState.Purifying;
-        }
-
-        if (growthController != null && growthController.isEvolutionReady && !IsEvolutionBlocked(out _))
-        {
-            return YokaiState.EvolutionReady;
-        }
+        if (currentState == YokaiState.Purifying
+            || currentState == YokaiState.Evolving
+            || currentState == YokaiState.EvolutionReady)
+            return currentState;
 
         return YokaiState.Normal;
     }
@@ -251,8 +202,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isPurifying = true;
-        purifyTimer = 0f;
-        EvaluateState(reason: "BeginPurify");
+        EvaluateState(YokaiState.Purifying, reason: "BeginPurify");
     }
 
     public void StopPurifying()
@@ -271,7 +221,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isPurifying = false;
-        EvaluateState(reason: "StopPurify");
+        EvaluateState(YokaiState.Normal, reason: "StopPurify");
     }
 
     public void BeginEvolution()
@@ -340,41 +290,6 @@ public class YokaiStateController : MonoBehaviour
             EvaluateState(YokaiState.EvolutionReady, reason: "EvolutionReady");
     }
 
-    public void ExecuteEmergencyPurify()
-    {
-        ExecuteEmergencyPurifyInternal(isExplicitRequest: false);
-    }
-
-    public void ExecuteEmergencyPurifyFromButton()
-    {
-        ExecuteEmergencyPurifyInternal(isExplicitRequest: true);
-    }
-
-    public void RecoverFromSpiritEmptyAd()
-    {
-        if (spiritController == null || purityController == null)
-        {
-            Debug.LogWarning("[STATE] Ad recovery failed: manager not found.");
-            return;
-        }
-
-        spiritController.SetSpiritRatio(0.5f);
-        purityController.AddPurityRatio(0.2f);
-    }
-
-    public void RecoverFromPurityEmptyAd()
-    {
-        if (spiritController == null || purityController == null)
-        {
-            Debug.LogWarning("[STATE] Ad recovery failed: manager not found.");
-            return;
-        }
-
-        purityController.SetPurityRatio(0.5f);
-        spiritController.AddSpiritRatio(0.2f);
-        BeginPurifying();
-    }
-
     public void OnPurityEmpty()
     {
 #if UNITY_EDITOR
@@ -404,28 +319,8 @@ public class YokaiStateController : MonoBehaviour
         EvaluateState(reason: reason);
     }
 
-    void ExecuteEmergencyPurifyInternal(bool isExplicitRequest)
-    {
-        if (!isExplicitRequest)
-        {
-            if (purityController == null || purityController.purity > 0f)
-                return;
-
-            if (currentState != YokaiState.PurityEmpty)
-                return;
-        }
-
-        if (purityController != null)
-            purityController.ExecuteEmergencyPurify();
-
-        BeginPurifying();
-    }
-
     public bool IsPurityEmpty()
     {
-        RegisterPurityEvents();
-        if (purityController != null)
-            isPurityEmpty = purityController.IsPurityEmpty;
         return isPurityEmpty;
     }
 
@@ -456,25 +351,6 @@ public class YokaiStateController : MonoBehaviour
             reason = "霊力0";
 
         return true;
-    }
-
-    void HandlePurifyTick()
-    {
-        if (!isPurifying)
-            return;
-
-        if (!enablePurifyTick)
-            return;
-
-        if (purityController == null)
-            return;
-
-        purifyTimer += Time.deltaTime;
-        if (purifyTimer < purifyTickInterval)
-            return;
-
-        purifyTimer = 0f;
-        purityController.AddPurity(-purifyTickAmount);
     }
 
     public void EnterSpiritEmpty()

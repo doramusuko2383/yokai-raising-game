@@ -20,20 +20,16 @@ public class PurifyButtonHandler : MonoBehaviour
         if (IsActionBlocked())
             return;
 
-        if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
-
         if (stateController != null)
         {
             stateController.BeginPurifying();
             if (stateController.isPurifying)
                 AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
             TutorialManager.NotifyPurifyUsed();
-            RequestMagicCircle(PurifyRequestType.Normal);
         }
         else
         {
-            Debug.LogWarning("[PURIFY] StateController が見つからないためおきよめできません。");
+            Debug.LogError("[PURIFY] StateController not set in Inspector");
         }
     }
 
@@ -45,17 +41,14 @@ public class PurifyButtonHandler : MonoBehaviour
 
         ShowAd(() =>
         {
-            if (stateController == null)
-                stateController = CurrentYokaiContext.ResolveStateController();
-
             if (stateController != null)
             {
-                stateController.ExecuteEmergencyPurifyFromButton();
+                stateController.BeginPurifying();
                 TutorialManager.NotifyPurifyUsed();
             }
             else
             {
-                Debug.LogWarning("[PURIFY] StateController が見つからないため緊急お祓いできません。");
+                Debug.LogError("[PURIFY] StateController not set in Inspector");
             }
         });
     }
@@ -66,9 +59,6 @@ public class PurifyButtonHandler : MonoBehaviour
         if (!IsState(YokaiState.Purifying))
             return;
 
-        if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
-
         if (stateController != null)
             AudioHook.RequestPlay(YokaiSE.SE_PURIFY_CANCEL);
         if (stateController != null)
@@ -77,9 +67,6 @@ public class PurifyButtonHandler : MonoBehaviour
 
     bool IsActionBlocked()
     {
-        if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
-
         // 不具合③: 状態未同期時はブロックせず、浄化中のみを弾く。
         return stateController != null
             && stateController.isPurifying;
@@ -87,9 +74,6 @@ public class PurifyButtonHandler : MonoBehaviour
 
     bool IsState(YokaiState state)
     {
-        if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
-
         if (stateController == null || stateController.currentState == state)
             return true;
 
@@ -101,24 +85,4 @@ public class PurifyButtonHandler : MonoBehaviour
         onCompleted?.Invoke();
     }
 
-    void RequestMagicCircle(PurifyRequestType requestType)
-    {
-        var activator = FindObjectOfType<MagicCircleActivator>();
-        if (activator == null)
-        {
-            Debug.LogWarning("[PURIFY] MagicCircleActivator が見つからないため魔法陣を起動できません。");
-            return;
-        }
-
-        if (requestType == PurifyRequestType.Emergency)
-            activator.RequestEmergencyPurify();
-        else
-            activator.RequestNormalPurify();
-    }
-
-    enum PurifyRequestType
-    {
-        Normal,
-        Emergency
-    }
 }

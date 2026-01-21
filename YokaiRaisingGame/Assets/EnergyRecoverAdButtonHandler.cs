@@ -6,6 +6,9 @@ public class EnergyRecoverAdButtonHandler : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
+    [SerializeField]
+    float recoverRatio = 0.5f;
+
     public void BindStateController(YokaiStateController controller)
     {
         if (controller == null)
@@ -18,11 +21,32 @@ public class EnergyRecoverAdButtonHandler : MonoBehaviour
     {
         AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (stateController == null)
-            stateController = CurrentYokaiContext.ResolveStateController();
-
-        if (stateController == null || stateController.currentState != YokaiState.EnergyEmpty)
+        {
+            Debug.LogError("[RECOVERY] StateController not set in Inspector");
             return;
+        }
 
-        stateController.RecoverFromSpiritEmptyAd();
+        if (stateController.currentState == YokaiState.EnergyEmpty)
+        {
+            var spiritController = stateController.SpiritController;
+            if (spiritController == null)
+            {
+                Debug.LogError("[RECOVERY] SpiritController not set in Inspector");
+                return;
+            }
+
+            spiritController.SetSpiritRatio(recoverRatio);
+        }
+        else if (stateController.currentState == YokaiState.PurityEmpty)
+        {
+            var purityController = stateController.PurityController;
+            if (purityController == null)
+            {
+                Debug.LogError("[RECOVERY] PurityController not set in Inspector");
+                return;
+            }
+
+            purityController.SetPurityRatio(recoverRatio);
+        }
     }
 }
