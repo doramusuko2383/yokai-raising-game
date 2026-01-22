@@ -91,7 +91,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void OnEnable()
     {
-        LogMissingDependencies();
         RegisterStateEvents();
         CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
         SyncCurrentYokai();
@@ -128,30 +127,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     void LateUpdate()
     {
         UpdatePurityEmptyMotion();
-    }
-
-    void LogMissingDependencies()
-    {
-        if (stateController == null)
-            Debug.LogError("[PRESENTATION] StateController not set in Inspector");
-
-        if (actionPanel == null)
-            Debug.LogError("[PRESENTATION] Action panel not set in Inspector");
-
-        if (recoverAdButton == null)
-            Debug.LogError("[PRESENTATION] Recovery ad button not set in Inspector");
-
-        if (purifyStopButton == null)
-            Debug.LogError("[PRESENTATION] Purify stop button not set in Inspector");
-
-        if (magicCircleOverlay == null)
-            Debug.LogError("[PRESENTATION] Magic circle overlay not set in Inspector");
-
-        if (dangerOverlay == null)
-            Debug.LogError("[PRESENTATION] Danger overlay not set in Inspector");
-
-        if (dangerEffects == null || dangerEffects.Length == 0)
-            Debug.LogError("[PRESENTATION] Danger effects not set in Inspector");
     }
 
     void RegisterStateEvents()

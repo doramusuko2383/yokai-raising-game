@@ -28,41 +28,24 @@ public class SpiritUIController : MonoBehaviour
     bool hasCachedWeakVisuals;
     bool isWeakVisualsApplied;
 
-    void Awake()
-    {
-        LogMissingDependencies();
-        LogMissingWeakVisualTargets();
-    }
-
     void OnEnable()
     {
-        if (spiritController != null)
-        {
-            spiritController.SpiritChanged += OnSpiritChanged;
-        }
-
-        if (stateController == null)
-            Debug.LogError("[SPIRIT UI] StateController not set in Inspector");
-
+        BindCurrentYokai(CurrentYokaiContext.Current);
+        CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
         if (stateController != null)
             stateController.OnStateChanged += OnStateChanged;
 
-        CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
         CacheWeakVisualBase();
         SyncWeakVisualsWithState();
     }
 
     void OnDisable()
     {
-        if (spiritController != null)
-        {
-            spiritController.SpiritChanged -= OnSpiritChanged;
-        }
-
+        CurrentYokaiContext.CurrentChanged -= BindCurrentYokai;
+        BindSpiritController(null);
         if (stateController != null)
             stateController.OnStateChanged -= OnStateChanged;
 
-        CurrentYokaiContext.CurrentChanged -= HandleCurrentYokaiChanged;
         ResetWeakVisuals();
     }
 
@@ -107,29 +90,8 @@ public class SpiritUIController : MonoBehaviour
     {
         bool shouldApply = stateController != null && IsWeakState(stateController.currentState);
         ResetWeakVisuals();
-        LogMissingWeakVisualTargets();
         CacheWeakVisualBase();
         SetWeakVisuals(shouldApply);
-    }
-
-    void LogMissingDependencies()
-    {
-        if (spiritController == null)
-            Debug.LogError("[SPIRIT UI] SpiritController not set in Inspector");
-
-        if (stateController == null)
-            Debug.LogError("[SPIRIT UI] StateController not set in Inspector");
-    }
-
-    void LogMissingWeakVisualTargets()
-    {
-        if (yokaiTransform == null)
-            Debug.LogError("[SPIRIT UI] Yokai transform not set in Inspector");
-
-        if (yokaiCanvasGroup == null)
-            Debug.LogError("[SPIRIT UI] Yokai canvas group not set in Inspector");
-        if (yokaiImage == null)
-            Debug.LogError("[SPIRIT UI] Yokai image not set in Inspector");
     }
 
     void CacheWeakVisualBase()
@@ -174,7 +136,6 @@ public class SpiritUIController : MonoBehaviour
     {
         if (yokaiCanvasGroup == null && yokaiImage == null)
         {
-            LogMissingWeakVisualTargets();
             return;
         }
         if (!hasCachedWeakVisuals)
@@ -194,6 +155,49 @@ public class SpiritUIController : MonoBehaviour
         }
 
         isWeakVisualsApplied = true;
+    }
+
+    void BindCurrentYokai(GameObject activeYokai)
+    {
+        SpiritController controller = null;
+        if (activeYokai != null)
+            controller = activeYokai.GetComponentInChildren<SpiritController>(true);
+
+        BindSpiritController(controller);
+        ResolveWeakVisualTargets(activeYokai);
+        HandleCurrentYokaiChanged(activeYokai);
+    }
+
+    void BindSpiritController(SpiritController controller)
+    {
+        if (spiritController == controller)
+            return;
+
+        if (spiritController != null)
+            spiritController.SpiritChanged -= OnSpiritChanged;
+
+        spiritController = controller;
+
+        if (spiritController != null)
+            spiritController.SpiritChanged += OnSpiritChanged;
+
+        RefreshUI();
+        SyncWeakVisualsWithState();
+    }
+
+    void ResolveWeakVisualTargets(GameObject activeYokai)
+    {
+        if (activeYokai == null)
+            return;
+
+        if (yokaiTransform == null)
+            yokaiTransform = activeYokai.transform;
+
+        if (yokaiCanvasGroup == null)
+            yokaiCanvasGroup = activeYokai.GetComponentInChildren<CanvasGroup>(true);
+
+        if (yokaiImage == null)
+            yokaiImage = activeYokai.GetComponentInChildren<Image>(true);
     }
 
     void ResetWeakVisuals()

@@ -60,26 +60,26 @@ public class DebugOverlay : MonoBehaviour
 
     void OnCurrentYokaiChanged(GameObject yokai)
     {
-        ResolveGrowthController(yokai);
+        ResolveYokaiControllers(yokai);
     }
 
     void ResolveDependencies()
     {
-        purityController = CurrentYokaiContext.ResolvePurityController();
-        spiritController = FindObjectOfType<SpiritController>();
         stateController = CurrentYokaiContext.ResolveStateController();
-        ResolveGrowthController(CurrentYokaiContext.Current);
+        ResolveYokaiControllers(CurrentYokaiContext.Current);
     }
 
-    void ResolveGrowthController(GameObject yokai)
+    void ResolveYokaiControllers(GameObject yokai)
     {
+        purityController = null;
+        spiritController = null;
+        growthController = null;
+
         if (yokai != null)
         {
-            growthController = yokai.GetComponent<YokaiGrowthController>();
-        }
-        else
-        {
-            growthController = FindObjectOfType<YokaiGrowthController>();
+            purityController = yokai.GetComponentInChildren<PurityController>(true);
+            spiritController = yokai.GetComponentInChildren<SpiritController>(true);
+            growthController = yokai.GetComponentInChildren<YokaiGrowthController>(true);
         }
     }
 
@@ -192,7 +192,9 @@ public class DebugOverlay : MonoBehaviour
     void AdjustSpirit(float amount)
     {
         if (spiritController == null)
-            spiritController = FindObjectOfType<SpiritController>();
+            spiritController = CurrentYokaiContext.Current != null
+                ? CurrentYokaiContext.Current.GetComponentInChildren<SpiritController>(true)
+                : null;
 
         if (spiritController == null)
             return;

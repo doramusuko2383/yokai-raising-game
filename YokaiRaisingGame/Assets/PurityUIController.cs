@@ -32,17 +32,10 @@ public class PurityUIController : MonoBehaviour
     Image fillImage;
     Color fillBaseColor = Color.white;
 
-    void Awake()
-    {
-        LogMissingDependencies();
-    }
-
     void OnEnable()
     {
-        LogMissingDependencies();
-
-        if (purityController != null)
-            purityController.PurityChanged += OnPurityChanged;
+        BindCurrentYokai(CurrentYokaiContext.Current);
+        CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
 
         CacheFillReferences();
         RefreshUI();
@@ -50,22 +43,10 @@ public class PurityUIController : MonoBehaviour
 
     void OnDisable()
     {
-        if (purityController != null)
-            purityController.PurityChanged -= OnPurityChanged;
+        CurrentYokaiContext.CurrentChanged -= BindCurrentYokai;
+        BindPurityController(null);
 
         ResetPulse();
-    }
-
-    void LogMissingDependencies()
-    {
-        if (purityController == null)
-            Debug.LogError("[PURITY UI] PurityController not set in Inspector");
-
-        if (stateController == null)
-            Debug.LogError("[PURITY UI] StateController not set in Inspector");
-
-        if (presentationController == null)
-            Debug.LogError("[PURITY UI] PresentationController not set in Inspector");
     }
 
     void Update()
@@ -137,5 +118,30 @@ public class PurityUIController : MonoBehaviour
             return;
 
         OnPurityChanged(purityController.purity, purityController.maxPurity);
+    }
+
+    void BindCurrentYokai(GameObject activeYokai)
+    {
+        PurityController controller = null;
+        if (activeYokai != null)
+            controller = activeYokai.GetComponentInChildren<PurityController>(true);
+
+        BindPurityController(controller);
+    }
+
+    void BindPurityController(PurityController controller)
+    {
+        if (purityController == controller)
+            return;
+
+        if (purityController != null)
+            purityController.PurityChanged -= OnPurityChanged;
+
+        purityController = controller;
+
+        if (purityController != null)
+            purityController.PurityChanged += OnPurityChanged;
+
+        RefreshUI();
     }
 }
