@@ -35,6 +35,7 @@ public class DebugOverlay : MonoBehaviour
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
         CurrentYokaiContext.CurrentChanged += OnCurrentYokaiChanged;
+        ResolveDependencies();
     }
 
     void OnDisable()
@@ -60,27 +61,17 @@ public class DebugOverlay : MonoBehaviour
 
     void OnCurrentYokaiChanged(GameObject yokai)
     {
-        ResolveYokaiControllers(yokai);
+        ResolveDependencies();
     }
 
     void ResolveDependencies()
     {
         stateController = CurrentYokaiContext.ResolveStateController();
-        ResolveYokaiControllers(CurrentYokaiContext.Current);
-    }
-
-    void ResolveYokaiControllers(GameObject yokai)
-    {
-        purityController = null;
-        spiritController = null;
-        growthController = null;
-
-        if (yokai != null)
-        {
-            purityController = yokai.GetComponentInChildren<PurityController>(true);
-            spiritController = yokai.GetComponentInChildren<SpiritController>(true);
-            growthController = yokai.GetComponentInChildren<YokaiGrowthController>(true);
-        }
+        purityController = FindObjectOfType<PurityController>();
+        spiritController = FindObjectOfType<SpiritController>();
+        growthController = CurrentYokaiContext.Current != null
+            ? CurrentYokaiContext.Current.GetComponentInChildren<YokaiGrowthController>(true)
+            : null;
     }
 
     void EnsureStyles()
@@ -181,7 +172,7 @@ public class DebugOverlay : MonoBehaviour
     void AdjustPurity(float amount)
     {
         if (purityController == null)
-            purityController = CurrentYokaiContext.ResolvePurityController();
+            ResolveDependencies();
 
         if (purityController == null)
             return;
@@ -192,9 +183,7 @@ public class DebugOverlay : MonoBehaviour
     void AdjustSpirit(float amount)
     {
         if (spiritController == null)
-            spiritController = CurrentYokaiContext.Current != null
-                ? CurrentYokaiContext.Current.GetComponentInChildren<SpiritController>(true)
-                : null;
+            ResolveDependencies();
 
         if (spiritController == null)
             return;
