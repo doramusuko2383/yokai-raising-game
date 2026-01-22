@@ -118,11 +118,10 @@ public class YokaiStateController : MonoBehaviour
 
     void SyncManagerState()
     {
-        if (spiritController != null)
-            isSpiritEmpty = spiritController.HasNoSpirit();
+        isSpiritEmpty = spiritController != null && spiritController.HasNoSpirit();
+        isPurityEmpty = purityController != null && purityController.IsPurityEmpty;
 
-        if (purityController != null)
-            isPurityEmpty = purityController.IsPurityEmpty;
+        EvaluateState(null, "SyncManagerState");
     }
 
     public void OnSpiritEmpty()
