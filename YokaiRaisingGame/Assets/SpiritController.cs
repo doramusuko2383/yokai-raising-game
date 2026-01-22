@@ -53,8 +53,7 @@ public class SpiritController : MonoBehaviour
     {
         isSpiritEmpty = false;
         EnsureDefaults();
-        if (worldConfig == null)
-            Debug.LogError("[SPIRIT] WorldConfig not set in Inspector");
+        ResolveWorldConfigIfNeeded();
 
         InitializeIfNeeded("Awake");
     }
@@ -154,6 +153,7 @@ public class SpiritController : MonoBehaviour
             return;
 
         EnsureDefaults();
+        ResolveWorldConfigIfNeeded();
         initialized = true;
         InitializeGauge();
         NotifySpiritChanged(reason);
@@ -183,6 +183,14 @@ public class SpiritController : MonoBehaviour
             spirit = maxSpirit;
 
         spirit = Mathf.Clamp(spirit, 0f, maxSpirit);
+    }
+
+    void ResolveWorldConfigIfNeeded()
+    {
+        if (worldConfig != null)
+            return;
+
+        worldConfig = WorldConfig.LoadDefault();
     }
 
     void InitializeGauge()

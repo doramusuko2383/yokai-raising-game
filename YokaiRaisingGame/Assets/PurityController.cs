@@ -55,8 +55,7 @@ public class PurityController : MonoBehaviour
     void Awake()
     {
         EnsureDefaults();
-        if (worldConfig == null)
-            Debug.LogError("[PURITY] WorldConfig not set in Inspector");
+        ResolveWorldConfigIfNeeded();
 
         InitializeIfNeeded("Awake");
     }
@@ -134,6 +133,7 @@ public class PurityController : MonoBehaviour
             return;
 
         EnsureDefaults();
+        ResolveWorldConfigIfNeeded();
         InitializeGauge();
         UpdatePurityEmptyState();
         initialized = true;
@@ -164,6 +164,14 @@ public class PurityController : MonoBehaviour
 
         purity = Mathf.Clamp(purity, 0f, maxPurity);
         isPurityEmpty = purity <= 0f;
+    }
+
+    void ResolveWorldConfigIfNeeded()
+    {
+        if (worldConfig != null)
+            return;
+
+        worldConfig = WorldConfig.LoadDefault();
     }
 
     void InitializeGauge()

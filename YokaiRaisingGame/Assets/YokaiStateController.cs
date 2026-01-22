@@ -43,14 +43,13 @@ public class YokaiStateController : MonoBehaviour
 
     void OnEnable()
     {
+        CurrentYokaiContext.RegisterStateController(this);
         RegisterPurityEvents();
         RegisterSpiritEvents();
     }
 
     void Awake()
     {
-        if (spiritController == null || purityController == null || growthController == null)
-            Debug.LogError("[STATE] Dependencies not set in Inspector");
     }
 
     void Start()
@@ -73,6 +72,8 @@ public class YokaiStateController : MonoBehaviour
             registeredSpiritController.OnSpiritEmpty -= OnSpiritEmpty;
             registeredSpiritController.OnSpiritRecovered -= OnSpiritRecovered;
         }
+
+        CurrentYokaiContext.UnregisterStateController(this);
     }
 
     void RegisterPurityEvents()
@@ -241,10 +242,7 @@ public class YokaiStateController : MonoBehaviour
 
     public void BindCurrentYokai(GameObject activeYokai)
     {
-        if (activeYokai == null)
-            return;
-
-        if (currentState == YokaiState.Evolving)
+        if (currentState == YokaiState.Evolving && activeYokai != null)
         {
             // 不具合④: 進化演出中に切り替わった妖怪情報を保持して完了メッセージを出す。
             if (YokaiEncyclopedia.TryResolveYokaiId(activeYokai.name, out _, out YokaiEvolutionStage stage))
@@ -257,7 +255,29 @@ public class YokaiStateController : MonoBehaviour
             }
         }
 
+        BindControllers(activeYokai);
         SetActiveYokai(activeYokai);
+    }
+
+    void BindControllers(GameObject activeYokai)
+    {
+        PurityController nextPurity = null;
+        SpiritController nextSpirit = null;
+        YokaiGrowthController nextGrowth = null;
+
+        if (activeYokai != null)
+        {
+            nextPurity = activeYokai.GetComponentInChildren<PurityController>(true);
+            nextSpirit = activeYokai.GetComponentInChildren<SpiritController>(true);
+            nextGrowth = activeYokai.GetComponentInChildren<YokaiGrowthController>(true);
+        }
+
+        purityController = nextPurity;
+        spiritController = nextSpirit;
+        growthController = nextGrowth;
+
+        RegisterPurityEvents();
+        RegisterSpiritEvents();
     }
 
     public void SetActiveYokai(GameObject activeYokai)
