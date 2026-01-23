@@ -84,6 +84,22 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     public bool IsPurityEmptyVisualsActive => isPurityEmptyVisualsActive;
 
+    public void ClearWeakVisuals()
+    {
+        RefreshPresentation();
+    }
+
+    public void ClearDangerVisuals()
+    {
+        if (isPurityEmptyVisualsActive)
+            RequestReleasePurityEmpty();
+        else
+            ResetPurityEmptyVisuals();
+
+        ResetPurityEmptyMotion();
+        RefreshPresentation();
+    }
+
     void Awake()
     {
         if (instance != null && instance != this)
@@ -196,16 +212,37 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void HandleStateEntered(YokaiState state)
     {
+        if (HandleEmptyState(state))
+            return;
+
+        HandleNormalState(state);
+    }
+
+    bool HandleEmptyState(YokaiState state)
+    {
         switch (state)
         {
             case YokaiState.EnergyEmpty:
                 PlayEnergyEmptyEnterEffects();
-                break;
+                return true;
             case YokaiState.PurityEmpty:
                 EnterPurityEmpty();
-                break;
+                return true;
+        }
+
+        return false;
+    }
+
+    void HandleNormalState(YokaiState state)
+    {
+        switch (state)
+        {
             case YokaiState.EvolutionReady:
                 MentorMessageService.ShowHint(OnmyojiHintType.EvolutionStart);
+                break;
+            case YokaiState.Normal:
+            case YokaiState.Purifying:
+            case YokaiState.Evolving:
                 break;
         }
     }
@@ -284,7 +321,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             || isEnergyEmptyState)
             && !stateController.isPurifying
             && visualState != YokaiState.Evolving;
-        bool showMagicCircle = stateController.isPurifying;
+        bool showMagicCircle = stateController.isPurifying || visualState == YokaiState.PurityEmpty;
         bool showStopPurify = stateController.isPurifying;
         bool showDangerOverlay = showPurityEmptyVisuals;
 

@@ -146,7 +146,8 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isSpiritEmpty = false;
-        EvaluateState(reason: "SpiritRecovered");
+        ClearWeakVisuals();
+        EvaluateState(reason: "SpiritRecovered", forcePresentation: true);
     }
 
     void EvaluateState(YokaiState? requestedState = null, string reason = "Auto", bool forcePresentation = false)
@@ -337,7 +338,18 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isPurityEmpty = false;
-        EvaluateState(reason: "PurityRecovered");
+        ClearDangerVisuals();
+        EvaluateState(reason: "PurityRecovered", forcePresentation: true);
+    }
+
+    void ClearWeakVisuals()
+    {
+        ResolvePresentationController()?.ClearWeakVisuals();
+    }
+
+    void ClearDangerVisuals()
+    {
+        ResolvePresentationController()?.ClearDangerVisuals();
     }
 
     void HandleThresholdReached(ref bool stateFlag, string reason)
