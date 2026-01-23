@@ -57,6 +57,9 @@ public class YokaiStateController : MonoBehaviour
 
     void Start()
     {
+        isInitialized = true;
+        SyncManagerState(true);
+        EvaluateState(reason: "Initialized", forcePresentation: true);
     }
 
     void OnDisable()
@@ -116,10 +119,13 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
-    void SyncManagerState()
+    void SyncManagerState(bool isInitialSync = false)
     {
         isSpiritEmpty = spiritController != null && spiritController.HasNoSpirit();
         isPurityEmpty = purityController != null && purityController.IsPurityEmpty;
+
+        if (isInitialSync && enableStateLogs)
+            Debug.Log("[STATE] Initial state sync completed");
     }
 
     public void OnSpiritEmpty()
@@ -295,8 +301,6 @@ public class YokaiStateController : MonoBehaviour
         RegisterPurityEvents();
         RegisterSpiritEvents();
         SyncManagerState();
-        isInitialized = true;
-        EvaluateState(reason: "Initialized", forcePresentation: true);
     }
 
     public void SetActiveYokai(GameObject activeYokai)
