@@ -36,7 +36,7 @@ public class YokaiStateController : MonoBehaviour
     bool evolutionResultPending;
     YokaiEvolutionStage evolutionResultStage;
     const float EvolutionReadyScale = 2.0f;
-    bool hasInitialized;
+    bool isInitialized;
 
     public bool IsSpiritEmpty => isSpiritEmpty;
     public bool IsPurityEmptyState => isPurityEmpty;
@@ -57,9 +57,6 @@ public class YokaiStateController : MonoBehaviour
 
     void Start()
     {
-        SyncManagerState();
-        hasInitialized = true;
-        EvaluateState(reason: "InitialSync");
     }
 
     void OnDisable()
@@ -123,8 +120,6 @@ public class YokaiStateController : MonoBehaviour
     {
         isSpiritEmpty = spiritController != null && spiritController.HasNoSpirit();
         isPurityEmpty = purityController != null && purityController.IsPurityEmpty;
-
-        EvaluateState(null, "SyncManagerState");
     }
 
     public void OnSpiritEmpty()
@@ -152,11 +147,17 @@ public class YokaiStateController : MonoBehaviour
 
     void EvaluateState(YokaiState? requestedState = null, string reason = "Auto", bool forcePresentation = false)
     {
+        if (!isInitialized)
+        {
+#if UNITY_EDITOR
+            Debug.Log("[STATE] Skip EvaluateState (not initialized)");
+#endif
+            return;
+        }
+
 #if UNITY_EDITOR
         Debug.Log("[STATE] EvaluateState START");
 #endif
-        if (!hasInitialized)
-            return;
 
         YokaiState nextState = DetermineNextState(requestedState);
         bool stateChanged = currentState != nextState;
@@ -276,9 +277,16 @@ public class YokaiStateController : MonoBehaviour
 
     void BindControllers(GameObject activeYokai)
     {
-        PurityController nextPurity = FindObjectOfType<PurityController>(true);
-        SpiritController nextSpirit = FindObjectOfType<SpiritController>(true);
-        YokaiGrowthController nextGrowth = activeYokai?.GetComponentInChildren<YokaiGrowthController>(true);
+        PurityController nextPurity = null;
+        SpiritController nextSpirit = null;
+        YokaiGrowthController nextGrowth = null;
+
+        if (activeYokai != null)
+        {
+            nextPurity = activeYokai.GetComponentInChildren<PurityController>(true);
+            nextSpirit = activeYokai.GetComponentInChildren<SpiritController>(true);
+            nextGrowth = activeYokai.GetComponentInChildren<YokaiGrowthController>(true);
+        }
 
         purityController = nextPurity;
         spiritController = nextSpirit;
@@ -287,6 +295,8 @@ public class YokaiStateController : MonoBehaviour
         RegisterPurityEvents();
         RegisterSpiritEvents();
         SyncManagerState();
+        isInitialized = true;
+        EvaluateState(reason: "Initialized", forcePresentation: true);
     }
 
     public void SetActiveYokai(GameObject activeYokai)
