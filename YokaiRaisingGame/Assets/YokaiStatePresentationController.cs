@@ -114,7 +114,11 @@ public class YokaiStatePresentationController : MonoBehaviour
         CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
         SyncCurrentYokai();
         lastAppliedState = null;
-        HandleStateEntered(stateController != null ? stateController.currentState : YokaiState.Normal);
+        if (stateController != null)
+        {
+            // Presentation が準備完了した時点で必ず再評価
+            stateController.ForceReevaluate("PresentationReady");
+        }
     }
 
     void OnDisable()
