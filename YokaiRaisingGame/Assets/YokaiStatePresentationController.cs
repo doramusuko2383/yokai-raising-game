@@ -80,6 +80,8 @@ public class YokaiStatePresentationController : MonoBehaviour
     YokaiState? lastAppliedState;
     static YokaiStatePresentationController instance;
 
+    public static YokaiStatePresentationController Instance => instance;
+
     public bool IsPurityEmptyVisualsActive => isPurityEmptyVisualsActive;
 
     void Awake()
@@ -161,9 +163,9 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyState(newState);
     }
 
-    void ApplyState(YokaiState state)
+    public void ApplyState(YokaiState state, bool force = false)
     {
-        if (lastAppliedState.HasValue && lastAppliedState.Value == state)
+        if (!force && lastAppliedState.HasValue && lastAppliedState.Value == state)
         {
             RefreshPresentation();
             return;
@@ -171,7 +173,15 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (lastAppliedState.HasValue)
         {
-            HandleEmptyStatePresentation(lastAppliedState.Value, state, () => HandleStateMessages(lastAppliedState.Value, state));
+            if (lastAppliedState.Value == state)
+            {
+                HandleStateEntered(state);
+                RefreshPresentation();
+            }
+            else
+            {
+                HandleEmptyStatePresentation(lastAppliedState.Value, state, () => HandleStateMessages(lastAppliedState.Value, state));
+            }
         }
         else
         {

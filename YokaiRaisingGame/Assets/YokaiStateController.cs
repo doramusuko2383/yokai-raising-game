@@ -17,6 +17,9 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     private YokaiGrowthController growthController;
 
+    [SerializeField]
+    YokaiStatePresentationController presentationController;
+
     [FormerlySerializedAs("kegareManager")]
     [SerializeField]
     PurityController purityController;
@@ -129,10 +132,12 @@ public class YokaiStateController : MonoBehaviour
 #if UNITY_EDITOR
         Debug.Log("[STATE] SpiritEmpty detected");
 #endif
-        if (!isSpiritEmpty)
-            isSpiritEmpty = true;
+        if (isSpiritEmpty)
+            return;
 
-        EvaluateState(reason: "SpiritEmpty");
+        isSpiritEmpty = true;
+
+        EvaluateState(reason: "SpiritEmpty", forcePresentation: true);
     }
 
     public void OnSpiritRecovered()
@@ -144,7 +149,7 @@ public class YokaiStateController : MonoBehaviour
         EvaluateState(reason: "SpiritRecovered");
     }
 
-    void EvaluateState(YokaiState? requestedState = null, string reason = "Auto")
+    void EvaluateState(YokaiState? requestedState = null, string reason = "Auto", bool forcePresentation = false)
     {
 #if UNITY_EDITOR
         Debug.Log("[STATE] EvaluateState START");
@@ -153,7 +158,17 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         YokaiState nextState = DetermineNextState(requestedState);
-        SetState(nextState, reason);
+        bool stateChanged = currentState != nextState;
+        if (stateChanged)
+        {
+            SetState(nextState, reason);
+            return;
+        }
+
+        if (forcePresentation)
+        {
+            ResolvePresentationController()?.ApplyState(currentState, true);
+        }
     }
 
     YokaiState DetermineNextState(YokaiState? requestedState = null)
@@ -308,10 +323,12 @@ public class YokaiStateController : MonoBehaviour
 #if UNITY_EDITOR
         Debug.Log("[STATE] PurityEmpty detected");
 #endif
-        if (!isPurityEmpty)
-            isPurityEmpty = true;
+        if (isPurityEmpty)
+            return;
 
-        EvaluateState(reason: "PurityEmpty");
+        isPurityEmpty = true;
+
+        EvaluateState(reason: "PurityEmpty", forcePresentation: true);
     }
 
     public void OnPurityRecovered()
@@ -387,6 +404,19 @@ public class YokaiStateController : MonoBehaviour
 
         stage = evolutionResultStage;
         return false;
+    }
+
+    YokaiStatePresentationController ResolvePresentationController()
+    {
+        if (presentationController != null)
+            return presentationController;
+
+        presentationController = YokaiStatePresentationController.Instance;
+
+        if (presentationController == null)
+            presentationController = FindObjectOfType<YokaiStatePresentationController>(true);
+
+        return presentationController;
     }
 
     void LogStateChange(YokaiState previousState, YokaiState nextState, string reason)
