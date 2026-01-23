@@ -191,7 +191,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         {
             if (previousState.Value == state)
             {
-                ApplyStateInternal(state);
+                ApplyStateInternal(state, force);
                 RefreshPresentation();
             }
             else
@@ -201,7 +201,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
         else
         {
-            ApplyStateInternal(state);
+            ApplyStateInternal(state, force);
             RefreshPresentation();
         }
         if (stateController != null)
@@ -217,15 +217,15 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyState(state, force: isEmpty);
     }
 
-    void ApplyStateInternal(YokaiState state)
+    void ApplyStateInternal(YokaiState state, bool force)
     {
-        if (HandleEmptyState(state))
+        if (HandleEmptyState(state, force))
             return;
 
         HandleNormalState(state);
     }
 
-    bool HandleEmptyState(YokaiState state)
+    bool HandleEmptyState(YokaiState state, bool force)
     {
         switch (state)
         {
@@ -233,7 +233,7 @@ public class YokaiStatePresentationController : MonoBehaviour
                 PlayEnergyEmptyEnterEffects();
                 return true;
             case YokaiState.PurityEmpty:
-                EnterPurityEmpty();
+                EnterPurityEmpty(force);
                 return true;
         }
 
@@ -560,7 +560,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         purityEmptyTargetRoot.transform.localPosition = purityEmptyBasePosition;
     }
 
-    void EnterPurityEmpty()
+    void EnterPurityEmpty(bool force = false)
     {
         if (purityEmptyReleaseRoutine != null)
         {
@@ -568,7 +568,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             purityEmptyReleaseRoutine = null;
         }
 
-        if (isPurityEmptyVisualsActive)
+        if (isPurityEmptyVisualsActive && !force)
             return;
 
         if (purityEmptyTargetRoot == null || CurrentYokaiContext.Current != purityEmptyTargetRoot)
