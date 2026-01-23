@@ -219,6 +219,12 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyStateInternal(YokaiState state, bool force)
     {
+        if (force && IsEmptyState(state))
+        {
+            ReplayEmptyStateEffects(state);
+            return;
+        }
+
         if (HandleEmptyState(state, force))
             return;
 
@@ -238,6 +244,19 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
 
         return false;
+    }
+
+    void ReplayEmptyStateEffects(YokaiState state)
+    {
+        switch (state)
+        {
+            case YokaiState.EnergyEmpty:
+                PlayEnergyEmptyEnterEffects();
+                break;
+            case YokaiState.PurityEmpty:
+                EnterPurityEmpty(true);
+                break;
+        }
     }
 
     void HandleNormalState(YokaiState state)
