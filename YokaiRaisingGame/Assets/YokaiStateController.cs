@@ -38,6 +38,14 @@ public class YokaiStateController : MonoBehaviour
     const float EvolutionReadyScale = 2.0f;
     bool isInitialized;
 
+    bool canEvaluateState =>
+        isInitialized
+        && CurrentYokaiContext.Current != null
+        && purityController != null
+        && spiritController != null
+        && growthController != null
+        && YokaiStatePresentationController.Instance != null;
+
     public bool IsSpiritEmpty => isSpiritEmpty;
     public bool IsPurityEmptyState => isPurityEmpty;
     public bool IsEvolving => isEvolving;
@@ -58,8 +66,6 @@ public class YokaiStateController : MonoBehaviour
     void Start()
     {
         isInitialized = true;
-        SyncManagerState(true);
-        EvaluateState(reason: "Initialized", forcePresentation: true);
     }
 
     void OnDisable()
@@ -150,11 +156,9 @@ public class YokaiStateController : MonoBehaviour
 
     void EvaluateState(YokaiState? requestedState = null, string reason = "Auto", bool forcePresentation = false)
     {
-        if (!isInitialized)
+        if (!canEvaluateState)
         {
-#if UNITY_EDITOR
-            Debug.Log("[STATE] Skip EvaluateState (not initialized)");
-#endif
+            Debug.Log("[STATE] EvaluateState skipped (not ready)");
             return;
         }
 
@@ -306,6 +310,12 @@ public class YokaiStateController : MonoBehaviour
         RegisterPurityEvents();
         RegisterSpiritEvents();
         SyncManagerState();
+
+        if (canEvaluateState)
+        {
+            SyncManagerState(true);
+            EvaluateState(reason: "FullyInitialized", forcePresentation: true);
+        }
     }
 
     public void SetActiveYokai(GameObject activeYokai)
