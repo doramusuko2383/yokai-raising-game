@@ -114,7 +114,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
         SyncCurrentYokai();
         lastAppliedState = null;
-        ApplyState(stateController != null ? stateController.currentState : YokaiState.Normal);
+        HandleStateEntered(stateController != null ? stateController.currentState : YokaiState.Normal);
     }
 
     void OnDisable()
@@ -176,41 +176,48 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void HandleStateChanged(YokaiState previousState, YokaiState newState)
     {
-        ApplyState(newState);
+        ApplyState(newState, false);
     }
 
     public void ApplyState(YokaiState state, bool force = false)
     {
         if (!force && lastAppliedState.HasValue && lastAppliedState.Value == state)
-        {
-            RefreshPresentation();
             return;
-        }
 
-        if (lastAppliedState.HasValue)
+        YokaiState? previousState = lastAppliedState;
+        lastAppliedState = state;
+
+        if (previousState.HasValue)
         {
-            if (lastAppliedState.Value == state)
+            if (previousState.Value == state)
             {
-                HandleStateEntered(state);
+                ApplyStateInternal(state);
                 RefreshPresentation();
             }
             else
             {
-                HandleEmptyStatePresentation(lastAppliedState.Value, state, () => HandleStateMessages(lastAppliedState.Value, state));
+                HandleEmptyStatePresentation(previousState.Value, state, () => HandleStateMessages(previousState.Value, state));
             }
         }
         else
         {
-            HandleStateEntered(state);
+            ApplyStateInternal(state);
             RefreshPresentation();
         }
-
-        lastAppliedState = state;
         if (stateController != null)
             lastPurifying = stateController.isPurifying;
     }
 
     void HandleStateEntered(YokaiState state)
+    {
+        bool isEmpty =
+            state == YokaiState.EnergyEmpty ||
+            state == YokaiState.PurityEmpty;
+
+        ApplyState(state, force: isEmpty);
+    }
+
+    void ApplyStateInternal(YokaiState state)
     {
         if (HandleEmptyState(state))
             return;
