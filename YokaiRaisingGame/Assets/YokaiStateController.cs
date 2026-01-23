@@ -154,6 +154,19 @@ public class YokaiStateController : MonoBehaviour
         EvaluateState(reason: "SpiritRecovered", forcePresentation: true);
     }
 
+    public void ForceReevaluate(string reason)
+    {
+        if (!canEvaluateState)
+        {
+            Debug.Log($"[STATE] ForceReevaluate skipped ({reason})");
+            return;
+        }
+
+        Debug.Log($"[STATE] ForceReevaluate ({reason})");
+        SyncManagerState(true);
+        EvaluateState(reason: reason, forcePresentation: true);
+    }
+
     void EvaluateState(YokaiState? requestedState = null, string reason = "Auto", bool forcePresentation = false)
     {
         if (!canEvaluateState)
