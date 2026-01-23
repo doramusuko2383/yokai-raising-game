@@ -77,6 +77,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isPurityEmptyMotionApplied;
     Coroutine purityEmptyReleaseRoutine;
     bool lastPurifying;
+    YokaiState? lastAppliedState;
     static YokaiStatePresentationController instance;
 
     public bool IsPurityEmptyVisualsActive => isPurityEmptyVisualsActive;
@@ -94,9 +95,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         BindStateController(ResolveStateController());
         CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
         SyncCurrentYokai();
-        SyncVisualState();
-        RefreshPresentation();
-        lastPurifying = stateController != null && stateController.isPurifying;
+        lastAppliedState = null;
+        ApplyState(stateController != null ? stateController.currentState : YokaiState.Normal);
     }
 
     void OnDisable()
@@ -158,9 +158,46 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void HandleStateChanged(YokaiState previousState, YokaiState newState)
     {
-        HandleEmptyStatePresentation(previousState, newState, () => HandleStateMessages(previousState, newState));
+        ApplyState(newState);
+    }
+
+    void ApplyState(YokaiState state)
+    {
+        if (lastAppliedState.HasValue && lastAppliedState.Value == state)
+        {
+            RefreshPresentation();
+            return;
+        }
+
+        if (lastAppliedState.HasValue)
+        {
+            HandleEmptyStatePresentation(lastAppliedState.Value, state, () => HandleStateMessages(lastAppliedState.Value, state));
+        }
+        else
+        {
+            HandleStateEntered(state);
+            RefreshPresentation();
+        }
+
+        lastAppliedState = state;
         if (stateController != null)
             lastPurifying = stateController.isPurifying;
+    }
+
+    void HandleStateEntered(YokaiState state)
+    {
+        switch (state)
+        {
+            case YokaiState.EnergyEmpty:
+                PlayEnergyEmptyEnterEffects();
+                break;
+            case YokaiState.PurityEmpty:
+                EnterPurityEmpty();
+                break;
+            case YokaiState.EvolutionReady:
+                MentorMessageService.ShowHint(OnmyojiHintType.EvolutionStart);
+                break;
+        }
     }
 
     bool IsEmptyState(YokaiState state)
