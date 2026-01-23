@@ -119,12 +119,12 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
-    void SyncManagerState(bool isInitialSync = false)
+    void SyncManagerState(bool log = false)
     {
         isSpiritEmpty = spiritController != null && spiritController.HasNoSpirit();
         isPurityEmpty = purityController != null && purityController.IsPurityEmpty;
 
-        if (isInitialSync && enableStateLogs)
+        if (log)
             Debug.Log("[STATE] Initial state sync completed");
     }
 
@@ -133,9 +133,6 @@ public class YokaiStateController : MonoBehaviour
 #if UNITY_EDITOR
         Debug.Log("[STATE] SpiritEmpty detected");
 #endif
-        if (isSpiritEmpty)
-            return;
-
         isSpiritEmpty = true;
 
         EvaluateState(reason: "SpiritEmpty", forcePresentation: true);
@@ -181,21 +178,29 @@ public class YokaiStateController : MonoBehaviour
 
     YokaiState DetermineNextState(YokaiState? requestedState = null)
     {
+        if (!requestedState.HasValue)
+        {
+            if (isSpiritEmpty)
+                return YokaiState.EnergyEmpty;
+
+            if (isPurityEmpty)
+                return YokaiState.PurityEmpty;
+
+            if (currentState == YokaiState.Purifying
+                || currentState == YokaiState.Evolving
+                || currentState == YokaiState.EvolutionReady)
+                return currentState;
+
+            return YokaiState.Normal;
+        }
+
         if (isSpiritEmpty)
             return YokaiState.EnergyEmpty;
 
         if (isPurityEmpty)
             return YokaiState.PurityEmpty;
 
-        if (requestedState.HasValue)
-            return requestedState.Value;
-
-        if (currentState == YokaiState.Purifying
-            || currentState == YokaiState.Evolving
-            || currentState == YokaiState.EvolutionReady)
-            return currentState;
-
-        return YokaiState.Normal;
+        return requestedState.Value;
     }
 
     public void SetState(YokaiState newState, string reason)
@@ -338,9 +343,6 @@ public class YokaiStateController : MonoBehaviour
 #if UNITY_EDITOR
         Debug.Log("[STATE] PurityEmpty detected");
 #endif
-        if (isPurityEmpty)
-            return;
-
         isPurityEmpty = true;
 
         EvaluateState(reason: "PurityEmpty", forcePresentation: true);
