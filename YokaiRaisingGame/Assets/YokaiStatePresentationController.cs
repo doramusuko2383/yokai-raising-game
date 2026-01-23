@@ -91,7 +91,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void OnEnable()
     {
-        RegisterStateEvents();
+        BindStateController(ResolveStateController());
         CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
         SyncCurrentYokai();
         SyncVisualState();
@@ -101,8 +101,8 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void OnDisable()
     {
-        UnregisterStateEvents();
         CurrentYokaiContext.CurrentChanged -= HandleCurrentYokaiChanged;
+        BindStateController(null);
     }
 
     void OnDestroy()
@@ -129,27 +129,31 @@ public class YokaiStatePresentationController : MonoBehaviour
         UpdatePurityEmptyMotion();
     }
 
-    void RegisterStateEvents()
+    void BindStateController(YokaiStateController controller)
     {
-        if (stateController == null)
+        if (stateController == controller)
             return;
 
-        stateController.OnStateChanged += HandleStateChanged;
-    }
+        if (stateController != null)
+            stateController.OnStateChanged -= HandleStateChanged;
 
-    void UnregisterStateEvents()
-    {
-        if (stateController == null)
-            return;
+        stateController = controller;
 
-        stateController.OnStateChanged -= HandleStateChanged;
+        if (stateController != null)
+            stateController.OnStateChanged += HandleStateChanged;
     }
 
     void HandleCurrentYokaiChanged(GameObject activeYokai)
     {
+        BindStateController(ResolveStateController());
         CachePurityEmptyTargets(activeYokai);
         RefreshDangerEffectOriginalColors();
         RefreshPresentation();
+    }
+
+    YokaiStateController ResolveStateController()
+    {
+        return CurrentYokaiContext.ResolveStateController() ?? stateController;
     }
 
     void HandleStateChanged(YokaiState previousState, YokaiState newState)

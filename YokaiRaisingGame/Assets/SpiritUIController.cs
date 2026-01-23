@@ -30,10 +30,9 @@ public class SpiritUIController : MonoBehaviour
 
     void OnEnable()
     {
+        BindStateController(ResolveStateController());
         BindCurrentYokai(CurrentYokaiContext.Current);
         CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
-        if (stateController != null)
-            stateController.OnStateChanged += OnStateChanged;
 
         CacheWeakVisualBase();
         SyncWeakVisualsWithState();
@@ -43,8 +42,7 @@ public class SpiritUIController : MonoBehaviour
     {
         CurrentYokaiContext.CurrentChanged -= BindCurrentYokai;
         BindSpiritController(null);
-        if (stateController != null)
-            stateController.OnStateChanged -= OnStateChanged;
+        BindStateController(null);
 
         ResetWeakVisuals();
     }
@@ -163,9 +161,29 @@ public class SpiritUIController : MonoBehaviour
         if (activeYokai != null)
             controller = activeYokai.GetComponentInChildren<SpiritController>(true);
 
+        BindStateController(ResolveStateController());
         BindSpiritController(controller);
         ResolveWeakVisualTargets(activeYokai);
         HandleCurrentYokaiChanged(activeYokai);
+    }
+
+    Yokai.YokaiStateController ResolveStateController()
+    {
+        return CurrentYokaiContext.ResolveStateController() ?? stateController;
+    }
+
+    void BindStateController(Yokai.YokaiStateController controller)
+    {
+        if (stateController == controller)
+            return;
+
+        if (stateController != null)
+            stateController.OnStateChanged -= OnStateChanged;
+
+        stateController = controller;
+
+        if (stateController != null)
+            stateController.OnStateChanged += OnStateChanged;
     }
 
     void BindSpiritController(SpiritController controller)

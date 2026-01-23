@@ -90,6 +90,8 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
     void OnEnable()
     {
+        BindStateController(ResolveStateController());
+        CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
         SetupGuideCanvas();
         SetupTrailRenderer();
         ClearTrail(immediate: true);
@@ -98,6 +100,8 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
     void OnDisable()
     {
+        CurrentYokaiContext.CurrentChanged -= HandleCurrentYokaiChanged;
+        BindStateController(null);
         //ToggleGuide(false, immediate: true);
         //ClearTrail(immediate: true);
     }
@@ -225,6 +229,23 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         }
 
         return stateController.currentState == YokaiState.Purifying;
+    }
+
+    void BindStateController(YokaiStateController controller)
+    {
+        stateController = controller;
+    }
+
+    void HandleCurrentYokaiChanged(GameObject activeYokai)
+    {
+        BindStateController(ResolveStateController());
+        wasPurifying = stateController != null && stateController.currentState == YokaiState.Purifying;
+        ToggleGuide(wasPurifying, immediate: true);
+    }
+
+    YokaiStateController ResolveStateController()
+    {
+        return CurrentYokaiContext.ResolveStateController() ?? stateController;
     }
 
     void HandleSwipeSuccess()
