@@ -20,30 +20,41 @@ public class MagicCircleActivator : MonoBehaviour
 
     void OnEnable()
     {
+        BindStateController(ResolveStateController());
         LogMissingDependencies();
-        RegisterStateEvents();
         ApplyState(stateController != null ? stateController.currentState : YokaiState.Normal);
+        CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
     }
 
     void OnDisable()
     {
-        UnregisterStateEvents();
+        CurrentYokaiContext.CurrentChanged -= HandleCurrentYokaiChanged;
+        BindStateController(null);
     }
 
-    void RegisterStateEvents()
+    void BindStateController(YokaiStateController controller)
     {
-        if (stateController == null)
+        if (stateController == controller)
             return;
 
-        stateController.OnStateChanged += OnStateChanged;
+        if (stateController != null)
+            stateController.OnStateChanged -= OnStateChanged;
+
+        stateController = controller;
+
+        if (stateController != null)
+            stateController.OnStateChanged += OnStateChanged;
     }
 
-    void UnregisterStateEvents()
+    void HandleCurrentYokaiChanged(GameObject activeYokai)
     {
-        if (stateController == null)
-            return;
+        BindStateController(ResolveStateController());
+        ApplyState(stateController != null ? stateController.currentState : YokaiState.Normal);
+    }
 
-        stateController.OnStateChanged -= OnStateChanged;
+    YokaiStateController ResolveStateController()
+    {
+        return CurrentYokaiContext.ResolveStateController() ?? stateController;
     }
 
     void OnStateChanged(YokaiState previousState, YokaiState newState)
