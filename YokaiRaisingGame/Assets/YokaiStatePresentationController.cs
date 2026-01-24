@@ -77,6 +77,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isPurityEmptyMotionApplied;
     Coroutine purityEmptyReleaseRoutine;
     YokaiState? lastAppliedState;
+    bool hasWarnedMissingDependencies;
     static YokaiStatePresentationController instance;
 
     public static YokaiStatePresentationController Instance => instance;
@@ -135,13 +136,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController == controller)
             return;
 
-        if (stateController != null)
-            stateController.OnStateChanged -= HandleStateChanged;
-
         stateController = controller;
-
-        if (stateController != null)
-            stateController.OnStateChanged += HandleStateChanged;
     }
 
     void HandleCurrentYokaiConfirmed(GameObject activeYokai)
@@ -157,8 +152,17 @@ public class YokaiStatePresentationController : MonoBehaviour
         return CurrentYokaiContext.ResolveStateController() ?? stateController;
     }
 
-    void HandleStateChanged(YokaiState previousState, YokaiState newState)
+    public void OnStateChanged(YokaiState previousState, YokaiState newState)
     {
+        if (stateController == null)
+            BindStateController(ResolveStateController());
+
+        if (!AreDependenciesResolved())
+            return;
+
+        Debug.Log($"[PRESENTATION] {previousState} -> {newState}");
+        PlayStateTransitionSe(previousState, newState);
+        lastAppliedState = previousState;
         ApplyState(newState, false);
     }
 
@@ -313,11 +317,12 @@ public class YokaiStatePresentationController : MonoBehaviour
         bool isPurityEmptyState = visualState == YokaiState.PurityEmpty;
         bool showPurityEmptyVisuals = isPurityEmptyVisualsActive && isPurityEmptyState;
         bool isEnergyEmptyState = visualState == YokaiState.EnergyEmpty;
+        bool isPurifyingState = visualState == YokaiState.Purifying;
         bool showActionPanel =
             (stateController.currentState == YokaiState.Normal
             || stateController.currentState == YokaiState.EvolutionReady)
             && visualState != YokaiState.Evolving;
-        bool showMagicCircle = stateController.currentState == YokaiState.Purifying;
+        bool showMagicCircle = isPurifyingState;
         bool showStopPurify = false;
         bool showDangerOverlay = showPurityEmptyVisuals;
 
@@ -334,7 +339,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
 
         UpdateSpecialRecoveryButtons(visualState);
-        UpdateActionPanelButtons(isPurityEmptyState, isEnergyEmptyState);
+        UpdateActionPanelButtons(isPurityEmptyState, isEnergyEmptyState, isPurifyingState);
         UpdateDangerEffects();
         UpdatePurityEmptyVisuals(showPurityEmptyVisuals);
     }
@@ -358,16 +363,36 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     bool AreDependenciesResolved()
     {
-        if (stateController == null)
-            return false;
+        bool missingStateController = stateController == null;
+        bool missingUi =
+            actionPanel == null ||
+            purifyStopButton == null ||
+            magicCircleOverlay == null;
 
-        if (actionPanel == null || purifyStopButton == null || magicCircleOverlay == null)
+        if (missingStateController || missingUi)
+        {
+            if (!hasWarnedMissingDependencies)
+            {
+                List<string> missing = new List<string>();
+                if (missingStateController)
+                    missing.Add("StateController");
+                if (actionPanel == null)
+                    missing.Add("ActionPanel");
+                if (purifyStopButton == null)
+                    missing.Add("PurifyStopButton");
+                if (magicCircleOverlay == null)
+                    missing.Add("MagicCircleOverlay");
+
+                Debug.LogWarning($"[PRESENTATION] Missing Inspector references: {string.Join(", ", missing)}");
+                hasWarnedMissingDependencies = true;
+            }
             return false;
+        }
 
         return true;
     }
 
-    void UpdateActionPanelButtons(bool isPurityEmpty, bool isEnergyEmpty)
+    void UpdateActionPanelButtons(bool isPurityEmpty, bool isEnergyEmpty, bool isPurifying)
     {
         if (actionPanel == null)
             return;
@@ -394,7 +419,11 @@ public class YokaiStatePresentationController : MonoBehaviour
             if (isEnergyRecoverAd || isPurityRecoverAd)
                 continue;
 
-            if (isEnergyEmpty)
+            if (isPurifying)
+            {
+                shouldShow = false;
+            }
+            else if (isEnergyEmpty)
             {
                 shouldShow = false;
             }
@@ -694,6 +723,38 @@ public class YokaiStatePresentationController : MonoBehaviour
                 else if (stage == YokaiEvolutionStage.Adult)
                     MentorMessageService.ShowHint(OnmyojiHintType.EvolutionCompleteAdult);
             }
+        }
+    }
+
+    void PlayStateTransitionSe(YokaiState previousState, YokaiState newState)
+    {
+        switch (newState)
+        {
+            case YokaiState.Purifying:
+                AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
+                break;
+            case YokaiState.PurityEmpty:
+                AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_ENTER);
+                break;
+            case YokaiState.EnergyEmpty:
+                AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
+                break;
+        }
+
+        if (previousState == YokaiState.PurityEmpty
+            && newState != YokaiState.PurityEmpty
+            && stateController != null
+            && !stateController.IsPurityEmptyState)
+        {
+            AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_RELEASE);
+        }
+
+        if (previousState == YokaiState.EnergyEmpty
+            && newState != YokaiState.EnergyEmpty
+            && stateController != null
+            && !stateController.IsSpiritEmpty)
+        {
+            AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
         }
     }
 }
