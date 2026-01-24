@@ -170,18 +170,15 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController == null)
             BindStateController(ResolveStateController());
 
-        if (stateController == null)
-        {
-            WarnMissingDependencies();
+        if (!AreDependenciesResolved())
             return;
-        }
 
         SyncFromStateController();
     }
 
     public void SyncFromStateController(bool force = false)
     {
-        if (stateController == null)
+        if (!AreDependenciesResolved())
             return;
 
         ApplyState(stateController.currentState, force);
@@ -189,11 +186,8 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyState(YokaiState state, bool force = false)
     {
-        if (stateController == null)
-        {
-            WarnMissingDependencies();
+        if (!AreDependenciesResolved())
             return;
-        }
 
         if (!lastAppliedState.HasValue || lastAppliedState.Value != state)
             Debug.Log($"[PRESENTATION] ApplyState: {state} (force: {force})");
@@ -221,9 +215,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         bool stateChanged = !previousState.HasValue || previousState.Value != state;
         bool shouldReplayEmpty = forceVisualEffects && IsEmptyState(state);
         bool shouldTriggerEntryEffects = stateChanged || shouldReplayEmpty;
-
-        if (stateChanged)
-            Debug.Log($"[PRESENTATION] State changed: {previousState?.ToString() ?? "None"} -> {state}");
 
         if (state == YokaiState.Purifying)
             magicCircleActivator?.Show();
@@ -319,11 +310,8 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void RefreshPresentation()
     {
-        if (stateController == null)
-        {
-            WarnMissingDependencies();
+        if (!AreDependenciesResolved())
             return;
-        }
 
         YokaiState visualState = ResolveVisualState();
         bool isPurityEmptyState = visualState == YokaiState.PurityEmpty;
@@ -390,6 +378,18 @@ public class YokaiStatePresentationController : MonoBehaviour
         WarnMissingOptionalDependencies();
     }
 
+    bool AreDependenciesResolved()
+    {
+        if (stateController == null)
+        {
+            WarnMissingDependencies();
+            return false;
+        }
+
+        WarnMissingOptionalDependencies();
+        return true;
+    }
+
     void WarnMissingOptionalDependencies()
     {
         if (hasWarnedMissingOptionalDependencies)
@@ -397,10 +397,22 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         List<string> missing = new List<string>();
 
+        if (actionPanel == null)
+            missing.Add("ActionPanel");
+        if (purityRecoverAdButton == null)
+            missing.Add("PurityRecoverAdButton");
+        if (purifyStopButton == null)
+            missing.Add("PurifyStopButton");
         if (dangerOverlay == null)
             missing.Add("DangerOverlay");
         if (magicCircleActivator == null)
             missing.Add("MagicCircleActivator");
+        if (recoverAdButton == null)
+            missing.Add("RecoverAdButton");
+        if (legacyPurityRecoverAdButton == null)
+            missing.Add("LegacyPurityRecoverAdButton");
+        if (dangerEffects == null || dangerEffects.Length == 0)
+            missing.Add("DangerEffects");
 
         if (missing.Count == 0)
             return;
