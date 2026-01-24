@@ -111,6 +111,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     void OnEnable()
     {
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
+        BindStateController(ResolveStateController());
         lastAppliedState = null;
     }
 
@@ -136,7 +137,13 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController == controller)
             return;
 
+        if (stateController != null)
+            stateController.OnStateChanged -= OnStateChanged;
+
         stateController = controller;
+
+        if (stateController != null)
+            stateController.OnStateChanged += OnStateChanged;
     }
 
     void HandleCurrentYokaiConfirmed(GameObject activeYokai)
@@ -157,32 +164,30 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController == null)
             BindStateController(ResolveStateController());
 
-        UpdateMagicCircleState(newState);
+        UpdateMagicCircleState(previousState, newState);
 
+        Debug.Log($"[PRESENTATION] State changed: {previousState} -> {newState}");
         if (!AreDependenciesResolved())
             return;
 
-        Debug.Log($"[PRESENTATION] {previousState} -> {newState}");
         PlayStateTransitionSe(previousState, newState);
         lastAppliedState = previousState;
         ApplyState(newState, false);
     }
 
-    void UpdateMagicCircleState(YokaiState state)
+    void UpdateMagicCircleState(YokaiState previousState, YokaiState newState)
     {
         if (magicCircleActivator == null)
             return;
 
-        switch (state)
+        if (newState == YokaiState.Purifying)
         {
-            case YokaiState.Purifying:
-                magicCircleActivator.Show();
-                Debug.Log("[PRESENTATION] Show Magic Circle");
-                break;
-            default:
-                magicCircleActivator.Hide();
-                break;
+            magicCircleActivator.Show();
+            return;
         }
+
+        if (previousState == YokaiState.Purifying && newState != YokaiState.Purifying)
+            magicCircleActivator.Hide();
     }
 
     public void ApplyState(YokaiState state, bool force = false)
@@ -722,6 +727,11 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void HandleStateMessages(YokaiState previousState, YokaiState newState)
     {
+        if (newState == YokaiState.Purifying && previousState != YokaiState.Purifying)
+        {
+            MentorMessageService.ShowHint(OnmyojiHintType.OkIYomeGuide);
+        }
+
         if (newState == YokaiState.EvolutionReady && previousState != YokaiState.EvolutionReady)
         {
             MentorMessageService.ShowHint(OnmyojiHintType.EvolutionStart);

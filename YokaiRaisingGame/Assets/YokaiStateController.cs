@@ -18,9 +18,6 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     private YokaiGrowthController growthController;
 
-    [SerializeField]
-    YokaiStatePresentationController presentationController;
-
     [FormerlySerializedAs("kegareManager")]
     [SerializeField]
     PurityController purityController;
@@ -35,7 +32,6 @@ public class YokaiStateController : MonoBehaviour
     bool isReady;
     bool hasWarnedUnknownState;
     Coroutine purifyRoutine;
-    bool hasWarnedMissingPresentation;
 
     bool canEvaluateState =>
         isReady
@@ -199,7 +195,6 @@ public class YokaiStateController : MonoBehaviour
 
         Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
-        NotifyPresentation(prev, newState);
         CheckForUnknownStateWarning();
     }
 
@@ -430,21 +425,6 @@ public class YokaiStateController : MonoBehaviour
 
         stage = evolutionResultStage;
         return false;
-    }
-
-    void NotifyPresentation(YokaiState previousState, YokaiState nextState)
-    {
-        if (presentationController == null)
-        {
-            if (!hasWarnedMissingPresentation)
-            {
-                Debug.LogWarning("[STATE] YokaiStatePresentationController is not assigned in the Inspector.");
-                hasWarnedMissingPresentation = true;
-            }
-            return;
-        }
-
-        presentationController.OnStateChanged(previousState, nextState);
     }
 
     void HandleCurrentYokaiConfirmed(GameObject activeYokai)
