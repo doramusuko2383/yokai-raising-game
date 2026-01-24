@@ -60,6 +60,10 @@ public class YokaiStateController : MonoBehaviour
 
     void Start()
     {
+        if (CurrentYokaiContext.Current != null)
+        {
+            BindControllers(CurrentYokaiContext.Current);
+        }
     }
 
     void OnDisable()
