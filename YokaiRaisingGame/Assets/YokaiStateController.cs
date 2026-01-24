@@ -466,12 +466,6 @@ public class YokaiStateController : MonoBehaviour
 #if UNITY_EDITOR
         if (hasWarnedUnknownState)
             return;
-
-        if (isReady && currentState == YokaiState.Unknown)
-        {
-            hasWarnedUnknownState = true;
-            Debug.LogWarning("[STATE] Current state is Unknown while ready.");
-        }
 #endif
     }
 }
