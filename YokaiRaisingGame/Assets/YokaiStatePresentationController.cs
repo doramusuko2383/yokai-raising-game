@@ -118,8 +118,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         lastAppliedState = null;
         lastEffectState = null;
         WarnMissingOptionalDependencies();
-        if (stateController != null)
-            ApplyState(stateController.currentState, force: true);
+        SyncFromStateController(force: true);
     }
 
     void OnDisable()
@@ -177,12 +176,18 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
         }
 
-        lastAppliedState = previousState;
-        lastEffectState = previousState;
-        ApplyState(newState, false);
+        SyncFromStateController();
     }
 
-    public void ApplyState(YokaiState state, bool force = false)
+    public void SyncFromStateController(bool force = false)
+    {
+        if (stateController == null)
+            return;
+
+        ApplyState(stateController.currentState, force);
+    }
+
+    void ApplyState(YokaiState state, bool force = false)
     {
         if (stateController == null)
         {
@@ -207,7 +212,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             state == YokaiState.EnergyEmpty ||
             state == YokaiState.PurityEmpty;
 
-        ApplyState(state, force: isEmpty);
+        SyncFromStateController(force: isEmpty);
     }
 
     void ApplyVisualEffectsForState(YokaiState state)
@@ -392,8 +397,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         List<string> missing = new List<string>();
 
-        if (purifyStopButton == null)
-            missing.Add("PurifyStopButton");
         if (dangerOverlay == null)
             missing.Add("DangerOverlay");
         if (magicCircleActivator == null)
