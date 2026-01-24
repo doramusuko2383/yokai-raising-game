@@ -16,7 +16,6 @@ public class PurityRecoverAdButtonHandler : MonoBehaviour
 
     public void OnClickPurityRecoverAd()
     {
-        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (stateController == null)
         {
             Debug.LogError("[RECOVERY] StateController not set in Inspector");

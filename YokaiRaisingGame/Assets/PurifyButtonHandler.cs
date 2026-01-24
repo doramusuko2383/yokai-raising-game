@@ -16,7 +16,6 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickPurify()
     {
-        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (IsActionBlocked())
             return;
 
@@ -33,7 +32,6 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickEmergencyPurify()
     {
-        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (!IsState(YokaiState.PurityEmpty))
             return;
 
@@ -53,7 +51,6 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickStopPurify()
     {
-        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (!IsState(YokaiState.Purifying))
             return;
 
