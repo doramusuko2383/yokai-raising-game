@@ -76,7 +76,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isPurityEmptyVisualsActive;
     bool isPurityEmptyMotionApplied;
     Coroutine purityEmptyReleaseRoutine;
-    bool lastPurifying;
     YokaiState? lastAppliedState;
     static YokaiStatePresentationController instance;
 
@@ -110,20 +109,13 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void OnEnable()
     {
-        BindStateController(ResolveStateController());
-        CurrentYokaiContext.CurrentChanged += HandleCurrentYokaiChanged;
-        SyncCurrentYokai();
+        CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         lastAppliedState = null;
-        if (stateController != null)
-        {
-            // Presentation が準備完了した時点で必ず再評価
-            stateController.ForceReevaluate("PresentationReady");
-        }
     }
 
     void OnDisable()
     {
-        CurrentYokaiContext.CurrentChanged -= HandleCurrentYokaiChanged;
+        CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
         BindStateController(null);
     }
 
@@ -131,19 +123,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (instance == this)
             instance = null;
-    }
-
-    void Update()
-    {
-        if (stateController == null)
-            return;
-
-        bool isPurifying = stateController.isPurifying;
-        if (isPurifying == lastPurifying)
-            return;
-
-        lastPurifying = isPurifying;
-        RefreshPresentation();
     }
 
     void LateUpdate()
@@ -165,7 +144,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             stateController.OnStateChanged += HandleStateChanged;
     }
 
-    void HandleCurrentYokaiChanged(GameObject activeYokai)
+    void HandleCurrentYokaiConfirmed(GameObject activeYokai)
     {
         BindStateController(ResolveStateController());
         CachePurityEmptyTargets(activeYokai);
@@ -208,8 +187,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             ApplyStateInternal(state, force);
             RefreshPresentation();
         }
-        if (stateController != null)
-            lastPurifying = stateController.isPurifying;
     }
 
     void HandleStateEntered(YokaiState state)
@@ -314,14 +291,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         afterEffects?.Invoke();
         RefreshPresentation();
-    }
-
-    void SyncCurrentYokai()
-    {
-        if (CurrentYokaiContext.Current != null)
-        {
-            CachePurityEmptyTargets(CurrentYokaiContext.Current);
-        }
     }
 
     void SyncVisualState()

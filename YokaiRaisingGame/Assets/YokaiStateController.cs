@@ -29,14 +29,13 @@ public class YokaiStateController : MonoBehaviour
     SpiritController spiritController;
 
     [SerializeField]
-    bool enableStateLogs = false;
-
     PurityController registeredPurityController;
     SpiritController registeredSpiritController;
     bool evolutionResultPending;
     YokaiEvolutionStage evolutionResultStage;
     const float EvolutionReadyScale = 2.0f;
     bool isReady;
+    bool hasWarnedUnknownState;
 
     bool canEvaluateState =>
         isReady
@@ -55,6 +54,7 @@ public class YokaiStateController : MonoBehaviour
     void OnEnable()
     {
         CurrentYokaiContext.RegisterStateController(this);
+        CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         RegisterPurityEvents();
         RegisterSpiritEvents();
         isReady = false;
@@ -82,6 +82,7 @@ public class YokaiStateController : MonoBehaviour
             registeredSpiritController.OnSpiritRecovered -= OnSpiritRecovered;
         }
 
+        CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
         CurrentYokaiContext.UnregisterStateController(this);
     }
 
@@ -125,20 +126,14 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
-    void SyncManagerState(bool log = false)
+    void SyncManagerState()
     {
         isSpiritEmpty = spiritController != null && spiritController.HasNoSpirit();
         isPurityEmpty = purityController != null && purityController.IsPurityEmpty;
-
-        if (log)
-            Debug.Log("[STATE] Initial state sync completed");
     }
 
     public void OnSpiritEmpty()
     {
-#if UNITY_EDITOR
-        Debug.Log("[STATE] SpiritEmpty detected");
-#endif
         isSpiritEmpty = true;
 
         EvaluateState(reason: "SpiritEmpty", forcePresentation: true);
@@ -157,13 +152,9 @@ public class YokaiStateController : MonoBehaviour
     public void ForceReevaluate(string reason)
     {
         if (!canEvaluateState)
-        {
-            Debug.Log($"[STATE] ForceReevaluate skipped ({reason})");
             return;
-        }
 
-        Debug.Log($"[STATE] ForceReevaluate ({reason})");
-        SyncManagerState(true);
+        SyncManagerState();
         EvaluateState(reason: reason, forcePresentation: true);
     }
 
@@ -223,14 +214,9 @@ public class YokaiStateController : MonoBehaviour
         var prev = currentState;
         currentState = newState;
 
-        if (enableStateLogs)
-            Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
-
-#if UNITY_EDITOR
-        Debug.Log($"[STATE] StateChanged {prev} -> {currentState}");
-#endif
+        Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
-        LogStateChange(prev, newState, reason);
+        CheckForUnknownStateWarning();
     }
 
     public void BeginPurifying()
@@ -302,6 +288,7 @@ public class YokaiStateController : MonoBehaviour
     public void MarkReady()
     {
         isReady = true;
+        CheckForUnknownStateWarning();
     }
 
     void BindControllers(GameObject activeYokai)
@@ -327,7 +314,7 @@ public class YokaiStateController : MonoBehaviour
 
         if (canEvaluateState)
         {
-            SyncManagerState(true);
+            SyncManagerState();
             EvaluateState(reason: "FullyInitialized", forcePresentation: true);
         }
     }
@@ -364,9 +351,6 @@ public class YokaiStateController : MonoBehaviour
 
     public void OnPurityEmpty()
     {
-#if UNITY_EDITOR
-        Debug.Log("[STATE] PurityEmpty detected");
-#endif
         isPurityEmpty = true;
 
         EvaluateState(reason: "PurityEmpty", forcePresentation: true);
@@ -471,18 +455,23 @@ public class YokaiStateController : MonoBehaviour
         return presentationController;
     }
 
-    void LogStateChange(YokaiState previousState, YokaiState nextState, string reason)
+    void HandleCurrentYokaiConfirmed(GameObject activeYokai)
     {
-        if (!enableStateLogs)
+        MarkReady();
+        ForceReevaluate("CurrentYokaiConfirmed");
+    }
+
+    void CheckForUnknownStateWarning()
+    {
+#if UNITY_EDITOR
+        if (hasWarnedUnknownState)
             return;
 
-        string yokaiName = growthController != null ? growthController.gameObject.name : gameObject.name;
-        float currentPurity = purityController != null ? purityController.purity : 0f;
-        float maxPurity = purityController != null ? purityController.maxPurity : 0f;
-        float currentSpirit = spiritController != null ? spiritController.spirit : 0f;
-        float maxSpirit = spiritController != null ? spiritController.maxSpirit : 0f;
-#if UNITY_EDITOR
-        Debug.Log($"[STATE] {yokaiName} {previousState}->{nextState} reason={reason} spirit={currentSpirit:0.##}/{maxSpirit:0.##} purity={currentPurity:0.##}/{maxPurity:0.##}");
+        if (isReady && currentState == YokaiState.Unknown)
+        {
+            hasWarnedUnknownState = true;
+            Debug.LogWarning("[STATE] Current state is Unknown while ready.");
+        }
 #endif
     }
 }

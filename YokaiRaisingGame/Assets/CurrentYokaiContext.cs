@@ -7,6 +7,7 @@ public static class CurrentYokaiContext
     static YokaiStateController stateController;
 
     public static event System.Action<GameObject> CurrentChanged;
+    public static event System.Action<GameObject> OnCurrentYokaiConfirmed;
 
     public static GameObject Current => currentYokai;
     public static YokaiStateController StateController => stateController;
@@ -20,6 +21,7 @@ public static class CurrentYokaiContext
 #if UNITY_EDITOR
 #endif
         CurrentChanged?.Invoke(currentYokai);
+        OnCurrentYokaiConfirmed?.Invoke(currentYokai);
     }
 
     public static void RegisterStateController(YokaiStateController controller)

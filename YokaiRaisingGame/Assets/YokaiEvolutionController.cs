@@ -118,6 +118,16 @@ public class YokaiEvolutionController : MonoBehaviour
         InitializeActiveYokai();
     }
 
+    void OnEnable()
+    {
+        CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
+    }
+
+    void OnDisable()
+    {
+        CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
+    }
+
     IEnumerator EvolutionSequence()
     {
         isEvolving = true;
@@ -281,12 +291,6 @@ public class YokaiEvolutionController : MonoBehaviour
     void UpdateCurrentYokai(GameObject activeYokai, string reason)
     {
         CurrentYokaiContext.SetCurrent(activeYokai, reason);
-        RebindCurrentYokai(activeYokai);
-        if (stateController != null)
-        {
-            stateController.MarkReady();
-            stateController.ForceReevaluate("YokaiReady");
-        }
     }
 
     void RebindCurrentYokai(GameObject activeYokai)
@@ -319,6 +323,11 @@ public class YokaiEvolutionController : MonoBehaviour
 
         foreach (var effect in activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true))
             effect.RefreshOriginalColor();
+    }
+
+    void HandleCurrentYokaiConfirmed(GameObject activeYokai)
+    {
+        RebindCurrentYokai(activeYokai);
     }
 
     void RegisterEncyclopediaDiscovery(GameObject yokaiObject)
