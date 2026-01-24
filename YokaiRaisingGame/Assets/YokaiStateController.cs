@@ -42,8 +42,7 @@ public class YokaiStateController : MonoBehaviour
         && CurrentYokaiContext.Current != null
         && purityController != null
         && spiritController != null
-        && growthController != null
-        && YokaiStatePresentationController.Instance != null;
+        && growthController != null;
 
     public bool IsSpiritEmpty => isSpiritEmpty;
     public bool IsPurityEmptyState => isPurityEmpty;
