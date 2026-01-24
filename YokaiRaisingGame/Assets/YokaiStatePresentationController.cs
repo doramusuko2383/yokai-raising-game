@@ -30,7 +30,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     GameObject purifyStopButton;
 
     [SerializeField]
-    GameObject magicCircleOverlay;
+    MagicCircleActivator magicCircleActivator;
 
     [SerializeField]
     CanvasGroup dangerOverlay;
@@ -157,6 +157,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController == null)
             BindStateController(ResolveStateController());
 
+        UpdateMagicCircleState(newState);
+
         if (!AreDependenciesResolved())
             return;
 
@@ -164,6 +166,23 @@ public class YokaiStatePresentationController : MonoBehaviour
         PlayStateTransitionSe(previousState, newState);
         lastAppliedState = previousState;
         ApplyState(newState, false);
+    }
+
+    void UpdateMagicCircleState(YokaiState state)
+    {
+        if (magicCircleActivator == null)
+            return;
+
+        switch (state)
+        {
+            case YokaiState.Purifying:
+                magicCircleActivator.Show();
+                Debug.Log("[PRESENTATION] Show Magic Circle");
+                break;
+            default:
+                magicCircleActivator.Hide();
+                break;
+        }
     }
 
     public void ApplyState(YokaiState state, bool force = false)
@@ -322,14 +341,11 @@ public class YokaiStatePresentationController : MonoBehaviour
             (stateController.currentState == YokaiState.Normal
             || stateController.currentState == YokaiState.EvolutionReady)
             && visualState != YokaiState.Evolving;
-        bool showMagicCircle = isPurifyingState;
         bool showStopPurify = false;
         bool showDangerOverlay = showPurityEmptyVisuals;
 
         ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
         ApplyCanvasGroup(purifyStopButton, showStopPurify, showStopPurify);
-        if (magicCircleOverlay != null)
-            magicCircleOverlay.SetActive(showMagicCircle);
 
         if (dangerOverlay != null)
         {
@@ -366,8 +382,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         bool missingStateController = stateController == null;
         bool missingUi =
             actionPanel == null ||
-            purifyStopButton == null ||
-            magicCircleOverlay == null;
+            purifyStopButton == null;
 
         if (missingStateController || missingUi)
         {
@@ -380,8 +395,6 @@ public class YokaiStatePresentationController : MonoBehaviour
                     missing.Add("ActionPanel");
                 if (purifyStopButton == null)
                     missing.Add("PurifyStopButton");
-                if (magicCircleOverlay == null)
-                    missing.Add("MagicCircleOverlay");
 
                 Debug.LogWarning($"[PRESENTATION] Missing Inspector references: {string.Join(", ", missing)}");
                 hasWarnedMissingDependencies = true;
