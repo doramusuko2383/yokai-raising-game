@@ -51,8 +51,6 @@ public class YokaiStateController : MonoBehaviour
     {
         CurrentYokaiContext.RegisterStateController(this);
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
-        RegisterPurityEvents();
-        RegisterSpiritEvents();
         isReady = false;
     }
 
