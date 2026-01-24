@@ -19,7 +19,6 @@ public class EnergyRecoverAdButtonHandler : MonoBehaviour
 
     public void OnClickEnergyRecoverAd()
     {
-        AudioHook.RequestPlay(YokaiSE.SE_UI_CLICK);
         if (stateController == null)
         {
             Debug.LogError("[RECOVERY] StateController not set in Inspector");
@@ -36,8 +35,7 @@ public class EnergyRecoverAdButtonHandler : MonoBehaviour
             }
 
             spiritController.AddSpiritRatio(recoverRatio);
-            AudioHook.RequestPlay(YokaiSE.SE_DANGO);
-            stateController.ForceReevaluate("SpiritRecovered");
+            stateController.RequestEvaluateState("SpiritRecovered");
         }
     }
 }

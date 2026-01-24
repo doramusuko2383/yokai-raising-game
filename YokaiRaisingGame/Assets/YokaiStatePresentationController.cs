@@ -333,7 +333,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             dangerOverlay.interactable = showDangerOverlay;
         }
 
-        UpdateRecoveryButtons(visualState);
+        UpdateSpecialRecoveryButtons(visualState);
         UpdateActionPanelButtons(isPurityEmptyState, isEnergyEmptyState);
         UpdateDangerEffects();
         UpdatePurityEmptyVisuals(showPurityEmptyVisuals);
@@ -347,11 +347,11 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController != null && stateController.currentState == YokaiState.Purifying)
             return YokaiState.Purifying;
 
-        if (stateController != null && stateController.IsSpiritEmpty)
-            return YokaiState.EnergyEmpty;
-
         if (stateController != null && stateController.IsPurityEmptyState)
             return YokaiState.PurityEmpty;
+
+        if (stateController != null && stateController.IsSpiritEmpty)
+            return YokaiState.EnergyEmpty;
 
         return YokaiState.Normal;
     }
@@ -413,15 +413,26 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
     }
 
-    void UpdateRecoveryButtons(YokaiState state)
+    void UpdateSpecialRecoveryButtons(YokaiState state)
     {
-        bool shouldShow = state == YokaiState.EnergyEmpty;
-        if (recoverAdButton != null)
-            recoverAdButton.SetActive(shouldShow);
+        bool showSpecialDango = false;
+        bool showEmergencyPurify = false;
 
-        bool shouldShowPurity = state == YokaiState.PurityEmpty;
+        switch (state)
+        {
+            case YokaiState.EnergyEmpty:
+                showSpecialDango = true;
+                break;
+            case YokaiState.PurityEmpty:
+                showEmergencyPurify = true;
+                break;
+        }
+
+        if (recoverAdButton != null)
+            recoverAdButton.SetActive(showSpecialDango);
+
         if (purityRecoverAdButton != null)
-            purityRecoverAdButton.SetActive(shouldShowPurity);
+            purityRecoverAdButton.SetActive(showEmergencyPurify);
 
         if (legacyPurityRecoverAdButton != null)
             legacyPurityRecoverAdButton.SetActive(false);
@@ -575,7 +586,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         CapturePurityEmptyBaseTransform();
         isPurityEmptyVisualsActive = true;
         RefreshDangerEffectOriginalColors();
-        AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_ENTER);
         MentorMessageService.ShowHint(OnmyojiHintType.PurityEmpty);
     }
 
@@ -600,7 +610,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         isPurityEmptyVisualsActive = false;
         RefreshPresentation();
         RefreshDangerEffectOriginalColors();
-        AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_RELEASE);
         MentorMessageService.ShowHint(OnmyojiHintType.PurityRecovered);
         purityEmptyReleaseRoutine = null;
     }
@@ -661,13 +670,11 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void PlayEnergyEmptyEnterEffects()
     {
-        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
         MentorMessageService.ShowHint(OnmyojiHintType.EnergyZero);
     }
 
     void PlayEnergyEmptyExitEffects()
     {
-        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
         MentorMessageService.NotifyRecovered();
     }
 

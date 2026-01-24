@@ -134,6 +134,7 @@ public class YokaiStateController : MonoBehaviour
 
         isSpiritEmpty = false;
         ClearWeakVisuals();
+        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
         EvaluateState(reason: "SpiritRecovered", forcePresentation: true);
     }
 
@@ -171,11 +172,11 @@ public class YokaiStateController : MonoBehaviour
     {
         if (!requestedState.HasValue)
         {
-            if (isSpiritEmpty)
-                return YokaiState.EnergyEmpty;
-
             if (isPurityEmpty)
                 return YokaiState.PurityEmpty;
+
+            if (isSpiritEmpty)
+                return YokaiState.EnergyEmpty;
 
             if ((currentState == YokaiState.Purifying && isPurifying)
                 || currentState == YokaiState.Evolving
@@ -185,11 +186,11 @@ public class YokaiStateController : MonoBehaviour
             return YokaiState.Normal;
         }
 
-        if (isSpiritEmpty)
-            return YokaiState.EnergyEmpty;
-
         if (isPurityEmpty)
             return YokaiState.PurityEmpty;
+
+        if (isSpiritEmpty)
+            return YokaiState.EnergyEmpty;
 
         return requestedState.Value;
     }
@@ -204,6 +205,7 @@ public class YokaiStateController : MonoBehaviour
 
         Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
+        PlayStateTransitionSe(newState, prev);
         CheckForUnknownStateWarning();
     }
 
@@ -368,6 +370,7 @@ public class YokaiStateController : MonoBehaviour
 
         isPurityEmpty = false;
         ClearDangerVisuals();
+        AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_RELEASE);
         EvaluateState(reason: "PurityRecovered", forcePresentation: true);
     }
 
@@ -471,8 +474,6 @@ public class YokaiStateController : MonoBehaviour
         isPurifying = true;
         SetState(YokaiState.Purifying, "BeginPurify");
 
-        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
-
         yield return new WaitForSeconds(2.0f);
 
         if (purityController != null)
@@ -480,12 +481,38 @@ public class YokaiStateController : MonoBehaviour
             purityController.RecoverPurityByRatio(0.5f);
         }
 
-        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_END);
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
 
         isPurifying = false;
         purifyRoutine = null;
 
         EvaluateState(reason: "PurifyFinished", forcePresentation: true);
+    }
+
+    public void RequestEvaluateState(string reason)
+    {
+        if (!canEvaluateState)
+            return;
+
+        SyncManagerState();
+        EvaluateState(reason: reason, forcePresentation: true);
+    }
+
+    void PlayStateTransitionSe(YokaiState newState, YokaiState previousState)
+    {
+        switch (newState)
+        {
+            case YokaiState.Purifying:
+                AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
+                break;
+            case YokaiState.PurityEmpty:
+                AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_ENTER);
+                break;
+            case YokaiState.EnergyEmpty:
+                AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
+                break;
+        }
+
     }
 
     void CheckForUnknownStateWarning()
