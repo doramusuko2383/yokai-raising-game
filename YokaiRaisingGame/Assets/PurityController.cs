@@ -163,7 +163,6 @@ public class PurityController : MonoBehaviour
             purity = maxPurity;
 
         purity = Mathf.Clamp(purity, 0f, maxPurity);
-        isPurityEmpty = purity <= 0f;
     }
 
     void ResolveWorldConfigIfNeeded()
@@ -190,14 +189,30 @@ public class PurityController : MonoBehaviour
 
     void UpdatePurityEmptyState()
     {
-        bool shouldBeEmpty = purity <= 0f;
-        if (shouldBeEmpty == isPurityEmpty)
-            return;
+        if (purity <= 0f)
+        {
+            if (purity < 0f)
+            {
+                purity = 0f;
+                if (purityGauge != null)
+                {
+                    purityGauge.SetCurrent(0f);
+                }
+            }
 
-        isPurityEmpty = shouldBeEmpty;
-        if (isPurityEmpty)
-            OnPurityEmpty?.Invoke();
+            if (!isPurityEmpty)
+            {
+                isPurityEmpty = true;
+                OnPurityEmpty?.Invoke();
+            }
+        }
         else
-            OnPurityRecovered?.Invoke();
+        {
+            if (isPurityEmpty)
+            {
+                isPurityEmpty = false;
+                OnPurityRecovered?.Invoke();
+            }
+        }
     }
 }

@@ -209,15 +209,31 @@ public class SpiritController : MonoBehaviour
 
     void UpdateSpiritEmptyState()
     {
-        bool shouldBeEmpty = spirit <= 0f;
-        if (shouldBeEmpty == isSpiritEmpty)
-            return;
+        if (spirit <= 0f)
+        {
+            if (spirit < 0f)
+            {
+                spirit = 0f;
+                if (spiritGauge != null)
+                {
+                    spiritGauge.SetCurrent(0f);
+                }
+            }
 
-        isSpiritEmpty = shouldBeEmpty;
-        if (isSpiritEmpty)
-            OnSpiritEmpty?.Invoke();
+            if (!isSpiritEmpty)
+            {
+                isSpiritEmpty = true;
+                OnSpiritEmpty?.Invoke();
+            }
+        }
         else
-            OnSpiritRecovered?.Invoke();
+        {
+            if (isSpiritEmpty)
+            {
+                isSpiritEmpty = false;
+                OnSpiritRecovered?.Invoke();
+            }
+        }
     }
 
     void LogSpiritInitialized(string context)
