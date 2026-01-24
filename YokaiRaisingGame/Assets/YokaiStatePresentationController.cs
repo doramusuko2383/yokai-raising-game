@@ -310,17 +310,21 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void RefreshPresentation()
     {
-        if (!AreDependenciesResolved())
-            return;
+        if (stateController == null)
+            WarnMissingDependencies();
+
+        WarnMissingOptionalDependencies();
 
         YokaiState visualState = ResolveVisualState();
+        YokaiState currentState = stateController != null ? stateController.currentState : YokaiState.Normal;
         bool isPurityEmptyState = visualState == YokaiState.PurityEmpty;
         bool showPurityEmptyVisuals = isPurityEmptyVisualsActive && isPurityEmptyState;
         bool isEnergyEmptyState = visualState == YokaiState.EnergyEmpty;
         bool isPurifyingState = visualState == YokaiState.Purifying;
         bool showActionPanel =
-            (stateController.currentState == YokaiState.Normal
-            || stateController.currentState == YokaiState.EvolutionReady)
+            stateController != null
+            && (currentState == YokaiState.Normal
+            || currentState == YokaiState.EvolutionReady)
             && visualState != YokaiState.Evolving;
         bool showStopPurify = false;
         bool showDangerOverlay = showPurityEmptyVisuals;
@@ -374,8 +378,6 @@ public class YokaiStatePresentationController : MonoBehaviour
                 hasWarnedMissingDependencies = true;
             }
         }
-
-        WarnMissingOptionalDependencies();
     }
 
     bool AreDependenciesResolved()
@@ -386,7 +388,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             return false;
         }
 
-        WarnMissingOptionalDependencies();
         return true;
     }
 
