@@ -28,9 +28,6 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     SpiritController spiritController;
 
-    [SerializeField]
-    PurityController registeredPurityController;
-    SpiritController registeredSpiritController;
     bool evolutionResultPending;
     YokaiEvolutionStage evolutionResultStage;
     const float EvolutionReadyScale = 2.0f;
@@ -69,17 +66,8 @@ public class YokaiStateController : MonoBehaviour
 
     void OnDisable()
     {
-        if (registeredPurityController != null)
-        {
-            registeredPurityController.OnPurityEmpty -= OnPurityEmpty;
-            registeredPurityController.OnPurityRecovered -= OnPurityRecovered;
-        }
-
-        if (registeredSpiritController != null)
-        {
-            registeredSpiritController.OnSpiritEmpty -= OnSpiritEmpty;
-            registeredSpiritController.OnSpiritRecovered -= OnSpiritRecovered;
-        }
+        UnregisterPurityEvents();
+        UnregisterSpiritEvents();
 
         CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
         CurrentYokaiContext.UnregisterStateController(this);
@@ -87,41 +75,37 @@ public class YokaiStateController : MonoBehaviour
 
     void RegisterPurityEvents()
     {
-        if (registeredPurityController == purityController)
-            return;
-
-        if (registeredPurityController != null)
+        if (purityController != null)
         {
-            registeredPurityController.OnPurityEmpty -= OnPurityEmpty;
-            registeredPurityController.OnPurityRecovered -= OnPurityRecovered;
-        }
-
-        registeredPurityController = purityController;
-
-        if (registeredPurityController != null)
-        {
-            registeredPurityController.OnPurityEmpty += OnPurityEmpty;
-            registeredPurityController.OnPurityRecovered += OnPurityRecovered;
+            purityController.OnPurityEmpty += OnPurityEmpty;
+            purityController.OnPurityRecovered += OnPurityRecovered;
         }
     }
 
     void RegisterSpiritEvents()
     {
-        if (registeredSpiritController == spiritController)
-            return;
-
-        if (registeredSpiritController != null)
+        if (spiritController != null)
         {
-            registeredSpiritController.OnSpiritEmpty -= OnSpiritEmpty;
-            registeredSpiritController.OnSpiritRecovered -= OnSpiritRecovered;
+            spiritController.OnSpiritEmpty += OnSpiritEmpty;
+            spiritController.OnSpiritRecovered += OnSpiritRecovered;
         }
+    }
 
-        registeredSpiritController = spiritController;
-
-        if (registeredSpiritController != null)
+    void UnregisterPurityEvents()
+    {
+        if (purityController != null)
         {
-            registeredSpiritController.OnSpiritEmpty += OnSpiritEmpty;
-            registeredSpiritController.OnSpiritRecovered += OnSpiritRecovered;
+            purityController.OnPurityEmpty -= OnPurityEmpty;
+            purityController.OnPurityRecovered -= OnPurityRecovered;
+        }
+    }
+
+    void UnregisterSpiritEvents()
+    {
+        if (spiritController != null)
+        {
+            spiritController.OnSpiritEmpty -= OnSpiritEmpty;
+            spiritController.OnSpiritRecovered -= OnSpiritRecovered;
         }
     }
 
@@ -302,6 +286,9 @@ public class YokaiStateController : MonoBehaviour
             nextSpirit = activeYokai.GetComponentInChildren<SpiritController>(true);
             nextGrowth = activeYokai.GetComponentInChildren<YokaiGrowthController>(true);
         }
+
+        UnregisterPurityEvents();
+        UnregisterSpiritEvents();
 
         purityController = nextPurity;
         spiritController = nextSpirit;
