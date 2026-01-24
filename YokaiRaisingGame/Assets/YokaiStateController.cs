@@ -297,14 +297,14 @@ public class YokaiStateController : MonoBehaviour
         RegisterPurityEvents();
         RegisterSpiritEvents();
         SyncManagerState();
-
+        
+        isReady = true;
+        
         if (canEvaluateState)
         {
             SyncManagerState();
             EvaluateState(reason: "FullyInitialized", forcePresentation: true);
         }
-
-        isReady = true;
     }
 
     public void SetActiveYokai(GameObject activeYokai)
