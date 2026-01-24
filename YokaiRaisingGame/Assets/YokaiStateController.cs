@@ -55,6 +55,7 @@ public class YokaiStateController : MonoBehaviour
 
     void Awake()
     {
+        ResolveSceneControllers();
     }
 
     void Start()
@@ -277,22 +278,16 @@ public class YokaiStateController : MonoBehaviour
 
     void BindControllers(GameObject activeYokai)
     {
-        PurityController nextPurity = null;
-        SpiritController nextSpirit = null;
         YokaiGrowthController nextGrowth = null;
 
         if (activeYokai != null)
         {
-            nextPurity = activeYokai.GetComponentInChildren<PurityController>(true);
-            nextSpirit = activeYokai.GetComponentInChildren<SpiritController>(true);
             nextGrowth = activeYokai.GetComponentInChildren<YokaiGrowthController>(true);
         }
 
         UnregisterPurityEvents();
         UnregisterSpiritEvents();
 
-        purityController = nextPurity;
-        spiritController = nextSpirit;
         growthController = nextGrowth;
 
         RegisterPurityEvents();
@@ -305,6 +300,19 @@ public class YokaiStateController : MonoBehaviour
         {
             SyncManagerState();
             EvaluateState(reason: "FullyInitialized", forcePresentation: true);
+        }
+    }
+
+    void ResolveSceneControllers()
+    {
+        if (purityController == null)
+        {
+            purityController = FindObjectOfType<PurityController>(true);
+        }
+
+        if (spiritController == null)
+        {
+            spiritController = FindObjectOfType<SpiritController>(true);
         }
     }
 
