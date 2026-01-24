@@ -46,9 +46,10 @@ public class YokaiGrowthController : MonoBehaviour
 
     void Awake()
     {
+        transform.localScale = Vector3.one;
         InitializeGrowthParticles();
         CalculateGrowthRate();
-        LoadState();
+        LoadState(false);
         LogMissingStateController();
         bool resetDone = false;
         if (resetEvolutionReadyOnStartup && currentScale >= maxScale - 0.001f)
@@ -193,12 +194,39 @@ public class YokaiGrowthController : MonoBehaviour
         transform.localScale = Vector3.one * currentScale;
     }
 
-    void LoadState()
+    void LoadState(bool loadFromPrefs)
     {
         currentScale = initialScale;
         lastUpdateTime = DateTime.Now;
         isEvolutionReady = false;
         hasEvolved = false;
+
+        if (!loadFromPrefs)
+            return;
+
+        if (PlayerPrefs.HasKey(CurrentScaleKey))
+            currentScale = PlayerPrefs.GetFloat(CurrentScaleKey, initialScale);
+
+        if (PlayerPrefs.HasKey(LastUpdateTimeKey))
+        {
+            string savedTime = PlayerPrefs.GetString(LastUpdateTimeKey, string.Empty);
+            if (long.TryParse(savedTime, out var binaryTime))
+                lastUpdateTime = DateTime.FromBinary(binaryTime);
+        }
+
+        if (PlayerPrefs.HasKey(EvolutionReadyKey))
+            isEvolutionReady = PlayerPrefs.GetInt(EvolutionReadyKey, 0) == 1;
+
+        if (PlayerPrefs.HasKey(HasEvolvedKey))
+            hasEvolved = PlayerPrefs.GetInt(HasEvolvedKey, 0) == 1;
+    }
+
+    public void LoadGrowthFromPrefs()
+    {
+        LoadState(true);
+        ApplyElapsedTime(DateTime.Now);
+        ApplyScale();
+        isGrowthStopped = ShouldStopGrowth();
     }
 
     void SaveState()
