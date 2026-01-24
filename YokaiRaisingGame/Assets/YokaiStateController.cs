@@ -35,6 +35,7 @@ public class YokaiStateController : MonoBehaviour
     bool isReady;
     bool hasWarnedUnknownState;
     Coroutine purifyRoutine;
+    bool hasWarnedMissingPresentation;
 
     bool canEvaluateState =>
         isReady
@@ -133,8 +134,6 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isSpiritEmpty = false;
-        ClearWeakVisuals();
-        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
         EvaluateState(reason: "SpiritRecovered", forcePresentation: true);
     }
 
@@ -160,11 +159,6 @@ public class YokaiStateController : MonoBehaviour
         {
             SetState(nextState, reason);
             return;
-        }
-
-        if (forcePresentation)
-        {
-            ResolvePresentationController()?.ApplyState(currentState, true);
         }
     }
 
@@ -205,7 +199,7 @@ public class YokaiStateController : MonoBehaviour
 
         Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
-        PlayStateTransitionSe(newState, prev);
+        NotifyPresentation(prev, newState);
         CheckForUnknownStateWarning();
     }
 
@@ -369,19 +363,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isPurityEmpty = false;
-        ClearDangerVisuals();
-        AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_RELEASE);
         EvaluateState(reason: "PurityRecovered", forcePresentation: true);
-    }
-
-    void ClearWeakVisuals()
-    {
-        ResolvePresentationController()?.ClearWeakVisuals();
-    }
-
-    void ClearDangerVisuals()
-    {
-        ResolvePresentationController()?.ClearDangerVisuals();
     }
 
     void HandleThresholdReached(ref bool stateFlag, string reason)
@@ -450,17 +432,19 @@ public class YokaiStateController : MonoBehaviour
         return false;
     }
 
-    YokaiStatePresentationController ResolvePresentationController()
+    void NotifyPresentation(YokaiState previousState, YokaiState nextState)
     {
-        if (presentationController != null)
-            return presentationController;
-
-        presentationController = YokaiStatePresentationController.Instance;
-
         if (presentationController == null)
-            presentationController = FindObjectOfType<YokaiStatePresentationController>(true);
+        {
+            if (!hasWarnedMissingPresentation)
+            {
+                Debug.LogWarning("[STATE] YokaiStatePresentationController is not assigned in the Inspector.");
+                hasWarnedMissingPresentation = true;
+            }
+            return;
+        }
 
-        return presentationController;
+        presentationController.OnStateChanged(previousState, nextState);
     }
 
     void HandleCurrentYokaiConfirmed(GameObject activeYokai)
@@ -496,23 +480,6 @@ public class YokaiStateController : MonoBehaviour
 
         SyncManagerState();
         EvaluateState(reason: reason, forcePresentation: true);
-    }
-
-    void PlayStateTransitionSe(YokaiState newState, YokaiState previousState)
-    {
-        switch (newState)
-        {
-            case YokaiState.Purifying:
-                AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
-                break;
-            case YokaiState.PurityEmpty:
-                AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_ENTER);
-                break;
-            case YokaiState.EnergyEmpty:
-                AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
-                break;
-        }
-
     }
 
     void CheckForUnknownStateWarning()
