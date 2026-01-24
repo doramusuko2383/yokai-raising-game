@@ -88,6 +88,11 @@ public class SpiritController : MonoBehaviour
         ChangeSpirit(maxSpirit * ratio);
     }
 
+    public void Recover(float amount)
+    {
+        ChangeSpirit(amount);
+    }
+
     public void SetSpirit(float value, string reason = "SetSpirit")
     {
         spiritGauge.SetCurrent(value);

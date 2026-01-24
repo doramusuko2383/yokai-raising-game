@@ -155,7 +155,7 @@ public class YokaiGrowthController : MonoBehaviour
         if (stateController == null)
             LogMissingStateController();
 
-        if (stateController != null && stateController.isPurifying)
+        if (stateController != null && stateController.currentState == YokaiState.Purifying)
             return true;
 
         if (stateController != null)
@@ -273,7 +273,7 @@ public class YokaiGrowthController : MonoBehaviour
         if (stateController == null)
             LogMissingStateController();
 
-        if (stateController != null && stateController.isPurifying)
+        if (stateController != null && stateController.currentState == YokaiState.Purifying)
             return;
 
         if (currentScale < maxScale)

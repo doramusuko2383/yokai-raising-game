@@ -35,18 +35,9 @@ public class EnergyRecoverAdButtonHandler : MonoBehaviour
                 return;
             }
 
-            spiritController.SetSpiritRatio(recoverRatio);
-        }
-        else if (stateController.currentState == YokaiState.PurityEmpty)
-        {
-            var purityController = stateController.PurityController;
-            if (purityController == null)
-            {
-                Debug.LogError("[RECOVERY] PurityController not set in Inspector");
-                return;
-            }
-
-            purityController.SetPurityRatio(recoverRatio);
+            spiritController.AddSpiritRatio(recoverRatio);
+            AudioHook.RequestPlay(YokaiSE.SE_DANGO);
+            stateController.ForceReevaluate("SpiritRecovered");
         }
     }
 }

@@ -23,8 +23,6 @@ public class PurifyButtonHandler : MonoBehaviour
         if (stateController != null)
         {
             stateController.BeginPurifying();
-            if (stateController.isPurifying)
-                AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
             TutorialManager.NotifyPurifyUsed();
         }
         else
@@ -60,8 +58,6 @@ public class PurifyButtonHandler : MonoBehaviour
             return;
 
         if (stateController != null)
-            AudioHook.RequestPlay(YokaiSE.SE_PURIFY_CANCEL);
-        if (stateController != null)
             stateController.StopPurifying();
     }
 
@@ -69,7 +65,7 @@ public class PurifyButtonHandler : MonoBehaviour
     {
         // 不具合③: 状態未同期時はブロックせず、浄化中のみを弾く。
         return stateController != null
-            && stateController.isPurifying;
+            && stateController.currentState == YokaiState.Purifying;
     }
 
     bool IsState(YokaiState state)

@@ -44,7 +44,10 @@ public class DangoButtonHandler : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>();
 
-        return stateController != null
-            && stateController.isPurifying;
+        if (stateController == null)
+            return false;
+
+        return stateController.currentState != YokaiState.Normal
+            && stateController.currentState != YokaiState.EvolutionReady;
     }
 }

@@ -90,6 +90,11 @@ public class PurityController : MonoBehaviour
         ChangePurity(maxPurity * ratio);
     }
 
+    public void RecoverPurityByRatio(float ratio)
+    {
+        AddPurityRatio(Mathf.Clamp01(ratio));
+    }
+
     public void SetPurity(float value, string reason = "SetPurity")
     {
         purityGauge.SetCurrent(value);
