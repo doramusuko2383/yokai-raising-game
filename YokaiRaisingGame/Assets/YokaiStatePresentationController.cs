@@ -113,6 +113,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         BindStateController(ResolveStateController());
         lastAppliedState = null;
+        if (stateController != null)
+            ApplyState(stateController.currentState, force: true);
     }
 
     void OnDisable()
@@ -164,8 +166,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController == null)
             BindStateController(ResolveStateController());
 
-        UpdateMagicCircleState(previousState, newState);
-
         Debug.Log($"[PRESENTATION] State changed: {previousState} -> {newState}");
         if (!AreDependenciesResolved())
             return;
@@ -175,19 +175,18 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyState(newState, false);
     }
 
-    void UpdateMagicCircleState(YokaiState previousState, YokaiState newState)
+    void UpdateMagicCircleState(YokaiState state)
     {
         if (magicCircleActivator == null)
             return;
 
-        if (newState == YokaiState.Purifying)
+        if (state == YokaiState.Purifying)
         {
             magicCircleActivator.Show();
             return;
         }
 
-        if (previousState == YokaiState.Purifying && newState != YokaiState.Purifying)
-            magicCircleActivator.Hide();
+        magicCircleActivator.Hide();
     }
 
     public void ApplyState(YokaiState state, bool force = false)
@@ -197,6 +196,12 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         YokaiState? previousState = lastAppliedState;
         lastAppliedState = state;
+
+        if (!previousState.HasValue)
+        {
+            Debug.Log($"[PRESENTATION] ApplyState: {state}");
+            PlayStateTransitionSe(state, state);
+        }
 
         if (previousState.HasValue)
         {
@@ -228,6 +233,8 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyStateInternal(YokaiState state, bool force)
     {
+        UpdateMagicCircleState(state);
+
         if (force && IsEmptyState(state))
         {
             ReplayEmptyStateEffects(state);
