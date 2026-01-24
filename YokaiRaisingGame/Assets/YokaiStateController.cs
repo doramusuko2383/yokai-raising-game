@@ -285,13 +285,7 @@ public class YokaiStateController : MonoBehaviour
             nextGrowth = activeYokai.GetComponentInChildren<YokaiGrowthController>(true);
         }
 
-        UnregisterPurityEvents();
-        UnregisterSpiritEvents();
-
         growthController = nextGrowth;
-
-        RegisterPurityEvents();
-        RegisterSpiritEvents();
         SyncManagerState();
         
         isReady = true;
