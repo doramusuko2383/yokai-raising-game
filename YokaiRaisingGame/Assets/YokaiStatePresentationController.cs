@@ -166,9 +166,11 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController == null)
             BindStateController(ResolveStateController());
 
-        Debug.Log($"[PRESENTATION] State changed: {previousState} -> {newState}");
-        if (!AreDependenciesResolved())
+        if (stateController == null)
+        {
+            WarnMissingDependencies();
             return;
+        }
 
         PlayStateTransitionSe(previousState, newState);
         lastAppliedState = previousState;
@@ -191,7 +193,15 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     public void ApplyState(YokaiState state, bool force = false)
     {
-        Debug.Log($"[PRESENTATION] ApplyState: {state} (force: {force})");
+        if (stateController == null)
+        {
+            WarnMissingDependencies();
+            return;
+        }
+
+        if (!lastAppliedState.HasValue || lastAppliedState.Value != state)
+            Debug.Log($"[PRESENTATION] ApplyState: {state} (force: {force})");
+
         if (!force && lastAppliedState.HasValue && lastAppliedState.Value == state)
             return;
 
@@ -341,8 +351,11 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void RefreshPresentation()
     {
-        if (!AreDependenciesResolved())
+        if (stateController == null)
+        {
+            WarnMissingDependencies();
             return;
+        }
 
         YokaiState visualState = ResolveVisualState();
         bool isPurityEmptyState = visualState == YokaiState.PurityEmpty;
@@ -389,12 +402,11 @@ public class YokaiStatePresentationController : MonoBehaviour
         return YokaiState.Normal;
     }
 
-    bool AreDependenciesResolved()
+    void WarnMissingDependencies()
     {
         bool missingStateController = stateController == null;
-        bool missingUi = false;
 
-        if (missingStateController || missingUi)
+        if (missingStateController)
         {
             if (!hasWarnedMissingDependencies)
             {
@@ -405,10 +417,7 @@ public class YokaiStatePresentationController : MonoBehaviour
                 Debug.LogWarning($"[PRESENTATION] Missing Inspector references: {string.Join(", ", missing)}");
                 hasWarnedMissingDependencies = true;
             }
-            return false;
         }
-
-        return true;
     }
 
     void UpdateActionPanelButtons(bool isPurityEmpty, bool isEnergyEmpty, bool isPurifying)
