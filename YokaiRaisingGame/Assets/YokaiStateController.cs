@@ -303,6 +303,8 @@ public class YokaiStateController : MonoBehaviour
             SyncManagerState();
             EvaluateState(reason: "FullyInitialized", forcePresentation: true);
         }
+
+        isReady = true;
     }
 
     public void SetActiveYokai(GameObject activeYokai)
