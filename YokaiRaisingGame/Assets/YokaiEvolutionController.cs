@@ -282,6 +282,11 @@ public class YokaiEvolutionController : MonoBehaviour
     {
         CurrentYokaiContext.SetCurrent(activeYokai, reason);
         RebindCurrentYokai(activeYokai);
+        if (stateController != null)
+        {
+            stateController.MarkReady();
+            stateController.ForceReevaluate("YokaiReady");
+        }
     }
 
     void RebindCurrentYokai(GameObject activeYokai)
@@ -310,10 +315,6 @@ public class YokaiEvolutionController : MonoBehaviour
 
                 handler.BindStateController(stateController);
             }
-        }
-        else
-        {
-            Debug.LogError("[EVOLUTION] PurifyButtonHandlers not set in Inspector");
         }
 
         foreach (var effect in activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true))

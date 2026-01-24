@@ -36,10 +36,10 @@ public class YokaiStateController : MonoBehaviour
     bool evolutionResultPending;
     YokaiEvolutionStage evolutionResultStage;
     const float EvolutionReadyScale = 2.0f;
-    bool isInitialized;
+    bool isReady;
 
     bool canEvaluateState =>
-        isInitialized
+        isReady
         && CurrentYokaiContext.Current != null
         && purityController != null
         && spiritController != null
@@ -57,6 +57,7 @@ public class YokaiStateController : MonoBehaviour
         CurrentYokaiContext.RegisterStateController(this);
         RegisterPurityEvents();
         RegisterSpiritEvents();
+        isReady = false;
     }
 
     void Awake()
@@ -65,7 +66,6 @@ public class YokaiStateController : MonoBehaviour
 
     void Start()
     {
-        isInitialized = true;
     }
 
     void OnDisable()
@@ -171,13 +171,8 @@ public class YokaiStateController : MonoBehaviour
     {
         if (!canEvaluateState)
         {
-            Debug.Log("[STATE] EvaluateState skipped (not ready)");
             return;
         }
-
-#if UNITY_EDITOR
-        Debug.Log("[STATE] EvaluateState START");
-#endif
 
         YokaiState nextState = DetermineNextState(requestedState);
         bool stateChanged = currentState != nextState;
@@ -286,6 +281,7 @@ public class YokaiStateController : MonoBehaviour
 
     public void BindCurrentYokai(GameObject activeYokai)
     {
+        isReady = false;
         if (currentState == YokaiState.Evolving && activeYokai != null)
         {
             // 不具合④: 進化演出中に切り替わった妖怪情報を保持して完了メッセージを出す。
@@ -301,6 +297,11 @@ public class YokaiStateController : MonoBehaviour
 
         BindControllers(activeYokai);
         SetActiveYokai(activeYokai);
+    }
+
+    public void MarkReady()
+    {
+        isReady = true;
     }
 
     void BindControllers(GameObject activeYokai)
