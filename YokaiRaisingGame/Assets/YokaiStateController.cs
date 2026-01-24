@@ -55,11 +55,11 @@ public class YokaiStateController : MonoBehaviour
 
     void Awake()
     {
-        ResolveSceneControllers();
     }
 
     void Start()
     {
+        ResolveSceneControllers();
         if (CurrentYokaiContext.Current != null)
         {
             BindControllers(CurrentYokaiContext.Current);
@@ -314,6 +314,11 @@ public class YokaiStateController : MonoBehaviour
         {
             spiritController = FindObjectOfType<SpiritController>(true);
         }
+
+        RegisterPurityEvents();
+        RegisterSpiritEvents();
+
+        Debug.Log($"[StateController] Purity={purityController != null}, Spirit={spiritController != null}");
     }
 
     public void SetActiveYokai(GameObject activeYokai)
