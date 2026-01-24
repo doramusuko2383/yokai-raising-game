@@ -68,8 +68,7 @@ public class MagicCircleActivator : MonoBehaviour
             return;
 
         YokaiState currentState = stateController.currentState;
-        bool shouldShow = currentState == YokaiState.Purifying
-            || currentState == YokaiState.PurityEmpty;
+        bool shouldShow = currentState == YokaiState.Purifying;
         if (magicCircleRoot.activeSelf != shouldShow)
             magicCircleRoot.SetActive(shouldShow);
     }

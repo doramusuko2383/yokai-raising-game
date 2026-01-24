@@ -18,7 +18,6 @@ public class YokaiEvolutionController : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
-    [SerializeField]
     PurityController purityController;
 
     [SerializeField]
@@ -115,6 +114,7 @@ public class YokaiEvolutionController : MonoBehaviour
     void Start()
     {
         EnsureEvolutionRules();
+        purityController = FindObjectOfType<PurityController>();
         InitializeActiveYokai();
     }
 
@@ -297,9 +297,6 @@ public class YokaiEvolutionController : MonoBehaviour
     {
         if (activeYokai == null)
             return;
-
-        if (purityController == null)
-            Debug.LogError("[EVOLUTION] PurityController not set in Inspector");
 
         if (stateController == null)
         {
@@ -766,7 +763,7 @@ public class YokaiEvolutionController : MonoBehaviour
         if (isRecoilActive)
             return;
 
-        if (!isEvolving && (stateController == null || !stateController.isPurifying))
+        if (!isEvolving && (stateController == null || stateController.currentState != YokaiState.Purifying))
             return;
 
         if (!EffectSettings.EnableEffects)

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -33,6 +34,7 @@ public class YokaiStateController : MonoBehaviour
     const float EvolutionReadyScale = 2.0f;
     bool isReady;
     bool hasWarnedUnknownState;
+    Coroutine purifyRoutine;
 
     bool canEvaluateState =>
         isReady
@@ -68,6 +70,7 @@ public class YokaiStateController : MonoBehaviour
 
     void OnDisable()
     {
+        StopPurifyingInternal();
         UnregisterPurityEvents();
         UnregisterSpiritEvents();
 
@@ -174,7 +177,7 @@ public class YokaiStateController : MonoBehaviour
             if (isPurityEmpty)
                 return YokaiState.PurityEmpty;
 
-            if (currentState == YokaiState.Purifying
+            if ((currentState == YokaiState.Purifying && isPurifying)
                 || currentState == YokaiState.Evolving
                 || currentState == YokaiState.EvolutionReady)
                 return currentState;
@@ -206,14 +209,13 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginPurifying()
     {
-        if (currentState != YokaiState.Normal && currentState != YokaiState.EnergyEmpty)
+        if (currentState != YokaiState.Normal && currentState != YokaiState.PurityEmpty)
             return;
 
         if (isPurifying)
             return;
 
-        isPurifying = true;
-        EvaluateState(YokaiState.Purifying, reason: "BeginPurify");
+        purifyRoutine = StartCoroutine(PurifyRoutine());
     }
 
     public void StopPurifying()
@@ -231,8 +233,14 @@ public class YokaiStateController : MonoBehaviour
         if (!isPurifying)
             return;
 
+        if (purifyRoutine != null)
+        {
+            StopCoroutine(purifyRoutine);
+            purifyRoutine = null;
+        }
+
         isPurifying = false;
-        EvaluateState(YokaiState.Normal, reason: "StopPurify");
+        EvaluateState(reason: "StopPurify", forcePresentation: true);
     }
 
     public void BeginEvolution()
@@ -456,6 +464,28 @@ public class YokaiStateController : MonoBehaviour
     {
         MarkReady();
         ForceReevaluate("CurrentYokaiConfirmed");
+    }
+
+    IEnumerator PurifyRoutine()
+    {
+        isPurifying = true;
+        SetState(YokaiState.Purifying, "BeginPurify");
+
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
+
+        yield return new WaitForSeconds(2.0f);
+
+        if (purityController != null)
+        {
+            purityController.RecoverPurityByRatio(0.5f);
+        }
+
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_END);
+
+        isPurifying = false;
+        purifyRoutine = null;
+
+        EvaluateState(reason: "PurifyFinished", forcePresentation: true);
     }
 
     void CheckForUnknownStateWarning()

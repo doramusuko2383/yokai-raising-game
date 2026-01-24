@@ -315,13 +315,10 @@ public class YokaiStatePresentationController : MonoBehaviour
         bool isEnergyEmptyState = visualState == YokaiState.EnergyEmpty;
         bool showActionPanel =
             (stateController.currentState == YokaiState.Normal
-            || stateController.currentState == YokaiState.EvolutionReady
-            || isPurityEmptyState
-            || isEnergyEmptyState)
-            && !stateController.isPurifying
+            || stateController.currentState == YokaiState.EvolutionReady)
             && visualState != YokaiState.Evolving;
-        bool showMagicCircle = stateController.isPurifying || visualState == YokaiState.PurityEmpty;
-        bool showStopPurify = stateController.isPurifying;
+        bool showMagicCircle = stateController.currentState == YokaiState.Purifying;
+        bool showStopPurify = false;
         bool showDangerOverlay = showPurityEmptyVisuals;
 
         ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
@@ -346,6 +343,9 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (stateController != null && stateController.IsEvolving)
             return YokaiState.Evolving;
+
+        if (stateController != null && stateController.currentState == YokaiState.Purifying)
+            return YokaiState.Purifying;
 
         if (stateController != null && stateController.IsSpiritEmpty)
             return YokaiState.EnergyEmpty;
@@ -396,7 +396,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
             if (isEnergyEmpty)
             {
-                shouldShow = isPurifyButton;
+                shouldShow = false;
             }
             else if (isPurityEmpty)
             {
@@ -415,9 +415,13 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void UpdateRecoveryButtons(YokaiState state)
     {
-        bool shouldShow = state == YokaiState.EnergyEmpty || state == YokaiState.PurityEmpty;
+        bool shouldShow = state == YokaiState.EnergyEmpty;
         if (recoverAdButton != null)
             recoverAdButton.SetActive(shouldShow);
+
+        bool shouldShowPurity = state == YokaiState.PurityEmpty;
+        if (purityRecoverAdButton != null)
+            purityRecoverAdButton.SetActive(shouldShowPurity);
 
         if (legacyPurityRecoverAdButton != null)
             legacyPurityRecoverAdButton.SetActive(false);
