@@ -84,6 +84,8 @@ public class CharacterSwitcher : MonoBehaviour
         if (stateController != null)
         {
             stateController.BindCurrentYokai(currentInstance);
+            stateController.MarkReady();
+            stateController.ForceReevaluate("YokaiReady");
         }
         Debug.Log($"[STATE] CurrentYokaiContext.CurrentName={CurrentYokaiContext.CurrentName()}");
     }

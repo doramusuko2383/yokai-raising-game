@@ -195,36 +195,10 @@ public class YokaiGrowthController : MonoBehaviour
 
     void LoadState()
     {
-        if (PlayerPrefs.HasKey(CurrentScaleKey))
-        {
-            currentScale = PlayerPrefs.GetFloat(CurrentScaleKey, initialScale);
-        }
-        else
-        {
-            currentScale = initialScale;
-        }
-
-        if (PlayerPrefs.HasKey(LastUpdateTimeKey))
-        {
-            string stored = PlayerPrefs.GetString(LastUpdateTimeKey, string.Empty);
-            if (long.TryParse(stored, out long binary))
-            {
-                lastUpdateTime = DateTime.FromBinary(binary);
-            }
-            else
-            {
-                lastUpdateTime = DateTime.Now;
-            }
-        }
-        else
-        {
-            lastUpdateTime = DateTime.Now;
-        }
-
-        isEvolutionReady = PlayerPrefs.GetInt(EvolutionReadyKey, 0) == 1;
-        hasEvolved = PlayerPrefs.GetInt(HasEvolvedKey, isEvolutionReady ? 1 : 0) == 1;
-        if (hasEvolved)
-            isEvolutionReady = true;
+        currentScale = initialScale;
+        lastUpdateTime = DateTime.Now;
+        isEvolutionReady = false;
+        hasEvolved = false;
     }
 
     void SaveState()
