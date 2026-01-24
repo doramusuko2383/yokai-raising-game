@@ -77,7 +77,10 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isPurityEmptyMotionApplied;
     Coroutine purityEmptyReleaseRoutine;
     YokaiState? lastAppliedState;
+    YokaiState? lastEffectState;
     bool hasWarnedMissingDependencies;
+    bool hasWarnedMissingOptionalDependencies;
+    bool forceVisualEffects;
     static YokaiStatePresentationController instance;
 
     public static YokaiStatePresentationController Instance => instance;
@@ -113,6 +116,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         BindStateController(ResolveStateController());
         lastAppliedState = null;
+        lastEffectState = null;
+        WarnMissingOptionalDependencies();
         if (stateController != null)
             ApplyState(stateController.currentState, force: true);
     }
@@ -172,23 +177,9 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
         }
 
-        PlayStateTransitionSe(previousState, newState);
         lastAppliedState = previousState;
+        lastEffectState = previousState;
         ApplyState(newState, false);
-    }
-
-    void UpdateMagicCircleState(YokaiState state)
-    {
-        if (magicCircleActivator == null)
-            return;
-
-        if (state == YokaiState.Purifying)
-        {
-            magicCircleActivator.Show();
-            return;
-        }
-
-        magicCircleActivator.Hide();
     }
 
     public void ApplyState(YokaiState state, bool force = false)
@@ -205,31 +196,9 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (!force && lastAppliedState.HasValue && lastAppliedState.Value == state)
             return;
 
-        YokaiState? previousState = lastAppliedState;
         lastAppliedState = state;
-
-        if (!previousState.HasValue)
-        {
-            PlayStateTransitionSe(state, state);
-        }
-
-        if (previousState.HasValue)
-        {
-            if (previousState.Value == state)
-            {
-                ApplyStateInternal(state, force);
-                RefreshPresentation();
-            }
-            else
-            {
-                HandleEmptyStatePresentation(previousState.Value, state, () => HandleStateMessages(previousState.Value, state));
-            }
-        }
-        else
-        {
-            ApplyStateInternal(state, force);
-            RefreshPresentation();
-        }
+        ApplyStateInternal(state, force);
+        RefreshPresentation();
     }
 
     void HandleStateEntered(YokaiState state)
@@ -241,62 +210,77 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyState(state, force: isEmpty);
     }
 
+    void ApplyVisualEffectsForState(YokaiState state)
+    {
+        YokaiState? previousState = lastEffectState;
+        bool stateChanged = !previousState.HasValue || previousState.Value != state;
+        bool shouldReplayEmpty = forceVisualEffects && IsEmptyState(state);
+        bool shouldTriggerEntryEffects = stateChanged || shouldReplayEmpty;
+
+        if (stateChanged)
+            Debug.Log($"[PRESENTATION] State changed: {previousState?.ToString() ?? "None"} -> {state}");
+
+        if (state == YokaiState.Purifying)
+            magicCircleActivator?.Show();
+        else
+            magicCircleActivator?.Hide();
+
+        if (previousState.HasValue && previousState.Value != state)
+        {
+            if (previousState.Value == YokaiState.EnergyEmpty)
+            {
+                PlayEnergyEmptyExitEffects();
+                if (stateController != null && !stateController.IsSpiritEmpty)
+                    AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
+            }
+
+            if (previousState.Value == YokaiState.PurityEmpty)
+            {
+                if (stateController != null && !stateController.IsPurityEmptyState)
+                    AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_RELEASE);
+            }
+        }
+
+        switch (state)
+        {
+            case YokaiState.EnergyEmpty:
+                if (shouldTriggerEntryEffects)
+                {
+                    PlayEnergyEmptyEnterEffects();
+                    AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
+                }
+                ClearAllEffects();
+                break;
+            case YokaiState.PurityEmpty:
+                if (shouldTriggerEntryEffects)
+                {
+                    EnterPurityEmpty(forceVisualEffects);
+                    AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_ENTER);
+                }
+                break;
+            case YokaiState.Purifying:
+                if (stateChanged)
+                {
+                    AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
+                }
+                ClearAllEffects();
+                break;
+            default:
+                ClearAllEffects();
+                break;
+        }
+
+        if (stateChanged)
+            HandleStateMessages(previousState, state);
+
+        lastEffectState = state;
+    }
+
     void ApplyStateInternal(YokaiState state, bool force)
     {
-        UpdateMagicCircleState(state);
-
-        if (force && IsEmptyState(state))
-        {
-            ReplayEmptyStateEffects(state);
-            return;
-        }
-
-        if (HandleEmptyState(state, force))
-            return;
-
-        HandleNormalState(state);
-    }
-
-    bool HandleEmptyState(YokaiState state, bool force)
-    {
-        switch (state)
-        {
-            case YokaiState.EnergyEmpty:
-                PlayEnergyEmptyEnterEffects();
-                return true;
-            case YokaiState.PurityEmpty:
-                EnterPurityEmpty(force);
-                return true;
-        }
-
-        return false;
-    }
-
-    void ReplayEmptyStateEffects(YokaiState state)
-    {
-        switch (state)
-        {
-            case YokaiState.EnergyEmpty:
-                PlayEnergyEmptyEnterEffects();
-                break;
-            case YokaiState.PurityEmpty:
-                EnterPurityEmpty(true);
-                break;
-        }
-    }
-
-    void HandleNormalState(YokaiState state)
-    {
-        switch (state)
-        {
-            case YokaiState.EvolutionReady:
-                MentorMessageService.ShowHint(OnmyojiHintType.EvolutionStart);
-                break;
-            case YokaiState.Normal:
-            case YokaiState.Purifying:
-            case YokaiState.Evolving:
-                break;
-        }
+        forceVisualEffects = force;
+        ApplyVisualEffectsForState(state);
+        forceVisualEffects = false;
     }
 
     bool IsEmptyState(YokaiState state)
@@ -315,27 +299,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             default:
                 return EmptyStateType.None;
         }
-    }
-
-    void HandleEmptyStatePresentation(YokaiState previousState, YokaiState newState, System.Action afterEffects)
-    {
-        EmptyStateType previousEmptyState = GetEmptyStateType(previousState);
-        EmptyStateType newEmptyState = GetEmptyStateType(newState);
-        bool wasEmptyState = previousEmptyState != EmptyStateType.None;
-        bool isEmptyState = newEmptyState != EmptyStateType.None;
-
-        if (newEmptyState == EmptyStateType.Energy && (!wasEmptyState || previousEmptyState == EmptyStateType.Purity))
-            PlayEnergyEmptyEnterEffects();
-        else if (previousEmptyState == EmptyStateType.Energy && (!isEmptyState || newEmptyState == EmptyStateType.Purity))
-            PlayEnergyEmptyExitEffects();
-
-        if (newEmptyState == EmptyStateType.Purity && (!wasEmptyState || previousEmptyState == EmptyStateType.Energy))
-            EnterPurityEmpty();
-        else if (previousEmptyState == EmptyStateType.Purity && (!isEmptyState || newEmptyState == EmptyStateType.Energy))
-            RequestReleasePurityEmpty();
-
-        afterEffects?.Invoke();
-        RefreshPresentation();
     }
 
     void SyncVisualState()
@@ -418,6 +381,29 @@ public class YokaiStatePresentationController : MonoBehaviour
                 hasWarnedMissingDependencies = true;
             }
         }
+
+        WarnMissingOptionalDependencies();
+    }
+
+    void WarnMissingOptionalDependencies()
+    {
+        if (hasWarnedMissingOptionalDependencies)
+            return;
+
+        List<string> missing = new List<string>();
+
+        if (purifyStopButton == null)
+            missing.Add("PurifyStopButton");
+        if (dangerOverlay == null)
+            missing.Add("DangerOverlay");
+        if (magicCircleActivator == null)
+            missing.Add("MagicCircleActivator");
+
+        if (missing.Count == 0)
+            return;
+
+        Debug.LogWarning($"[PRESENTATION] Optional Inspector references are not set: {string.Join(", ", missing)}");
+        hasWarnedMissingOptionalDependencies = true;
     }
 
     void UpdateActionPanelButtons(bool isPurityEmpty, bool isEnergyEmpty, bool isPurifying)
@@ -735,7 +721,17 @@ public class YokaiStatePresentationController : MonoBehaviour
         MentorMessageService.NotifyRecovered();
     }
 
-    void HandleStateMessages(YokaiState previousState, YokaiState newState)
+    void ClearAllEffects()
+    {
+        if (isPurityEmptyVisualsActive)
+            RequestReleasePurityEmpty();
+        else
+            ResetPurityEmptyVisuals();
+
+        ResetPurityEmptyMotion();
+    }
+
+    void HandleStateMessages(YokaiState? previousState, YokaiState newState)
     {
         if (newState == YokaiState.Purifying && previousState != YokaiState.Purifying)
         {
@@ -756,38 +752,6 @@ public class YokaiStatePresentationController : MonoBehaviour
                 else if (stage == YokaiEvolutionStage.Adult)
                     MentorMessageService.ShowHint(OnmyojiHintType.EvolutionCompleteAdult);
             }
-        }
-    }
-
-    void PlayStateTransitionSe(YokaiState previousState, YokaiState newState)
-    {
-        switch (newState)
-        {
-            case YokaiState.Purifying:
-                AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
-                break;
-            case YokaiState.PurityEmpty:
-                AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_ENTER);
-                break;
-            case YokaiState.EnergyEmpty:
-                AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
-                break;
-        }
-
-        if (previousState == YokaiState.PurityEmpty
-            && newState != YokaiState.PurityEmpty
-            && stateController != null
-            && !stateController.IsPurityEmptyState)
-        {
-            AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_RELEASE);
-        }
-
-        if (previousState == YokaiState.EnergyEmpty
-            && newState != YokaiState.EnergyEmpty
-            && stateController != null
-            && !stateController.IsSpiritEmpty)
-        {
-            AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
         }
     }
 }
