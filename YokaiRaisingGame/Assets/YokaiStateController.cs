@@ -311,6 +311,7 @@ public class YokaiStateController : MonoBehaviour
 
         RegisterPurityEvents();
         RegisterSpiritEvents();
+        isReady = true;
 
         Debug.Log($"[StateController] Purity={purityController != null}, Spirit={spiritController != null}");
     }
