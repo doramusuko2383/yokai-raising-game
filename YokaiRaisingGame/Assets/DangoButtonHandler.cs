@@ -111,10 +111,6 @@ public class DangoButtonHandler : MonoBehaviour
         if (AudioHook.ClipResolver != null)
             return true;
 
-        var library = Resources.Load<SEClipLibrary>("SEClipLibrary");
-        if (library != null && AudioHook.ClipResolver == null)
-            AudioHook.ClipResolver = library.ResolveClip;
-
         if (AudioHook.ClipResolver == null && logIfMissingOnce)
             WarnMissingAudioHook();
 
