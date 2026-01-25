@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -20,6 +21,9 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     YokaiStatePresentationController presentationController;
 
+    [SerializeField]
+    MagicCircleActivator magicCircleActivator;
+
     [FormerlySerializedAs("kegareManager")]
     [SerializeField]
     PurityController purityController;
@@ -34,6 +38,12 @@ public class YokaiStateController : MonoBehaviour
     bool isReady;
     bool hasWarnedUnknownState;
     bool hasWarnedMissingPurifyControllers;
+    bool hasWarnedMissingMagicCircle;
+    Coroutine purifyFallbackRoutine;
+
+    [Header("Purify Fallback")]
+    [SerializeField]
+    float purifyFallbackSeconds = 2.5f;
 
     bool canEvaluateState =>
         isReady
@@ -217,6 +227,7 @@ public class YokaiStateController : MonoBehaviour
 
         isPurifying = true;
         SetState(YokaiState.Purifying, "BeginPurify");
+        StartPurifyFallbackIfNeeded();
     }
 
     public void StopPurifying()
@@ -235,6 +246,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isPurifying = false;
+        StopPurifyFallback();
         SetState(YokaiState.Normal, reason);
         EvaluateState(reason: reason, forcePresentation: true);
     }
@@ -316,8 +328,6 @@ public class YokaiStateController : MonoBehaviour
         RegisterPurityEvents();
         RegisterSpiritEvents();
         isReady = true;
-
-        Debug.Log($"[StateController] Purity={purityController != null}, Spirit={spiritController != null}");
     }
 
     public void SetActiveYokai(GameObject activeYokai)
@@ -444,6 +454,7 @@ public class YokaiStateController : MonoBehaviour
         if (!isPurifying)
             return;
 
+        StopPurifyFallback();
         if (purityController != null)
         {
             purityController.RecoverPurityByRatio(0.5f);
@@ -465,6 +476,7 @@ public class YokaiStateController : MonoBehaviour
     void ResetPurifyingState()
     {
         isPurifying = false;
+        StopPurifyFallback();
     }
 
     public void RequestEvaluateState(string reason)
@@ -501,6 +513,52 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         controller.ApplyState(state, force: true);
+    }
+
+    MagicCircleActivator ResolveMagicCircleActivator()
+    {
+        if (magicCircleActivator != null)
+            return magicCircleActivator;
+
+        magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
+        return magicCircleActivator;
+    }
+
+    void StartPurifyFallbackIfNeeded()
+    {
+        StopPurifyFallback();
+
+        var activator = ResolveMagicCircleActivator();
+        if (activator != null && activator.HasMagicCircleRoot)
+            return;
+
+        if (!hasWarnedMissingMagicCircle)
+        {
+            Debug.LogWarning("[PURIFY] MagicCircleRoot is missing; using fallback timer.");
+            hasWarnedMissingMagicCircle = true;
+        }
+
+        purifyFallbackRoutine = StartCoroutine(PurifyFallbackRoutine());
+    }
+
+    void StopPurifyFallback()
+    {
+        if (purifyFallbackRoutine == null)
+            return;
+
+        StopCoroutine(purifyFallbackRoutine);
+        purifyFallbackRoutine = null;
+    }
+
+    IEnumerator PurifyFallbackRoutine()
+    {
+        float delay = Mathf.Max(0.2f, purifyFallbackSeconds);
+        yield return new WaitForSeconds(delay);
+
+        purifyFallbackRoutine = null;
+
+        if (isPurifying)
+            NotifyPurifySucceeded();
     }
 
     void ApplyEmptyStateEffects()

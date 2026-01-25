@@ -5,6 +5,7 @@ public class PurityRecoverAdButtonHandler : MonoBehaviour
 {
     [SerializeField]
     YokaiStateController stateController;
+    bool hasWarnedMissingStateController;
 
     public void BindStateController(YokaiStateController controller)
     {
@@ -16,9 +17,9 @@ public class PurityRecoverAdButtonHandler : MonoBehaviour
 
     public void OnClickPurityRecoverAd()
     {
-        if (stateController == null)
+        if (ResolveStateController() == null)
         {
-            Debug.LogError("[RECOVERY] StateController not set in Inspector");
+            WarnMissingStateController();
             return;
         }
 
@@ -26,5 +27,23 @@ public class PurityRecoverAdButtonHandler : MonoBehaviour
             return;
 
         stateController.BeginPurifying();
+    }
+
+    YokaiStateController ResolveStateController()
+    {
+        if (stateController != null)
+            return stateController;
+
+        stateController = FindObjectOfType<YokaiStateController>(true);
+        return stateController;
+    }
+
+    void WarnMissingStateController()
+    {
+        if (hasWarnedMissingStateController)
+            return;
+
+        Debug.LogWarning("[RECOVERY] StateController not set in Inspector");
+        hasWarnedMissingStateController = true;
     }
 }
