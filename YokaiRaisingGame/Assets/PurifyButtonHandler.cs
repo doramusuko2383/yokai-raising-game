@@ -6,6 +6,16 @@ public class PurifyButtonHandler : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
     bool hasWarnedMissingStateController;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    bool hasLoggedAudioResolution;
+#endif
+
+    void OnEnable()
+    {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        LogAudioResolutionOnce();
+#endif
+    }
 
     public void BindStateController(YokaiStateController controller)
     {
@@ -101,4 +111,16 @@ public class PurifyButtonHandler : MonoBehaviour
         Debug.LogWarning("[PURIFY] StateController not set in Inspector");
         hasWarnedMissingStateController = true;
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    void LogAudioResolutionOnce()
+    {
+        if (hasLoggedAudioResolution)
+            return;
+
+        bool hasResolver = AudioHook.ClipResolver != null;
+        Debug.Log($"[SE] Purify AudioHook resolver ready: {hasResolver}");
+        hasLoggedAudioResolution = true;
+    }
+#endif
 }
