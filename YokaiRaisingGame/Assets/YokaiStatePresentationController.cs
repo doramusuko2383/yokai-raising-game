@@ -315,11 +315,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         bool shouldReplayEmpty = forceVisualEffects && IsEmptyState(state);
         bool shouldTriggerEntryEffects = stateChanged || shouldReplayEmpty;
 
-        if (state == YokaiState.Purifying)
-            magicCircleActivator?.Show();
-        else
-            magicCircleActivator?.Hide();
-
         if (previousState.HasValue && previousState.Value != state)
         {
             if (previousState.Value == YokaiState.EnergyEmpty)
@@ -373,14 +368,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     void ApplyStateInternal(YokaiState state, bool force)
     {
         forceVisualEffects = force;
-        if (IsEmptyState(state))
-        {
-            ApplyVisualEffectsForState(state);
-            forceVisualEffects = false;
-            RefreshPresentation();
-            return;
-        }
-
         ApplyVisualEffectsForState(state);
         forceVisualEffects = false;
         RefreshPresentation();
@@ -437,21 +424,15 @@ public class YokaiStatePresentationController : MonoBehaviour
             || currentState == YokaiState.EvolutionReady)
             && visualState != YokaiState.Evolving;
         bool showStopPurify = isPurifyingState;
-        bool showDangerOverlay = showPurityEmptyVisuals;
 
         ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
         ApplyCanvasGroup(purifyStopButton, showStopPurify, showStopPurify);
 
-        if (dangerOverlay != null)
-        {
-            dangerOverlay.alpha = showDangerOverlay ? Mathf.Clamp01(purityEmptyOverlayAlpha) : 0f;
-            dangerOverlay.blocksRaycasts = showDangerOverlay;
-            dangerOverlay.interactable = showDangerOverlay;
-        }
-
+        ApplyDangerOverlayForState(visualState);
+        ApplyDangerEffectsForState(visualState);
+        ApplyMagicCircleForState(visualState);
         UpdateSpecialRecoveryButtons(visualState);
         UpdateActionPanelButtons(isPurityEmptyState, isEnergyEmptyState, isPurifyingState);
-        UpdateDangerEffects();
         UpdatePurityEmptyVisuals(showPurityEmptyVisuals);
     }
 
@@ -524,6 +505,50 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         Debug.LogWarning($"[PRESENTATION] Optional Inspector references are not set: {string.Join(", ", missing)}");
         hasWarnedMissingOptionalDependencies = true;
+    }
+
+    void ApplyDangerOverlayForState(YokaiState visualState)
+    {
+        if (dangerOverlay == null)
+            return;
+
+        bool showDangerOverlay = visualState == YokaiState.PurityEmpty;
+        dangerOverlay.alpha = showDangerOverlay ? Mathf.Clamp01(purityEmptyOverlayAlpha) : 0f;
+        dangerOverlay.blocksRaycasts = showDangerOverlay;
+        dangerOverlay.interactable = showDangerOverlay;
+    }
+
+    void ApplyDangerEffectsForState(YokaiState visualState)
+    {
+        if (dangerEffects == null || dangerEffects.Length == 0)
+            return;
+
+        bool shouldPlay = visualState == YokaiState.PurityEmpty;
+        int intensityLevel = shouldPlay ? 2 : 1;
+
+        foreach (var effect in dangerEffects)
+        {
+            if (effect == null)
+                continue;
+
+            if (shouldPlay)
+                effect.Play();
+            else
+                effect.Stop();
+
+            effect.SetIntensityLevel(intensityLevel);
+        }
+    }
+
+    void ApplyMagicCircleForState(YokaiState visualState)
+    {
+        if (magicCircleActivator == null)
+            return;
+
+        if (visualState == YokaiState.Purifying)
+            magicCircleActivator.Show();
+        else
+            magicCircleActivator.Hide();
     }
 
     void UpdateActionPanelButtons(bool isPurityEmpty, bool isEnergyEmpty, bool isPurifying)
