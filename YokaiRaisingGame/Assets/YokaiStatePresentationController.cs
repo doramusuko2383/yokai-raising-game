@@ -82,6 +82,8 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool hasWarnedMissingOptionalDependencies;
     bool forceVisualEffects;
     static YokaiStatePresentationController instance;
+    Coroutine bindRetryRoutine;
+    bool isMagicCircleBound;
 
     public static YokaiStatePresentationController Instance => instance;
 
@@ -115,15 +117,21 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         BindStateController(ResolveStateController());
+        CachePurityEmptyTargets(CurrentYokaiContext.Current);
+        RefreshDangerEffectOriginalColors();
         lastAppliedState = null;
         lastEffectState = null;
         WarnMissingOptionalDependencies();
+        BindMagicCircleActivator();
         SyncFromStateController(force: true);
+        StartBindRetryIfNeeded();
     }
 
     void OnDisable()
     {
         CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
+        StopBindRetry();
+        UnbindMagicCircleActivator();
         BindStateController(null);
     }
 
@@ -152,17 +160,95 @@ public class YokaiStatePresentationController : MonoBehaviour
             stateController.OnStateChanged += OnStateChanged;
     }
 
+    void StartBindRetryIfNeeded()
+    {
+        if (stateController != null)
+            return;
+
+        if (bindRetryRoutine != null)
+            return;
+
+        bindRetryRoutine = StartCoroutine(CoBindRetry());
+    }
+
+    void StopBindRetry()
+    {
+        if (bindRetryRoutine == null)
+            return;
+
+        StopCoroutine(bindRetryRoutine);
+        bindRetryRoutine = null;
+    }
+
     void HandleCurrentYokaiConfirmed(GameObject activeYokai)
     {
         BindStateController(ResolveStateController());
         CachePurityEmptyTargets(activeYokai);
         RefreshDangerEffectOriginalColors();
-        RefreshPresentation();
+        SyncFromStateController(force: true);
     }
 
     YokaiStateController ResolveStateController()
     {
         return CurrentYokaiContext.ResolveStateController() ?? stateController;
+    }
+
+    IEnumerator CoBindRetry()
+    {
+        const int maxAttempts = 20;
+        const float intervalSeconds = 0.2f;
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            if (stateController != null)
+                break;
+
+            BindStateController(ResolveStateController());
+            if (stateController != null)
+            {
+                CachePurityEmptyTargets(CurrentYokaiContext.Current);
+                RefreshDangerEffectOriginalColors();
+                SyncFromStateController(force: true);
+                break;
+            }
+
+            yield return new WaitForSeconds(intervalSeconds);
+        }
+
+        if (stateController == null)
+            WarnMissingDependencies();
+
+        bindRetryRoutine = null;
+    }
+
+    void BindMagicCircleActivator()
+    {
+        if (isMagicCircleBound || magicCircleActivator == null)
+            return;
+
+        magicCircleActivator.SuccessRequested += HandleMagicCircleSuccess;
+        isMagicCircleBound = true;
+    }
+
+    void UnbindMagicCircleActivator()
+    {
+        if (!isMagicCircleBound || magicCircleActivator == null)
+            return;
+
+        magicCircleActivator.SuccessRequested -= HandleMagicCircleSuccess;
+        isMagicCircleBound = false;
+    }
+
+    void HandleMagicCircleSuccess()
+    {
+        if (stateController == null)
+        {
+            BindStateController(ResolveStateController());
+            if (stateController == null)
+                return;
+        }
+
+        stateController.NotifyPurifySucceeded();
     }
 
     public void OnStateChanged(YokaiState previousState, YokaiState newState)
@@ -333,7 +419,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             && (currentState == YokaiState.Normal
             || currentState == YokaiState.EvolutionReady)
             && visualState != YokaiState.Evolving;
-        bool showStopPurify = false;
+        bool showStopPurify = isPurifyingState;
         bool showDangerOverlay = showPurityEmptyVisuals;
 
         ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
