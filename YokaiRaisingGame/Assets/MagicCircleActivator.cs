@@ -15,6 +15,8 @@ public class MagicCircleActivator : MonoBehaviour
     public event System.Action SuccessRequested;
     public event System.Action SuccessEffectRequested;
 
+    public bool HasMagicCircleRoot => magicCircleRoot != null;
+
     void OnEnable()
     {
         BindStateController(ResolveStateController());

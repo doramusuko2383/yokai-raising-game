@@ -5,6 +5,7 @@ public class PurifyButtonHandler : MonoBehaviour
 {
     [SerializeField]
     YokaiStateController stateController;
+    bool hasWarnedMissingStateController;
 
     public void BindStateController(YokaiStateController controller)
     {
@@ -19,14 +20,14 @@ public class PurifyButtonHandler : MonoBehaviour
         if (IsActionBlocked())
             return;
 
-        if (stateController != null)
+        if (ResolveStateController() != null)
         {
             stateController.BeginPurifying();
             TutorialManager.NotifyPurifyUsed();
         }
         else
         {
-            Debug.LogError("[PURIFY] StateController not set in Inspector");
+            WarnMissingStateController();
         }
     }
 
@@ -37,14 +38,14 @@ public class PurifyButtonHandler : MonoBehaviour
 
         ShowAd(() =>
         {
-            if (stateController != null)
+            if (ResolveStateController() != null)
             {
                 stateController.BeginPurifying();
                 TutorialManager.NotifyPurifyUsed();
             }
             else
             {
-                Debug.LogError("[PURIFY] StateController not set in Inspector");
+                WarnMissingStateController();
             }
         });
     }
@@ -54,12 +55,13 @@ public class PurifyButtonHandler : MonoBehaviour
         if (!IsState(YokaiState.Purifying))
             return;
 
-        if (stateController != null)
+        if (ResolveStateController() != null)
             stateController.CancelPurifying("StopPurify");
     }
 
     bool IsActionBlocked()
     {
+        ResolveStateController();
         // 不具合③: 状態未同期時はブロックせず、浄化中のみを弾く。
         return stateController != null
             && stateController.currentState == YokaiState.Purifying;
@@ -67,6 +69,7 @@ public class PurifyButtonHandler : MonoBehaviour
 
     bool IsState(YokaiState state)
     {
+        ResolveStateController();
         if (stateController == null || stateController.currentState == state)
             return true;
 
@@ -78,4 +81,24 @@ public class PurifyButtonHandler : MonoBehaviour
         onCompleted?.Invoke();
     }
 
+    YokaiStateController ResolveStateController()
+    {
+        if (stateController != null)
+            return stateController;
+
+        stateController = FindObjectOfType<YokaiStateController>(true);
+        if (stateController == null)
+            WarnMissingStateController();
+
+        return stateController;
+    }
+
+    void WarnMissingStateController()
+    {
+        if (hasWarnedMissingStateController)
+            return;
+
+        Debug.LogWarning("[PURIFY] StateController not set in Inspector");
+        hasWarnedMissingStateController = true;
+    }
 }

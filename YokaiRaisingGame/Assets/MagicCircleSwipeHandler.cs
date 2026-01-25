@@ -137,7 +137,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     {
         if (!IsPurifying())
         {
-            Debug.Log("[PURIFY] おきよめ失敗 reason=状態不一致");
             return;
         }
 
@@ -155,7 +154,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         hasDirection = false;
         swipeStartTime = Time.unscaledTime;
 
-        Debug.Log("[PURIFY] Swipe start");
         StartTrail(eventData.position, eventData.pressEventCamera);
 
         if (!IsWithinRadius(eventData.position, eventData.pressEventCamera))
@@ -247,7 +245,9 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
     YokaiStateController ResolveStateController()
     {
-        return CurrentYokaiContext.ResolveStateController() ?? stateController;
+        return CurrentYokaiContext.ResolveStateController()
+            ?? stateController
+            ?? FindObjectOfType<YokaiStateController>(true);
     }
 
     void ResolveMagicCircleActivator()
@@ -263,8 +263,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         if (hasAppliedPurify)
             return;
 
-        Debug.Log("[PURIFY] おきよめ成功");
-        Debug.Log("[PURIFY] Trail success");
         ClearTrail(immediate: true);
         PulseMagicCircle();
 
@@ -307,26 +305,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         return true;
     }
 
-    void LogSwipeFailure()
-    {
-        string reason;
-
-        if (sampleCount < minimumSamples)
-            reason = "入力回数不足";
-        else if (Mathf.Abs(totalAngle) < requiredAngle)
-            reason = "角度不足";
-        else if (totalTravelDistance < GetRequiredTravelDistance())
-            reason = "移動距離不足";
-        else if (hasInvalidRadius)
-            reason = "円外の軌跡";
-        else if (hasInvalidPath)
-            reason = "連続スワイプ失敗";
-        else
-            reason = "条件未達";
-
-        Debug.Log($"[PURIFY] おきよめ失敗 reason={reason}");
-    }
-
     void CancelSwipe(string reason)
     {
         if (!isTracking)
@@ -334,8 +312,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
         isTracking = false;
         isCompleted = false;
-        Debug.Log($"[PURIFY] Swipe cancel reason={reason}");
-        LogSwipeFailure();
         ClearTrail(immediate: false);
         if (IsPurifying())
             stateController.CancelPurifying("SwipeCancelled");
@@ -505,7 +481,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         swipeTrail.enabled = true;
         ApplyTrailColor(1f);
         AddTrailPoint(screenPosition, eventCamera, force: true);
-        Debug.Log("[PURIFY] Trail start");
     }
 
     void AddTrailPoint(Vector2 screenPosition, Camera eventCamera, bool force = false)
@@ -544,7 +519,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             swipeTrail.positionCount = 0;
             swipeTrail.enabled = false;
             ApplyTrailColor(1f);
-            Debug.Log("[PURIFY] Trail cleared");
             return;
         }
 
@@ -553,7 +527,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             swipeTrail.positionCount = 0;
             swipeTrail.enabled = false;
             ApplyTrailColor(1f);
-            Debug.Log("[PURIFY] Trail cleared");
             return;
         }
 
@@ -576,7 +549,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         swipeTrail.positionCount = 0;
         swipeTrail.enabled = false;
         ApplyTrailColor(1f);
-        Debug.Log("[PURIFY] Trail cleared");
         trailFadeCoroutine = null;
     }
 

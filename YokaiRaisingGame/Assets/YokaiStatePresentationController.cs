@@ -190,7 +190,21 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     YokaiStateController ResolveStateController()
     {
-        return CurrentYokaiContext.ResolveStateController() ?? stateController;
+        return CurrentYokaiContext.ResolveStateController()
+            ?? stateController
+            ?? FindObjectOfType<YokaiStateController>(true);
+    }
+
+    YokaiStateController TryResolveStateController()
+    {
+        if (stateController != null)
+            return stateController;
+
+        BindStateController(ResolveStateController());
+        if (stateController == null)
+            WarnMissingDependencies();
+
+        return stateController;
     }
 
     IEnumerator CoBindRetry()
@@ -256,18 +270,15 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     public void OnStateChanged(YokaiState previousState, YokaiState newState)
     {
-        if (stateController == null)
-            BindStateController(ResolveStateController());
-
-        if (!AreDependenciesResolved())
+        if (TryResolveStateController() == null)
             return;
 
-        SyncFromStateController(force: true);
+        ApplyState(newState, force: false);
     }
 
     public void SyncFromStateController(bool force = false)
     {
-        if (!AreDependenciesResolved())
+        if (TryResolveStateController() == null)
             return;
 
         ApplyState(stateController.currentState, force);
@@ -481,13 +492,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     bool AreDependenciesResolved()
     {
-        if (stateController == null)
-        {
-            WarnMissingDependencies();
-            return false;
-        }
-
-        return true;
+        return TryResolveStateController() != null;
     }
 
     void WarnMissingOptionalDependencies()
