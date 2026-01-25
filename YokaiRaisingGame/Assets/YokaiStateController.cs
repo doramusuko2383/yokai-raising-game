@@ -154,8 +154,9 @@ public class YokaiStateController : MonoBehaviour
         if (stateChanged)
         {
             SetState(nextState, reason);
-            return;
         }
+
+        ApplyEmptyStateEffects();
     }
 
     YokaiState DetermineNextState(YokaiState? requestedState = null)
@@ -195,6 +196,7 @@ public class YokaiStateController : MonoBehaviour
 
         Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
+        ApplyEmptyStateEffects();
         CheckForUnknownStateWarning();
     }
 
@@ -324,6 +326,7 @@ public class YokaiStateController : MonoBehaviour
             evolutionResultPending = false;
 
         SyncManagerState();
+        ApplyEmptyStateEffects();
     }
 
     public void SetEvolutionReady()
@@ -460,6 +463,36 @@ public class YokaiStateController : MonoBehaviour
 
         SyncManagerState();
         EvaluateState(reason: reason, forcePresentation: true);
+    }
+
+    void ApplyEmptyStateEffects()
+    {
+        bool shouldEnableDecay = currentState != YokaiState.EnergyEmpty && currentState != YokaiState.PurityEmpty;
+        bool shouldEnableGrowth = shouldEnableDecay;
+
+        if (spiritController != null)
+        {
+            if (spiritController.SetNaturalDecayEnabled(shouldEnableDecay))
+            {
+                Debug.Log($"[DECAY] NaturalDecay {(shouldEnableDecay ? "enabled" : "disabled")} (State={currentState})");
+            }
+        }
+
+        if (purityController != null)
+        {
+            if (purityController.SetNaturalDecayEnabled(shouldEnableDecay))
+            {
+                Debug.Log($"[DECAY] NaturalDecay {(shouldEnableDecay ? "enabled" : "disabled")} (State={currentState})");
+            }
+        }
+
+        if (growthController != null)
+        {
+            if (growthController.SetGrowthEnabled(shouldEnableGrowth))
+            {
+                Debug.Log($"[GROWTH] Growth {(shouldEnableGrowth ? "enabled" : "disabled")} (State={currentState})");
+            }
+        }
     }
 
     void CheckForUnknownStateWarning()

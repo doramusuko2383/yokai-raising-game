@@ -25,6 +25,7 @@ public class PurityController : MonoBehaviour
     WorldConfig worldConfig;
 
     float decayTimer;
+    bool naturalDecayEnabled = true;
 
     System.Action<float, float> purityChanged;
     public event System.Action OnPurityEmpty;
@@ -71,6 +72,22 @@ public class PurityController : MonoBehaviour
         HandleNaturalDecay();
     }
 
+    public bool SetNaturalDecayEnabled(bool enabled)
+    {
+        if (naturalDecayEnabled == enabled)
+        {
+            return false;
+        }
+
+        naturalDecayEnabled = enabled;
+        if (!naturalDecayEnabled)
+        {
+            decayTimer = 0f;
+        }
+
+        return true;
+    }
+
     public void ChangePurity(float amount)
     {
         purityGauge.Add(amount);
@@ -111,6 +128,9 @@ public class PurityController : MonoBehaviour
 
     void HandleNaturalDecay()
     {
+        if (!naturalDecayEnabled)
+            return;
+
         if (naturalDecayPerMinute <= 0f)
             return;
 

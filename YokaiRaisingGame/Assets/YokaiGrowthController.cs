@@ -32,6 +32,7 @@ public class YokaiGrowthController : MonoBehaviour
     public bool isGrowthStopped;
     public bool isEvolutionReady;
     public bool hasEvolved;
+    bool isGrowthEnabled = true;
 
     [Header("Dependencies")]
     [SerializeField]
@@ -71,6 +72,11 @@ public class YokaiGrowthController : MonoBehaviour
 
     void Update()
     {
+        if (!isGrowthEnabled)
+        {
+            return;
+        }
+
         DateTime now = DateTime.Now;
         double elapsedSeconds = (now - lastUpdateTime).TotalSeconds;
         lastUpdateTime = now;
@@ -117,6 +123,11 @@ public class YokaiGrowthController : MonoBehaviour
 
     void UpdateGrowth(float elapsedSeconds)
     {
+        if (!isGrowthEnabled)
+        {
+            return;
+        }
+
         bool wasGrowthStopped = isGrowthStopped;
         isGrowthStopped = ShouldStopGrowth();
 
@@ -147,6 +158,11 @@ public class YokaiGrowthController : MonoBehaviour
 
     bool ShouldStopGrowth()
     {
+        if (!isGrowthEnabled)
+        {
+            return true;
+        }
+
         if (hasEvolved)
         {
             return true;
@@ -166,6 +182,22 @@ public class YokaiGrowthController : MonoBehaviour
         }
 
         return false;
+    }
+
+    public bool SetGrowthEnabled(bool enabled)
+    {
+        if (isGrowthEnabled == enabled)
+        {
+            return false;
+        }
+
+        isGrowthEnabled = enabled;
+        if (!isGrowthEnabled)
+        {
+            lastUpdateTime = DateTime.Now;
+        }
+
+        return true;
     }
 
     void LogGrowthStoppedReason()
