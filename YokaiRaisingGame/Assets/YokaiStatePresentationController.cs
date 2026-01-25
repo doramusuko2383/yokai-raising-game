@@ -82,10 +82,16 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isSpiritZeroVisualOverride;
     bool hasEnsuredDangerOverlayLayout;
     bool hasLoggedResolvedReferences;
+    bool hasUserInteraction;
 
     public static YokaiStatePresentationController Instance => instance;
 
     public bool IsPurityEmptyVisualsActive => isPurityEmptyVisualsActive;
+
+    public void NotifyUserInteraction()
+    {
+        hasUserInteraction = true;
+    }
 
     public void ClearWeakVisuals()
     {
@@ -406,6 +412,9 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (!AreDependenciesResolved())
             return;
 
+        if (ShouldSuppressPresentationEffects(state))
+            return;
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (!lastAppliedState.HasValue || lastAppliedState.Value != state)
             Debug.Log($"[PRESENTATION] ApplyState: {state} (force: {force})");
@@ -429,6 +438,9 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyVisualEffectsOnce(YokaiState state)
     {
+        if (ShouldSuppressPresentationEffects(state))
+            return;
+
         if (lastVisualEffectState.HasValue && lastVisualEffectState.Value == state)
             return;
 
@@ -951,6 +963,9 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void PlayStateEnterSE(YokaiState state)
     {
+        if (ShouldSuppressPresentationEffects(state))
+            return;
+
         if (state == YokaiState.EnergyEmpty)
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -967,6 +982,25 @@ public class YokaiStatePresentationController : MonoBehaviour
 #endif
             AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_ENTER);
         }
+    }
+
+    bool ShouldSuppressPresentationEffects(YokaiState state)
+    {
+        if (!hasUserInteraction)
+            return true;
+
+        if (state == YokaiState.Purifying && !IsPurifyEffectAllowed())
+            return true;
+
+        return false;
+    }
+
+    bool IsPurifyEffectAllowed()
+    {
+        if (stateController == null)
+            return false;
+
+        return stateController.LastStateChangeReason == "BeginPurify";
     }
 
     void HandleStateMessages(YokaiState? previousState, YokaiState newState)

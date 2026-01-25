@@ -17,6 +17,8 @@ public class PurityRecoverAdButtonHandler : MonoBehaviour
 
     public void OnClickPurityRecoverAd()
     {
+        YokaiStatePresentationController.Instance?.NotifyUserInteraction();
+
         if (ResolveStateController() == null)
         {
             WarnMissingStateController();

@@ -27,6 +27,8 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickPurify()
     {
+        YokaiStatePresentationController.Instance?.NotifyUserInteraction();
+
         if (IsActionBlocked())
             return;
 
@@ -43,6 +45,8 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickEmergencyPurify()
     {
+        YokaiStatePresentationController.Instance?.NotifyUserInteraction();
+
         if (!IsState(YokaiState.PurityEmpty))
             return;
 
