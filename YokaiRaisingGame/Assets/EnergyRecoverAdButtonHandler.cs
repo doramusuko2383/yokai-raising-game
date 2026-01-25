@@ -35,6 +35,7 @@ public class EnergyRecoverAdButtonHandler : MonoBehaviour
             }
 
             spiritController.AddSpiritRatio(recoverRatio);
+            AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
             stateController.RequestEvaluateState("SpiritRecovered");
         }
     }

@@ -87,6 +87,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     Coroutine trailFadeCoroutine;
     Coroutine successPulseCoroutine;
     readonly List<Vector3> trailPoints = new List<Vector3>();
+    bool hasWarnedMissingStateController;
 
     void OnEnable()
     {
@@ -225,7 +226,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     {
         if (stateController == null)
         {
-            Debug.LogError("[PURIFY] StateController not set in Inspector");
+            WarnMissingStateController();
             return false;
         }
 
@@ -278,7 +279,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         }
         else
         {
-            Debug.LogError("[PURIFY] StateController not set in Inspector");
+            WarnMissingStateController();
             return;
         }
 
@@ -441,6 +442,15 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         }
 
         guideFadeCoroutine = StartCoroutine(FadeGuide(isVisible, immediate));
+    }
+
+    void WarnMissingStateController()
+    {
+        if (hasWarnedMissingStateController)
+            return;
+
+        Debug.LogWarning("[PURIFY] StateController not set in Inspector");
+        hasWarnedMissingStateController = true;
     }
 
     void SetupGuideCanvas()
