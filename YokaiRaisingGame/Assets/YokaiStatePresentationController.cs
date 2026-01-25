@@ -81,6 +81,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isPurityZeroVisualOverride;
     bool isSpiritZeroVisualOverride;
     bool hasEnsuredDangerOverlayLayout;
+    bool hasLoggedResolvedReferences;
 
     public static YokaiStatePresentationController Instance => instance;
 
@@ -114,6 +115,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         BindStateController(ResolveStateController());
+        ResolveOptionalDependencies();
         BindVitalControllers();
         CachePurityEmptyTargets(CurrentYokaiContext.Current);
         RefreshDangerEffectOriginalColors();
@@ -123,6 +125,9 @@ public class YokaiStatePresentationController : MonoBehaviour
         BindMagicCircleActivator();
         SyncFromStateController(force: true);
         StartBindRetryIfNeeded();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        LogResolvedReferencesOnce();
+#endif
     }
 
     void OnDisable()
@@ -182,6 +187,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     void HandleCurrentYokaiConfirmed(GameObject activeYokai)
     {
         BindStateController(ResolveStateController());
+        ResolveOptionalDependencies();
         BindVitalControllers();
         CachePurityEmptyTargets(activeYokai);
         RefreshDangerEffectOriginalColors();
@@ -400,8 +406,10 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (!AreDependenciesResolved())
             return;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (!lastAppliedState.HasValue || lastAppliedState.Value != state)
             Debug.Log($"[PRESENTATION] ApplyState: {state} (force: {force})");
+#endif
 
         if (!force && lastAppliedState.HasValue && lastAppliedState.Value == state)
             return;
@@ -945,14 +953,18 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (state == YokaiState.EnergyEmpty)
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log($"[PRESENTATION] EmptyEffect Fired: {state}");
+#endif
             PlayEnergyEmptyEffects();
             return;
         }
 
         if (state == YokaiState.PurityEmpty)
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log($"[PRESENTATION] EmptyEffect Fired: {state}");
+#endif
             AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_ENTER);
         }
     }
@@ -997,5 +1009,48 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         hasEnsuredDangerOverlayLayout = true;
     }
+
+    void ResolveOptionalDependencies()
+    {
+        if (magicCircleActivator == null)
+            magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
+
+        if (dangerOverlay == null)
+        {
+            GameObject overlayObject = GameObject.Find("DangerOverlay");
+            if (overlayObject == null)
+            {
+                var overlayRoot = GameObject.Find("UI_Overlay");
+                if (overlayRoot != null)
+                {
+                    var child = overlayRoot.transform.Find("DangerOverlay");
+                    overlayObject = child != null ? child.gameObject : null;
+                }
+            }
+
+            if (overlayObject != null)
+                dangerOverlay = overlayObject.GetComponent<CanvasGroup>();
+        }
+
+        if (dangerEffects == null || dangerEffects.Length == 0)
+            dangerEffects = FindObjectsOfType<YokaiDangerEffect>(true);
+    }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    void LogResolvedReferencesOnce()
+    {
+        if (hasLoggedResolvedReferences)
+            return;
+
+        string dangerEffectCount = dangerEffects == null ? "0" : dangerEffects.Length.ToString();
+        Debug.Log(
+            "[PRESENTATION] Resolved references: " +
+            $"stateController={(stateController != null)} " +
+            $"magicCircleActivator={(magicCircleActivator != null)} " +
+            $"dangerOverlay={(dangerOverlay != null)} " +
+            $"dangerEffects={dangerEffectCount}");
+        hasLoggedResolvedReferences = true;
+    }
+#endif
 }
 }
