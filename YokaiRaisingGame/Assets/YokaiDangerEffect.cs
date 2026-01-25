@@ -71,11 +71,7 @@ public class YokaiDangerEffect : MonoBehaviour
 
     void Awake()
     {
-        if (targetSprite == null)
-            targetSprite = GetComponentInChildren<SpriteRenderer>();
-
-        if (targetImage == null)
-            targetImage = GetComponentInChildren<Image>();
+        EnsureTargets();
 
         originalColor = GetCurrentColor();
         originalLocalPosition = GetCurrentLocalPosition();
@@ -228,6 +224,7 @@ public class YokaiDangerEffect : MonoBehaviour
 
     public void RefreshOriginalColor()
     {
+        EnsureTargets();
         originalColor = GetCurrentColor();
         originalLocalPosition = GetCurrentLocalPosition();
         currentShakeOffset = Vector3.zero;
@@ -324,5 +321,14 @@ public class YokaiDangerEffect : MonoBehaviour
     string FormatDangerLog(string phase)
     {
         return $"[DANGER][{Time.time:0.00}s][{phase}]";
+    }
+
+    void EnsureTargets()
+    {
+        if (targetSprite == null)
+            targetSprite = GetComponentInChildren<SpriteRenderer>();
+
+        if (targetImage == null)
+            targetImage = GetComponentInChildren<Image>();
     }
 }
