@@ -1,45 +1,52 @@
 using UnityEngine;
-using Yokai;
 
 public class MagicCircleActivator : MonoBehaviour
 {
     [SerializeField]
     GameObject magicCircleRoot;
 
-    [SerializeField]
-    YokaiStateController stateController;
+    bool hasWarnedMissingRoot;
 
-    bool hasWarnedMissingStateController;
+    public event System.Action SuccessRequested;
+    public event System.Action SuccessEffectRequested;
 
     public void Show()
     {
-        if (!HasStateController())
-            return;
-
-        if (magicCircleRoot != null)
-            magicCircleRoot.SetActive(true);
+        SetActive(true);
     }
 
     public void Hide()
     {
-        if (!HasStateController())
-            return;
-
-        if (magicCircleRoot != null)
-            magicCircleRoot.SetActive(false);
+        SetActive(false);
     }
 
-    bool HasStateController()
+    public void RequestSuccess()
     {
-        if (stateController != null)
-            return true;
+        SuccessRequested?.Invoke();
+    }
 
-        if (!hasWarnedMissingStateController)
+    public void RequestSuccessEffect()
+    {
+        SuccessEffectRequested?.Invoke();
+    }
+
+    void SetActive(bool isActive)
+    {
+        if (magicCircleRoot == null)
         {
-            Debug.LogWarning("[MAGIC_CIRCLE] Missing StateController reference.");
-            hasWarnedMissingStateController = true;
+            WarnMissingRoot();
+            return;
         }
 
-        return false;
+        magicCircleRoot.SetActive(isActive);
+    }
+
+    void WarnMissingRoot()
+    {
+        if (hasWarnedMissingRoot)
+            return;
+
+        Debug.LogWarning("[MAGIC_CIRCLE] Missing MagicCircleRoot reference.");
+        hasWarnedMissingRoot = true;
     }
 }

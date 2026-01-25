@@ -28,6 +28,7 @@ public class DangoButtonHandler : MonoBehaviour
         {
             spiritController.AddSpirit(dangoAmount);
             Debug.Log($"[SPIRIT] Dango +{dangoAmount:0.##} spirit={spiritController.spirit:0.##}/{spiritController.maxSpirit:0.##}");
+            AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
             TutorialManager.NotifyDangoUsed();
             MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
             stateController?.RequestEvaluateState("SpiritRecovered");

@@ -55,7 +55,7 @@ public class PurifyButtonHandler : MonoBehaviour
             return;
 
         if (stateController != null)
-            stateController.StopPurifying();
+            stateController.CancelPurifying("StopPurify");
     }
 
     bool IsActionBlocked()
