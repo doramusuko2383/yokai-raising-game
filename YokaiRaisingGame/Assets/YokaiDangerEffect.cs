@@ -197,6 +197,16 @@ public class YokaiDangerEffect : MonoBehaviour
         }
     }
 
+    public void Play()
+    {
+        SetBlinking(true);
+    }
+
+    public void Stop()
+    {
+        SetBlinking(false);
+    }
+
     public void SetSuppressed(bool suppress)
     {
         if (isSuppressed == suppress)

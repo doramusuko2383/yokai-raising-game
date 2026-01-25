@@ -91,8 +91,12 @@ public class MagicCircleActivator : MonoBehaviour
     {
         if (stateController == null)
         {
-            WarnMissingStateController();
-            return;
+            BindStateController(ResolveStateController());
+            if (stateController == null)
+            {
+                WarnMissingStateController();
+                return;
+            }
         }
 
         if (stateController.currentState == YokaiState.Purifying)
