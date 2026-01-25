@@ -60,21 +60,3 @@ public class SEClipLibrary : ScriptableObject
         }
     }
 }
-
-public static class SEClipLibraryRuntime
-{
-    const string ResourcePath = "SEClipLibrary";
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void Initialize()
-    {
-        var library = Resources.Load<SEClipLibrary>(ResourcePath);
-        if (library == null)
-        {
-            Debug.LogWarning("[SE] SEClipLibrary not found in Resources.");
-            return;
-        }
-
-        AudioHook.ClipResolver = library.ResolveClip;
-    }
-}
