@@ -223,6 +223,9 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void BindMagicCircleActivator()
     {
+        if (magicCircleActivator == null)
+            magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
+
         if (isMagicCircleBound || magicCircleActivator == null)
             return;
 
@@ -259,7 +262,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (!AreDependenciesResolved())
             return;
 
-        SyncFromStateController();
+        SyncFromStateController(force: true);
     }
 
     public void SyncFromStateController(bool force = false)
@@ -404,7 +407,10 @@ public class YokaiStatePresentationController : MonoBehaviour
     void RefreshPresentation()
     {
         if (stateController == null)
+        {
             WarnMissingDependencies();
+            return;
+        }
 
         WarnMissingOptionalDependencies();
 
