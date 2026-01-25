@@ -15,48 +15,45 @@ public class DangoButtonHandler : MonoBehaviour
     float dangoAmount = 30f;
     bool hasWarnedMissingStateController;
     bool hasWarnedMissingSpiritController;
+    bool hasWarnedMissingAudioHook;
     bool hasWarnedMissingAudioClip;
-    bool hasWarnedMissingAudioLibrary;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-    bool hasLoggedAudioResolution;
+    bool hasLoggedDependencyResolution;
 #endif
 
-    void OnEnable()
+    void Awake()
     {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        LogAudioResolutionOnce();
-#endif
+        ResolveDependencies(logIfMissingOnce: true);
     }
 
     public void OnClickDango()
     {
-        EnsureAudioClipResolver();
-        if (!AudioHook.TryResolveClip(YokaiSE.SE_SPIRIT_RECOVER, out _))
-            WarnMissingAudioClip();
-        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
-        ResolveStateController();
+        ResolveDependencies(logIfMissingOnce: true);
+        TryPlayDangoSE();
+
+        if (stateController == null)
+        {
+            WarnMissingStateController();
+            return;
+        }
+
         if (IsActionBlocked())
             return;
 
-        ResolveSpiritController();
-
-        if (spiritController != null)
-        {
-            spiritController.AddSpirit(dangoAmount);
-            TutorialManager.NotifyDangoUsed();
-            MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
-            stateController?.RequestEvaluateState("SpiritRecovered");
-        }
-        else
+        if (spiritController == null)
         {
             WarnMissingSpiritController();
+            return;
         }
+
+        spiritController.AddSpirit(dangoAmount);
+        TutorialManager.NotifyDangoUsed();
+        MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
+        stateController.RequestEvaluateState("SpiritRecovered");
     }
 
     bool IsActionBlocked()
     {
-        ResolveStateController();
-
         if (stateController == null)
             return false;
 
@@ -64,24 +61,31 @@ public class DangoButtonHandler : MonoBehaviour
             && stateController.currentState != YokaiState.EvolutionReady;
     }
 
-    void ResolveStateController()
+    void ResolveDependencies(bool logIfMissingOnce)
     {
-        if (stateController != null)
-            return;
-
-        stateController = FindObjectOfType<YokaiStateController>(true);
         if (stateController == null)
-            WarnMissingStateController();
-    }
+            stateController = FindObjectOfType<YokaiStateController>(true);
 
-    void ResolveSpiritController()
-    {
-        if (spiritController != null)
-            return;
-
-        spiritController = FindObjectOfType<SpiritController>(true);
         if (spiritController == null)
-            WarnMissingSpiritController();
+            spiritController = FindObjectOfType<SpiritController>(true);
+
+        bool hasAudioHook = EnsureAudioResolver(logIfMissingOnce);
+
+        if (logIfMissingOnce)
+        {
+            if (stateController == null)
+                WarnMissingStateController();
+
+            if (spiritController == null)
+                WarnMissingSpiritController();
+
+            if (!hasAudioHook)
+                WarnMissingAudioHook();
+        }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        LogDependencyResolutionOnce(hasAudioHook);
+#endif
     }
 
     void WarnMissingStateController()
@@ -102,19 +106,38 @@ public class DangoButtonHandler : MonoBehaviour
         hasWarnedMissingSpiritController = true;
     }
 
-    void EnsureAudioClipResolver()
+    bool EnsureAudioResolver(bool logIfMissingOnce)
     {
         if (AudioHook.ClipResolver != null)
-            return;
+            return true;
 
         var library = Resources.Load<SEClipLibrary>("SEClipLibrary");
-        if (library != null)
-        {
+        if (library != null && AudioHook.ClipResolver == null)
             AudioHook.ClipResolver = library.ResolveClip;
-            return;
-        }
 
-        WarnMissingAudioLibrary();
+        if (AudioHook.ClipResolver == null && logIfMissingOnce)
+            WarnMissingAudioHook();
+
+        return AudioHook.ClipResolver != null;
+    }
+
+    void TryPlayDangoSE()
+    {
+        bool hasAudioHook = EnsureAudioResolver(logIfMissingOnce: true);
+        if (!hasAudioHook)
+            return;
+
+        try
+        {
+            if (!AudioHook.TryResolveClip(YokaiSE.SE_SPIRIT_RECOVER, out _))
+                WarnMissingAudioClip();
+
+            AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
+        }
+        catch (System.Exception ex)
+        {
+            WarnMissingAudioHook(ex);
+        }
     }
 
     void WarnMissingAudioClip()
@@ -126,24 +149,30 @@ public class DangoButtonHandler : MonoBehaviour
         hasWarnedMissingAudioClip = true;
     }
 
-    void WarnMissingAudioLibrary()
+    void WarnMissingAudioHook(System.Exception ex = null)
     {
-        if (hasWarnedMissingAudioLibrary)
+        if (hasWarnedMissingAudioHook)
             return;
 
-        Debug.LogWarning("[SE] SEClipLibrary not found in Resources.");
-        hasWarnedMissingAudioLibrary = true;
+        if (ex != null)
+            Debug.LogWarning($"[DANGO] Missing AudioHook or resolver. {ex.Message}");
+        else
+            Debug.LogWarning("[DANGO] Missing AudioHook or resolver.");
+
+        hasWarnedMissingAudioHook = true;
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-    void LogAudioResolutionOnce()
+    void LogDependencyResolutionOnce(bool hasAudioHook)
     {
-        if (hasLoggedAudioResolution)
+        if (hasLoggedDependencyResolution)
             return;
 
-        bool hasResolver = AudioHook.ClipResolver != null;
-        Debug.Log($"[SE] Dango AudioHook resolver ready: {hasResolver}");
-        hasLoggedAudioResolution = true;
+        string audioStatus = hasAudioHook ? "OK" : "Missing";
+        string stateStatus = stateController != null ? "OK" : "Missing";
+        string spiritStatus = spiritController != null ? "OK" : "Missing";
+        Debug.Log($"[DANGO] deps: audioHook={audioStatus}, stateController={stateStatus}, spiritController={spiritStatus}");
+        hasLoggedDependencyResolution = true;
     }
 #endif
 }
