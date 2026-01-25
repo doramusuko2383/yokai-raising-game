@@ -23,6 +23,7 @@ public class SpiritController : MonoBehaviour
     WorldConfig worldConfig;
 
     float decayTimer;
+    bool naturalDecayEnabled = true;
 
     System.Action<float, float> spiritChanged;
     public event System.Action OnSpiritEmpty;
@@ -67,6 +68,22 @@ public class SpiritController : MonoBehaviour
     void Update()
     {
         HandleNaturalDecay();
+    }
+
+    public bool SetNaturalDecayEnabled(bool enabled)
+    {
+        if (naturalDecayEnabled == enabled)
+        {
+            return false;
+        }
+
+        naturalDecayEnabled = enabled;
+        if (!naturalDecayEnabled)
+        {
+            decayTimer = 0f;
+        }
+
+        return true;
     }
 
     public void ChangeSpirit(float amount)
@@ -125,6 +142,11 @@ public class SpiritController : MonoBehaviour
 
     void HandleNaturalDecay()
     {
+        if (!naturalDecayEnabled)
+        {
+            return;
+        }
+
         if (naturalDecayPerMinute <= 0f)
         {
             return;
