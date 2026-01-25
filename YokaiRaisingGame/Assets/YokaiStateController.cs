@@ -40,6 +40,7 @@ public class YokaiStateController : MonoBehaviour
     bool hasWarnedMissingPurifyControllers;
     bool hasWarnedMissingMagicCircle;
     Coroutine purifyFallbackRoutine;
+    string lastStateChangeReason;
 
     [Header("Purify Fallback")]
     [SerializeField]
@@ -59,6 +60,7 @@ public class YokaiStateController : MonoBehaviour
     public bool IsEvolving => isEvolving;
     public SpiritController SpiritController => spiritController;
     public PurityController PurityController => purityController;
+    public string LastStateChangeReason => lastStateChangeReason;
 
     void OnEnable()
     {
@@ -212,6 +214,7 @@ public class YokaiStateController : MonoBehaviour
 
         var prev = currentState;
         currentState = newState;
+        lastStateChangeReason = reason;
 
         Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);

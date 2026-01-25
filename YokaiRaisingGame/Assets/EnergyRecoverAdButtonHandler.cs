@@ -21,6 +21,8 @@ public class EnergyRecoverAdButtonHandler : MonoBehaviour
 
     public void OnClickEnergyRecoverAd()
     {
+        YokaiStatePresentationController.Instance?.NotifyUserInteraction();
+
         if (ResolveStateController() == null)
         {
             WarnMissingStateController();
