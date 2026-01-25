@@ -76,6 +76,11 @@ public class YokaiStatePresentationController : MonoBehaviour
     static YokaiStatePresentationController instance;
     Coroutine bindRetryRoutine;
     bool isMagicCircleBound;
+    PurityController boundPurityController;
+    SpiritController boundSpiritController;
+    bool isPurityZeroVisualOverride;
+    bool isSpiritZeroVisualOverride;
+    bool hasEnsuredDangerOverlayLayout;
 
     public static YokaiStatePresentationController Instance => instance;
 
@@ -109,6 +114,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         BindStateController(ResolveStateController());
+        BindVitalControllers();
         CachePurityEmptyTargets(CurrentYokaiContext.Current);
         RefreshDangerEffectOriginalColors();
         lastAppliedState = null;
@@ -124,6 +130,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
         StopBindRetry();
         UnbindMagicCircleActivator();
+        UnbindVitalControllers();
         BindStateController(null);
     }
 
@@ -175,6 +182,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     void HandleCurrentYokaiConfirmed(GameObject activeYokai)
     {
         BindStateController(ResolveStateController());
+        BindVitalControllers();
         CachePurityEmptyTargets(activeYokai);
         RefreshDangerEffectOriginalColors();
         SyncFromStateController(force: true);
@@ -193,6 +201,8 @@ public class YokaiStatePresentationController : MonoBehaviour
             return stateController;
 
         BindStateController(ResolveStateController());
+        if (stateController != null)
+            BindVitalControllers();
         if (stateController == null)
             WarnMissingDependencies();
 
@@ -212,6 +222,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             BindStateController(ResolveStateController());
             if (stateController != null)
             {
+                BindVitalControllers();
                 CachePurityEmptyTargets(CurrentYokaiContext.Current);
                 RefreshDangerEffectOriginalColors();
                 SyncFromStateController(force: true);
@@ -258,6 +269,114 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
 
         stateController.NotifyPurifySucceeded();
+    }
+
+    void BindVitalControllers()
+    {
+        PurityController nextPurity = stateController != null ? stateController.PurityController : null;
+        SpiritController nextSpirit = stateController != null ? stateController.SpiritController : null;
+
+        if (nextPurity == null)
+            nextPurity = FindObjectOfType<PurityController>(true);
+
+        if (nextSpirit == null)
+            nextSpirit = FindObjectOfType<SpiritController>(true);
+
+        BindPurityController(nextPurity);
+        BindSpiritController(nextSpirit);
+    }
+
+    void BindPurityController(PurityController controller)
+    {
+        if (boundPurityController == controller)
+            return;
+
+        if (boundPurityController != null)
+            boundPurityController.PurityChanged -= HandlePurityChanged;
+
+        boundPurityController = controller;
+
+        if (boundPurityController != null)
+            boundPurityController.PurityChanged += HandlePurityChanged;
+
+        SyncValueDrivenPurityState();
+    }
+
+    void BindSpiritController(SpiritController controller)
+    {
+        if (boundSpiritController == controller)
+            return;
+
+        if (boundSpiritController != null)
+            boundSpiritController.SpiritChanged -= HandleSpiritChanged;
+
+        boundSpiritController = controller;
+
+        if (boundSpiritController != null)
+            boundSpiritController.SpiritChanged += HandleSpiritChanged;
+
+        SyncValueDrivenSpiritState();
+    }
+
+    void UnbindVitalControllers()
+    {
+        if (boundPurityController != null)
+            boundPurityController.PurityChanged -= HandlePurityChanged;
+
+        if (boundSpiritController != null)
+            boundSpiritController.SpiritChanged -= HandleSpiritChanged;
+
+        boundPurityController = null;
+        boundSpiritController = null;
+        isPurityZeroVisualOverride = false;
+        isSpiritZeroVisualOverride = false;
+    }
+
+    void HandlePurityChanged(float current, float max)
+    {
+        bool isZero = current <= 0f;
+        if (isPurityZeroVisualOverride == isZero)
+            return;
+
+        isPurityZeroVisualOverride = isZero;
+        ApplyValueDrivenVisualState();
+    }
+
+    void HandleSpiritChanged(float current, float max)
+    {
+        bool isZero = current <= 0f;
+        if (isSpiritZeroVisualOverride == isZero)
+            return;
+
+        isSpiritZeroVisualOverride = isZero;
+        ApplyValueDrivenVisualState();
+    }
+
+    void SyncValueDrivenPurityState()
+    {
+        bool isZero = boundPurityController != null && boundPurityController.PurityNormalized <= 0f;
+        if (isPurityZeroVisualOverride == isZero)
+            return;
+
+        isPurityZeroVisualOverride = isZero;
+        ApplyValueDrivenVisualState();
+    }
+
+    void SyncValueDrivenSpiritState()
+    {
+        bool isZero = boundSpiritController != null && boundSpiritController.SpiritNormalized <= 0f;
+        if (isSpiritZeroVisualOverride == isZero)
+            return;
+
+        isSpiritZeroVisualOverride = isZero;
+        ApplyValueDrivenVisualState();
+    }
+
+    void ApplyValueDrivenVisualState()
+    {
+        YokaiState visualState = ResolveVisualState();
+        ApplyVisualEffectsOnce(visualState);
+        RefreshPresentation();
     }
 
     public void OnStateChanged(YokaiState previousState, YokaiState newState)
@@ -377,10 +496,10 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController != null && stateController.currentState == YokaiState.Purifying)
             return YokaiState.Purifying;
 
-        if (stateController != null && stateController.IsPurityEmptyState)
+        if ((stateController != null && stateController.IsPurityEmptyState) || isPurityZeroVisualOverride)
             return YokaiState.PurityEmpty;
 
-        if (stateController != null && stateController.IsSpiritEmpty)
+        if ((stateController != null && stateController.IsSpiritEmpty) || isSpiritZeroVisualOverride)
             return YokaiState.EnergyEmpty;
 
         return YokaiState.Normal;
@@ -445,10 +564,11 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (dangerOverlay == null)
             return;
 
+        EnsureDangerOverlayLayout();
         bool showDangerOverlay = visualState == YokaiState.PurityEmpty;
         dangerOverlay.alpha = showDangerOverlay ? Mathf.Clamp01(purityEmptyOverlayAlpha) : 0f;
-        dangerOverlay.blocksRaycasts = showDangerOverlay;
-        dangerOverlay.interactable = showDangerOverlay;
+        dangerOverlay.blocksRaycasts = false;
+        dangerOverlay.interactable = false;
     }
 
     void ApplyDangerEffectsForState(YokaiState visualState)
@@ -859,6 +979,23 @@ public class YokaiStatePresentationController : MonoBehaviour
                     MentorMessageService.ShowHint(OnmyojiHintType.EvolutionCompleteAdult);
             }
         }
+    }
+
+    void EnsureDangerOverlayLayout()
+    {
+        if (hasEnsuredDangerOverlayLayout || dangerOverlay == null)
+            return;
+
+        RectTransform rectTransform = dangerOverlay.GetComponent<RectTransform>();
+        if (rectTransform != null)
+        {
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.one;
+            rectTransform.offsetMin = Vector2.zero;
+            rectTransform.offsetMax = Vector2.zero;
+        }
+
+        hasEnsuredDangerOverlayLayout = true;
     }
 }
 }

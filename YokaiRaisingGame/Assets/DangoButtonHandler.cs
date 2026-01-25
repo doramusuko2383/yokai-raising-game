@@ -18,11 +18,11 @@ public class DangoButtonHandler : MonoBehaviour
 
     public void OnClickDango()
     {
+        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
         ResolveStateController();
         if (IsActionBlocked())
             return;
 
-        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
         ResolveSpiritController();
 
         if (spiritController != null)

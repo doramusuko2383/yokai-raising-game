@@ -43,6 +43,9 @@ public class YokaiStateController : MonoBehaviour
 
     [Header("Purify Fallback")]
     [SerializeField]
+    bool debugAutoCompletePurify;
+
+    [SerializeField]
     float purifyFallbackSeconds = 2.5f;
 
     bool canEvaluateState =>
@@ -527,6 +530,9 @@ public class YokaiStateController : MonoBehaviour
     void StartPurifyFallbackIfNeeded()
     {
         StopPurifyFallback();
+
+        if (!debugAutoCompletePurify)
+            return;
 
         var activator = ResolveMagicCircleActivator();
         if (activator != null && activator.HasMagicCircleRoot)

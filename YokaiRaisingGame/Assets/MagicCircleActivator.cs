@@ -19,24 +19,26 @@ public class MagicCircleActivator : MonoBehaviour
 
     void OnEnable()
     {
-        BindStateController(ResolveStateController());
+        EnsureStateController(warnIfMissing: false);
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
-        SyncFromStateController();
+        SyncFromStateController(warnIfMissing: false);
     }
 
     void OnDisable()
     {
         CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
-        BindStateController(null);
+        BindStateController(null, warnIfMissing: false);
     }
 
     public void Show()
     {
+        EnsureStateController(warnIfMissing: true);
         SetActive(true);
     }
 
     public void Hide()
     {
+        EnsureStateController(warnIfMissing: true);
         SetActive(false);
     }
 
@@ -52,8 +54,8 @@ public class MagicCircleActivator : MonoBehaviour
 
     void HandleCurrentYokaiConfirmed(GameObject activeYokai)
     {
-        BindStateController(ResolveStateController());
-        SyncFromStateController();
+        EnsureStateController(warnIfMissing: true);
+        SyncFromStateController(warnIfMissing: true);
     }
 
     YokaiStateController ResolveStateController()
@@ -63,7 +65,7 @@ public class MagicCircleActivator : MonoBehaviour
             ?? FindObjectOfType<YokaiStateController>(true);
     }
 
-    void BindStateController(YokaiStateController controller)
+    void BindStateController(YokaiStateController controller, bool warnIfMissing)
     {
         if (stateController == controller)
             return;
@@ -75,7 +77,7 @@ public class MagicCircleActivator : MonoBehaviour
 
         if (stateController != null)
             stateController.OnStateChanged += HandleStateChanged;
-        else
+        else if (warnIfMissing)
             WarnMissingStateController();
     }
 
@@ -87,14 +89,13 @@ public class MagicCircleActivator : MonoBehaviour
             Hide();
     }
 
-    void SyncFromStateController()
+    void SyncFromStateController(bool warnIfMissing)
     {
         if (stateController == null)
         {
-            BindStateController(ResolveStateController());
+            EnsureStateController(warnIfMissing);
             if (stateController == null)
             {
-                WarnMissingStateController();
                 return;
             }
         }
@@ -132,5 +133,10 @@ public class MagicCircleActivator : MonoBehaviour
 
         Debug.LogWarning("[MAGIC_CIRCLE] Missing StateController reference.");
         hasWarnedMissingStateController = true;
+    }
+
+    void EnsureStateController(bool warnIfMissing)
+    {
+        BindStateController(ResolveStateController(), warnIfMissing);
     }
 }
