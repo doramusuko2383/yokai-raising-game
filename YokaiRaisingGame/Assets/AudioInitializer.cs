@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[DefaultExecutionOrder(-10000)]
 public class AudioInitializer : MonoBehaviour
 {
     [SerializeField]
