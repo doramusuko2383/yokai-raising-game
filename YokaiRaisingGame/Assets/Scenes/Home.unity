@@ -165,6 +165,7 @@ Transform:
   - {fileID: 1786705810}
   - {fileID: 604884282}
   - {fileID: 515532833}
+  - {fileID: 641838149}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &252916619 stripped
@@ -225,7 +226,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spirit: 0
   maxSpirit: 100
-  hasEverHadEnergy: 0
   naturalDecayPerMinute: 2.5
   decayIntervalSeconds: 60
   worldConfig: {fileID: 0}
@@ -263,8 +263,8 @@ MonoBehaviour:
   yokaiTransform: {fileID: 0}
   weakAlpha: 0.45
   weakBrightness: 0.75
-  energySlider: {fileID: 20035157}
-  energyText: {fileID: 0}
+  spiritSlider: {fileID: 20035157}
+  spiritText: {fileID: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -547,12 +547,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   purity: 100
   maxPurity: 100
-  naturalIncreasePerMinute: 2
-  increaseIntervalSeconds: 60
+  naturalDecayPerMinute: 2
+  decayIntervalSeconds: 60
   worldConfig: {fileID: 0}
-  stateController: {fileID: 1786705811}
-  emergencyPurifyValue: 30
-  dangerThresholdRatio: 0.7
 --- !u!4 &604884282
 Transform:
   m_ObjectHideFlags: 0
@@ -583,7 +580,7 @@ MonoBehaviour:
   purityController: {fileID: 604884281}
   puritySlider: {fileID: 676147554}
   stateController: {fileID: 1786705811}
-  presentationController: {fileID: 0}
+  presentationController: {fileID: 641838150}
   pulseScale: 1.08
   pulseSpeed: 3.2
   pulseAlpha: 0.85
@@ -591,6 +588,70 @@ MonoBehaviour:
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4496156179974796907, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
   m_PrefabInstance: {fileID: 8218868374499439923}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &641838148
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 641838149}
+  - component: {fileID: 641838150}
+  m_Layer: 0
+  m_Name: YokaiStatePresentationController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &641838149
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 641838148}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 152328532}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &641838150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 641838148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4745de43c2454ce6988ead4224940ca2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stateController: {fileID: 1786705811}
+  actionPanel: {fileID: 667190786}
+  purityRecoverAdButton: {fileID: 1855358516}
+  purifyStopButton: {fileID: 2094418307}
+  magicCircleActivator: {fileID: 1905322487}
+  dangerOverlay: {fileID: 1590625622}
+  dangerEffects: []
+  purityEmptyOverlayAlpha: 0.2
+  purityEmptyDarkenIntensity: 0.2
+  purityEmptyReleaseDelay: 0.15
+  purityEmptyWobbleScale: 0.02
+  purityEmptyWobbleSpeed: 2.6
+  purityEmptyJitterAmplitude: 0.015
+  recoverAdButton: {fileID: 1451458901}
+  legacyPurityRecoverAdButton: {fileID: 1855358516}
+--- !u!1 &667190786 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8349528510299463072, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+  m_PrefabInstance: {fileID: 6224671111732217254}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &676147554 stripped
 MonoBehaviour:
@@ -641,6 +702,7 @@ MonoBehaviour:
   fireBallName: FireBall
   yokaiChildName: YokaiChild
   yokaiAdultName: YokaiAdult
+  purifyButtonHandlers: []
 --- !u!4 &724772127
 Transform:
   m_ObjectHideFlags: 0
@@ -944,6 +1006,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1902766324}
+  - {fileID: 1590625620}
   m_Father: {fileID: 543276398}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1213610521
@@ -1026,7 +1089,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
   m_PrefabInstance: {fileID: 6224671111732217254}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 2094418307}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b7ca7e342d34706b5486edd03708396, type: 3}
@@ -1107,6 +1170,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1390311716}
   m_CullTransparentMesh: 1
+--- !u!1 &1451458901 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 656228942389283711, guid: 366e9576cd92a104e916717384432116, type: 3}
+  m_PrefabInstance: {fileID: 664355983866959897}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &1469008922 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4729676478636256463, guid: 366e9576cd92a104e916717384432116, type: 3}
@@ -1284,6 +1352,64 @@ RectTransform:
   m_AnchoredPosition: {x: 318, y: 498}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1590625619
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1590625620}
+  - component: {fileID: 1590625622}
+  - component: {fileID: 1590625621}
+  m_Layer: 0
+  m_Name: DangerOverlay
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1590625620
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1590625619}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1772224264}
+  m_Father: {fileID: 1207660448}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &1590625621
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1590625619}
+  m_CullTransparentMesh: 1
+--- !u!225 &1590625622
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1590625619}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &1641745051
 GameObject:
   m_ObjectHideFlags: 0
@@ -1301,7 +1427,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1641745052
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1420,6 +1546,81 @@ MonoBehaviour:
   maxAngleJump: 70
   minAngleDelta: 0.5
   minimumSamples: 12
+--- !u!1 &1772224263
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1772224264}
+  - component: {fileID: 1772224266}
+  - component: {fileID: 1772224265}
+  m_Layer: 0
+  m_Name: image
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1772224264
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1772224263}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1590625620}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1772224265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1772224263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.2784314, g: 0, b: 0, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1772224266
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1772224263}
+  m_CullTransparentMesh: 1
 --- !u!1 &1786705809
 GameObject:
   m_ObjectHideFlags: 0
@@ -1467,12 +1668,12 @@ MonoBehaviour:
   currentState: 0
   isPurifying: 0
   growthController: {fileID: 0}
+  presentationController: {fileID: 641838150}
+  magicCircleActivator: {fileID: 1905322487}
   purityController: {fileID: 604884281}
   spiritController: {fileID: 515532832}
-  purifyTickInterval: 1
-  purifyTickAmount: 2
-  enablePurifyTick: 0
-  enableStateLogs: 0
+  debugAutoCompletePurify: 0
+  purifyFallbackSeconds: 2.5
 --- !u!1 &1803633755
 GameObject:
   m_ObjectHideFlags: 0
@@ -1491,7 +1692,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1803633756
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1584,8 +1785,13 @@ MonoBehaviour:
   trailMinPointDistance: 2
   successPulseScale: 1.1
   successPulseDuration: 0.2
-  recoverRatio: 0.4
+  magicCircleActivator: {fileID: 1905322487}
   stateController: {fileID: 1786705811}
+--- !u!1 &1855358516 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5481682468745329004, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
+  m_PrefabInstance: {fileID: 4728112825340963316}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1902766323
 GameObject:
   m_ObjectHideFlags: 0
@@ -1601,7 +1807,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1902766324
 Transform:
   m_ObjectHideFlags: 0
@@ -1647,8 +1853,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f4b40857ddc4d45b86ef2f1e845b6da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stateController: {fileID: 1786705811}
   magicCircleRoot: {fileID: 1803633755}
+  stateController: {fileID: 1786705811}
 --- !u!4 &1905322488
 Transform:
   m_ObjectHideFlags: 0
@@ -1798,12 +2004,17 @@ MonoBehaviour:
   trailMinPointDistance: 2
   successPulseScale: 1.1
   successPulseDuration: 0.2
+  magicCircleActivator: {fileID: 0}
   stateController: {fileID: 1786705811}
-  purityController: {fileID: 604884281}
 --- !u!224 &2068515356 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3754476293137327125, guid: 34832eb000682f540abdfbd27a7f5027, type: 3}
   m_PrefabInstance: {fileID: 2129281191}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2094418307 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6774950903650947977, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+  m_PrefabInstance: {fileID: 6224671111732217254}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2129281191
 PrefabInstance:
@@ -2027,7 +2238,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 656228942389283711, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4729676478636256463, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_Pivot.x
@@ -2238,7 +2449,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5481682468745329004, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: stateController
@@ -2362,13 +2573,13 @@ PrefabInstance:
       value: 80
       objectReference: {fileID: 0}
     - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: spiritController
-      value: 
-      objectReference: {fileID: 515532832}
-    - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: stateController
       value: 
       objectReference: {fileID: 1786705811}
+    - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: spiritController
+      value: 
+      objectReference: {fileID: 515532832}
     - target: {fileID: 4131890420529113334, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_SizeDelta.x
       value: 406.402
@@ -2426,13 +2637,13 @@ PrefabInstance:
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: purityController
-      value: 
-      objectReference: {fileID: 604884281}
-    - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: stateController
       value: 
       objectReference: {fileID: 1786705811}
+    - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: purityController
+      value: 
+      objectReference: {fileID: 604884281}
     - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: magicCircleActivator
       value: 
@@ -2575,17 +2786,17 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7410728811607350943, guid: f2c4fb29fe97dba4a8d083d0c08ee85c, type: 3}
-      propertyPath: spiritController
+      propertyPath: stateController
       value: 
-      objectReference: {fileID: 515532832}
+      objectReference: {fileID: 1786705811}
     - target: {fileID: 7410728811607350943, guid: f2c4fb29fe97dba4a8d083d0c08ee85c, type: 3}
       propertyPath: purityController
       value: 
       objectReference: {fileID: 604884281}
     - target: {fileID: 7410728811607350943, guid: f2c4fb29fe97dba4a8d083d0c08ee85c, type: 3}
-      propertyPath: stateController
+      propertyPath: spiritController
       value: 
-      objectReference: {fileID: 1786705811}
+      objectReference: {fileID: 515532832}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2604,17 +2815,17 @@ PrefabInstance:
       value: YokaiAdult
       objectReference: {fileID: 0}
     - target: {fileID: 5916421641666367254, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}
-      propertyPath: spiritController
+      propertyPath: stateController
       value: 
-      objectReference: {fileID: 515532832}
+      objectReference: {fileID: 1786705811}
     - target: {fileID: 5916421641666367254, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}
       propertyPath: purityController
       value: 
       objectReference: {fileID: 604884281}
     - target: {fileID: 5916421641666367254, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}
-      propertyPath: stateController
+      propertyPath: spiritController
       value: 
-      objectReference: {fileID: 1786705811}
+      objectReference: {fileID: 515532832}
     - target: {fileID: 6330836455217257061, guid: cc4192cfb5cace248bb5bac15a30e5a0, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -2805,6 +3016,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7204756624554123556, guid: f26ae17bdc8591041a0ebf43960f2a58, type: 3}
+      propertyPath: targetImage
+      value: 
+      objectReference: {fileID: 8218868374499439926}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2838,6 +3053,7 @@ MonoBehaviour:
   maxScale: 2
   growthDurationHours: 0.1
   growthMultiplier: 1
+  resetEvolutionReadyOnStartup: 1
   growthRatePerSecond: 0.0027777778
   isGrowthStopped: 0
   isEvolutionReady: 0
