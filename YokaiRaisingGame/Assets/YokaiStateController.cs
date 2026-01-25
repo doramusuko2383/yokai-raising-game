@@ -18,6 +18,9 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     private YokaiGrowthController growthController;
 
+    [SerializeField]
+    YokaiStatePresentationController presentationController;
+
     [FormerlySerializedAs("kegareManager")]
     [SerializeField]
     PurityController purityController;
@@ -155,6 +158,10 @@ public class YokaiStateController : MonoBehaviour
         {
             SetState(nextState, reason);
         }
+        else if (forcePresentation)
+        {
+            ForceSyncPresentation(currentState);
+        }
 
         ApplyEmptyStateEffects();
     }
@@ -197,6 +204,7 @@ public class YokaiStateController : MonoBehaviour
         Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
         ApplyEmptyStateEffects();
+        ForceSyncPresentationIfNeeded(newState);
         CheckForUnknownStateWarning();
     }
 
@@ -463,6 +471,33 @@ public class YokaiStateController : MonoBehaviour
 
         SyncManagerState();
         EvaluateState(reason: reason, forcePresentation: true);
+    }
+
+    YokaiStatePresentationController ResolvePresentationController()
+    {
+        if (presentationController != null)
+            return presentationController;
+
+        return YokaiStatePresentationController.Instance;
+    }
+
+    void ForceSyncPresentationIfNeeded(YokaiState state)
+    {
+        if (state != YokaiState.EnergyEmpty
+            && state != YokaiState.PurityEmpty
+            && state != YokaiState.Normal)
+            return;
+
+        ForceSyncPresentation(state);
+    }
+
+    void ForceSyncPresentation(YokaiState state)
+    {
+        var controller = ResolvePresentationController();
+        if (controller == null)
+            return;
+
+        controller.ApplyState(state, force: true);
     }
 
     void ApplyEmptyStateEffects()

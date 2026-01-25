@@ -184,7 +184,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyState(stateController.currentState, force);
     }
 
-    void ApplyState(YokaiState state, bool force = false)
+    public void ApplyState(YokaiState state, bool force = false)
     {
         if (!AreDependenciesResolved())
             return;
@@ -197,7 +197,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         lastAppliedState = state;
         ApplyStateInternal(state, force);
-        RefreshPresentation();
     }
 
     void HandleStateEntered(YokaiState state)
@@ -226,44 +225,43 @@ public class YokaiStatePresentationController : MonoBehaviour
             if (previousState.Value == YokaiState.EnergyEmpty)
             {
                 PlayEnergyEmptyExitEffects();
-                if (stateController != null && !stateController.IsSpiritEmpty)
-                    AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
+                AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
             }
 
             if (previousState.Value == YokaiState.PurityEmpty)
             {
-                if (stateController != null && !stateController.IsPurityEmptyState)
-                    AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_RELEASE);
+                AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_RELEASE);
             }
         }
 
-        switch (state)
+        if (state == YokaiState.EnergyEmpty)
         {
-            case YokaiState.EnergyEmpty:
-                if (shouldTriggerEntryEffects)
-                {
-                    PlayEnergyEmptyEnterEffects();
-                    AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
-                }
-                ClearAllEffects();
-                break;
-            case YokaiState.PurityEmpty:
-                if (shouldTriggerEntryEffects)
-                {
-                    EnterPurityEmpty(forceVisualEffects);
-                    AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_ENTER);
-                }
-                break;
-            case YokaiState.Purifying:
-                if (stateChanged)
-                {
-                    AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
-                }
-                ClearAllEffects();
-                break;
-            default:
-                ClearAllEffects();
-                break;
+            if (shouldTriggerEntryEffects)
+            {
+                Debug.Log($"[PRESENTATION] EmptyEffect Fired: {state}");
+                PlayEnergyEmptyEffects();
+            }
+            ClearAllEffects();
+        }
+        else if (state == YokaiState.PurityEmpty)
+        {
+            if (shouldTriggerEntryEffects)
+            {
+                Debug.Log($"[PRESENTATION] EmptyEffect Fired: {state}");
+                PlayPurityEmptyEffects();
+            }
+        }
+        else if (state == YokaiState.Purifying)
+        {
+            if (stateChanged)
+            {
+                AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
+            }
+            ClearAllEffects();
+        }
+        else
+        {
+            ClearAllEffects();
         }
 
         if (stateChanged)
@@ -275,8 +273,17 @@ public class YokaiStatePresentationController : MonoBehaviour
     void ApplyStateInternal(YokaiState state, bool force)
     {
         forceVisualEffects = force;
+        if (IsEmptyState(state))
+        {
+            ApplyVisualEffectsForState(state);
+            forceVisualEffects = false;
+            RefreshPresentation();
+            return;
+        }
+
         ApplyVisualEffectsForState(state);
         forceVisualEffects = false;
+        RefreshPresentation();
     }
 
     bool IsEmptyState(YokaiState state)
@@ -730,6 +737,18 @@ public class YokaiStatePresentationController : MonoBehaviour
     void PlayEnergyEmptyEnterEffects()
     {
         MentorMessageService.ShowHint(OnmyojiHintType.EnergyZero);
+    }
+
+    void PlayEnergyEmptyEffects()
+    {
+        PlayEnergyEmptyEnterEffects();
+        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_EMPTY);
+    }
+
+    void PlayPurityEmptyEffects()
+    {
+        EnterPurityEmpty(forceVisualEffects);
+        AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_ENTER);
     }
 
     void PlayEnergyEmptyExitEffects()
