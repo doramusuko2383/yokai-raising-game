@@ -64,6 +64,11 @@ public class YokaiStateController : MonoBehaviour
     public PurityController PurityController => purityController;
     public string LastStateChangeReason => lastStateChangeReason;
 
+    public void ConsumePurifyTrigger()
+    {
+        IsPurifyTriggeredByUser = false;
+    }
+
     void OnEnable()
     {
         CurrentYokaiContext.RegisterStateController(this);

@@ -446,6 +446,10 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyDangerEffectsForState(state);
         ApplyMagicCircleForState(state);
         PlayStateEnterSE(state);
+        if (state == YokaiState.Purifying && stateController != null)
+        {
+            stateController.ConsumePurifyTrigger();
+        }
 
         if (!previousState.HasValue || previousState.Value != state)
             HandleStateMessages(previousState, state);
