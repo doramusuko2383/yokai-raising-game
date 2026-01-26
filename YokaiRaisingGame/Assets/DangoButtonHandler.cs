@@ -28,8 +28,6 @@ public class DangoButtonHandler : MonoBehaviour
 
     public void OnClickDango()
     {
-        YokaiStatePresentationController.Instance?.NotifyUserInteraction();
-
         ResolveDependencies(logIfMissingOnce: true);
         TryPlayDangoSE();
 
@@ -38,6 +36,8 @@ public class DangoButtonHandler : MonoBehaviour
             WarnMissingStateController();
             return;
         }
+
+        stateController.NotifyUserInteraction();
 
         if (IsActionBlocked())
             return;

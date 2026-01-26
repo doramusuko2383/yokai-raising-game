@@ -82,16 +82,10 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isSpiritZeroVisualOverride;
     bool hasEnsuredDangerOverlayLayout;
     bool hasLoggedResolvedReferences;
-    bool hasUserInteraction;
 
     public static YokaiStatePresentationController Instance => instance;
 
     public bool IsPurityEmptyVisualsActive => isPurityEmptyVisualsActive;
-
-    public void NotifyUserInteraction()
-    {
-        hasUserInteraction = true;
-    }
 
     public void ClearWeakVisuals()
     {
@@ -410,9 +404,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     public void ApplyState(YokaiState state, bool force = false)
     {
         if (!AreDependenciesResolved())
-            return;
-
-        if (ShouldSuppressPresentationEffects(state))
             return;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -986,8 +977,13 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     bool ShouldSuppressPresentationEffects(YokaiState state)
     {
-        if (!hasUserInteraction)
-            return true;
+        if (stateController != null && !stateController.HasUserInteracted)
+        {
+            if (state == YokaiState.EnergyEmpty
+                || state == YokaiState.PurityEmpty
+                || state == YokaiState.Purifying)
+                return true;
+        }
 
         if (state == YokaiState.Purifying && !IsPurifyEffectAllowed())
             return true;
@@ -1000,7 +996,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController == null)
             return false;
 
-        return stateController.LastStateChangeReason == "BeginPurify";
+        return stateController.IsPurifyTriggeredByUser;
     }
 
     void HandleStateMessages(YokaiState? previousState, YokaiState newState)
