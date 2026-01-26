@@ -13,6 +13,8 @@ public class YokaiStateController : MonoBehaviour
     bool isSpiritEmpty;
     bool isPurityEmpty;
     bool isEvolving;
+    public bool HasUserInteracted { get; private set; } = false;
+    public bool IsPurifyTriggeredByUser { get; private set; }
 
     [Header("Dependencies")]
     [SerializeField]
@@ -231,7 +233,9 @@ public class YokaiStateController : MonoBehaviour
         if (isPurifying)
             return;
 
+        NotifyUserInteraction();
         isPurifying = true;
+        IsPurifyTriggeredByUser = true;
         SetState(YokaiState.Purifying, "BeginPurify");
         StartPurifyFallbackIfNeeded();
     }
@@ -252,6 +256,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isPurifying = false;
+        IsPurifyTriggeredByUser = false;
         StopPurifyFallback();
         SetState(YokaiState.Normal, reason);
         EvaluateState(reason: reason, forcePresentation: true);
@@ -474,6 +479,7 @@ public class YokaiStateController : MonoBehaviour
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
 
         isPurifying = false;
+        IsPurifyTriggeredByUser = false;
         SetState(YokaiState.Normal, "PurifyFinished");
         SyncManagerState();
         EvaluateState(reason: "PurifyFinished", forcePresentation: true);
@@ -482,7 +488,19 @@ public class YokaiStateController : MonoBehaviour
     void ResetPurifyingState()
     {
         isPurifying = false;
+        IsPurifyTriggeredByUser = false;
         StopPurifyFallback();
+    }
+
+    public void NotifyUserInteraction()
+    {
+        if (HasUserInteracted)
+            return;
+
+        HasUserInteracted = true;
+        var controller = ResolvePresentationController();
+        if (controller != null)
+            controller.SyncFromStateController(force: true);
     }
 
     public void RequestEvaluateState(string reason)
