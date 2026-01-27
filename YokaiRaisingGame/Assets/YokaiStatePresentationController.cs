@@ -125,7 +125,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         lastVisualEffectState = null;
         WarnMissingOptionalDependencies();
         BindMagicCircleActivator();
-        SyncFromStateController(force: true);
+        SyncFromStateController();
         StartBindRetryIfNeeded();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         LogResolvedReferencesOnce();
@@ -192,7 +192,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         CachePurityEmptyTargets(activeYokai);
         CacheEnergyEmptyTargets(activeYokai);
         RefreshDangerEffectOriginalColors();
-        SyncFromStateController(force: true);
+        SyncFromStateController();
     }
 
     YokaiStateController ResolveStateController()
@@ -230,7 +230,7 @@ public class YokaiStatePresentationController : MonoBehaviour
                 CachePurityEmptyTargets(CurrentYokaiContext.Current);
                 CacheEnergyEmptyTargets(CurrentYokaiContext.Current);
                 RefreshDangerEffectOriginalColors();
-                SyncFromStateController(force: true);
+                SyncFromStateController();
                 break;
             }
 
@@ -284,12 +284,12 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyState(newState, force: false);
     }
 
-    public void SyncFromStateController(bool force = false)
+    public void SyncFromStateController()
     {
         if (TryResolveStateController() == null)
             return;
 
-        ApplyState(stateController.currentState, force);
+        ApplyState(stateController.currentState, force: false);
     }
 
     public void ApplyState(YokaiState state, bool force = false)
@@ -297,31 +297,22 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (!AreDependenciesResolved())
             return;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (!lastAppliedState.HasValue || lastAppliedState.Value != state)
-            Debug.Log($"[PRESENTATION] ApplyState: {state} (force: {force})");
-#endif
+        Debug.Log($"[PRESENTATION] ApplyState: {state} (force={force})");
 
         if (!force && lastAppliedState.HasValue && lastAppliedState.Value == state)
             return;
 
+        ApplyStateInternal(state);
         lastAppliedState = state;
-        ApplyStateInternal(state, force);
     }
 
     void HandleStateEntered(YokaiState state)
     {
-        bool isEmpty =
-            state == YokaiState.EnergyEmpty ||
-            state == YokaiState.PurityEmpty;
-
-        SyncFromStateController(force: isEmpty);
+        SyncFromStateController();
     }
 
     void ApplyVisualEffectsOnce(YokaiState state)
     {
-        ApplyMagicCircleForState(state);
-
         if (ShouldSuppressPresentationEffects(state))
             return;
 
@@ -347,11 +338,12 @@ public class YokaiStatePresentationController : MonoBehaviour
             HandleStateMessages(previousState, state);
     }
 
-    void ApplyStateInternal(YokaiState state, bool force)
+    void ApplyStateInternal(YokaiState state)
     {
-        RefreshPresentation();
+        ApplyActionUIForState(state);
         ApplyEnergyEmptyVisualsForState(state);
         ApplyVisualEffectsOnce(state);
+        UpdatePurityEmptyVisuals(state == YokaiState.PurityEmpty && isPurityEmptyVisualsActive);
     }
 
     void SyncVisualState()
@@ -376,23 +368,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         WarnMissingOptionalDependencies();
 
         YokaiState visualState = ResolveVisualState();
-        YokaiState currentState = stateController != null ? stateController.currentState : YokaiState.Normal;
-        bool isPurityEmptyState = visualState == YokaiState.PurityEmpty;
-        bool showPurityEmptyVisuals = isPurityEmptyVisualsActive && isPurityEmptyState;
-        bool isEnergyEmptyState = visualState == YokaiState.EnergyEmpty;
-        bool isPurifyingState = visualState == YokaiState.Purifying;
-        bool showActionPanel =
-            stateController != null
-            && (currentState == YokaiState.Normal
-            || currentState == YokaiState.EvolutionReady)
-            && visualState != YokaiState.Evolving;
-        bool showStopPurify = isPurifyingState;
+        bool showPurityEmptyVisuals = isPurityEmptyVisualsActive && visualState == YokaiState.PurityEmpty;
 
-        ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
-        ApplyCanvasGroup(purifyStopButton, showStopPurify, showStopPurify);
-
-        UpdateSpecialRecoveryButtons(visualState);
-        UpdateActionPanelButtons(isPurityEmptyState, isEnergyEmptyState, isPurifyingState);
         UpdatePurityEmptyVisuals(showPurityEmptyVisuals);
     }
 
@@ -512,6 +489,79 @@ public class YokaiStatePresentationController : MonoBehaviour
             magicCircleActivator.Hide();
     }
 
+    void ApplyActionUIForState(YokaiState state)
+    {
+        HideAllActionButtons();
+
+        bool showNormalActions = state == YokaiState.Normal || state == YokaiState.EvolutionReady;
+        bool showSpecialPurify = state == YokaiState.PurityEmpty;
+        bool showMagicCircle = state == YokaiState.Purifying;
+
+        if (actionPanel != null)
+            ApplyCanvasGroup(actionPanel, showNormalActions, showNormalActions);
+
+        if (recoverAdButton != null)
+            recoverAdButton.SetActive(false);
+
+        if (purityRecoverAdButton != null)
+            purityRecoverAdButton.SetActive(showSpecialPurify);
+
+        if (legacyPurityRecoverAdButton != null)
+            legacyPurityRecoverAdButton.SetActive(false);
+
+        if (purifyStopButton != null)
+            ApplyCanvasGroup(purifyStopButton, false, false);
+
+        if (actionPanel != null && showNormalActions)
+        {
+            var buttons = actionPanel.GetComponentsInChildren<Button>(true);
+            foreach (var button in buttons)
+            {
+                if (button == null)
+                    continue;
+
+                bool shouldShow = true;
+                ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
+                button.interactable = shouldShow;
+                button.enabled = shouldShow;
+            }
+        }
+
+        ApplyMagicCircleForState(showMagicCircle ? YokaiState.Purifying : YokaiState.Normal);
+
+        Debug.Log($"[UI] ActionButtons: Normal={showNormalActions} SpecialPurify={showSpecialPurify} MagicCircle={showMagicCircle}");
+    }
+
+    void HideAllActionButtons()
+    {
+        if (actionPanel != null)
+        {
+            ApplyCanvasGroup(actionPanel, false, false);
+            var buttons = actionPanel.GetComponentsInChildren<Button>(true);
+            foreach (var button in buttons)
+            {
+                if (button == null)
+                    continue;
+
+                ApplyCanvasGroup(button.gameObject, false, false);
+                button.interactable = false;
+                button.enabled = false;
+            }
+        }
+
+        if (recoverAdButton != null)
+            recoverAdButton.SetActive(false);
+
+        if (purityRecoverAdButton != null)
+            purityRecoverAdButton.SetActive(false);
+
+        if (legacyPurityRecoverAdButton != null)
+            legacyPurityRecoverAdButton.SetActive(false);
+
+        if (purifyStopButton != null)
+            ApplyCanvasGroup(purifyStopButton, false, false);
+    }
+
     void ApplyPurityEmptyVisualsForState(YokaiState state)
     {
         if (state == YokaiState.PurityEmpty)
@@ -540,80 +590,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             ResetEnergyEmptyVisuals();
     }
 
-    void UpdateActionPanelButtons(bool isPurityEmpty, bool isEnergyEmpty, bool isPurifying)
-    {
-        if (actionPanel == null)
-            return;
-
-        var buttons = actionPanel.GetComponentsInChildren<Button>(true);
-        foreach (var button in buttons)
-        {
-            if (button == null)
-                continue;
-
-            bool isEnergyRecoverAd =
-                recoverAdButton != null &&
-                button.gameObject == recoverAdButton;
-
-            bool isPurityRecoverAd =
-                legacyPurityRecoverAdButton != null &&
-                button.gameObject == legacyPurityRecoverAdButton;
-
-            bool shouldShow;
-
-            bool isPurifyButton =
-                button.GetComponent<PurifyButtonHandler>() != null;
-
-            if (isEnergyRecoverAd || isPurityRecoverAd)
-                continue;
-
-            if (isPurifying)
-            {
-                shouldShow = false;
-            }
-            else if (isEnergyEmpty)
-            {
-                shouldShow = false;
-            }
-            else if (isPurityEmpty)
-            {
-                shouldShow = false;
-            }
-            else
-            {
-                shouldShow = true;
-            }
-
-            ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
-            button.interactable = shouldShow;
-            button.enabled = shouldShow;
-        }
-    }
-
-    void UpdateSpecialRecoveryButtons(YokaiState state)
-    {
-        bool showSpecialDango = false;
-        bool showEmergencyPurify = false;
-
-        switch (state)
-        {
-            case YokaiState.EnergyEmpty:
-                showSpecialDango = true;
-                break;
-            case YokaiState.PurityEmpty:
-                showEmergencyPurify = true;
-                break;
-        }
-
-        if (recoverAdButton != null)
-            recoverAdButton.SetActive(showSpecialDango);
-
-        if (purityRecoverAdButton != null)
-            purityRecoverAdButton.SetActive(showEmergencyPurify);
-
-        if (legacyPurityRecoverAdButton != null)
-            legacyPurityRecoverAdButton.SetActive(false);
-    }
 
     void ApplyCanvasGroup(GameObject target, bool visible, bool interactable)
     {
