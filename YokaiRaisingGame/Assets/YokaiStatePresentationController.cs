@@ -39,6 +39,10 @@ public class YokaiStatePresentationController : MonoBehaviour
     [SerializeField]
     float purityEmptyDarkenIntensity = 0.2f;
 
+    [Header("Energy Empty Visuals")]
+    [SerializeField]
+    float energyEmptyFadeAlpha = 0.4f;
+
     [SerializeField]
     float purityEmptyReleaseDelay = 0.15f;
 
@@ -64,7 +68,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     readonly Dictionary<SpriteRenderer, Color> purityEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
     readonly Dictionary<Image, Color> purityEmptyImageColors = new Dictionary<Image, Color>();
     Vector3 purityEmptyBasePosition;
-    Vector3 purityEmptyBaseScale;
     float purityEmptyNoiseSeed;
     bool isPurityEmptyVisualsActive;
     bool isPurityEmptyMotionApplied;
@@ -76,10 +79,9 @@ public class YokaiStatePresentationController : MonoBehaviour
     static YokaiStatePresentationController instance;
     Coroutine bindRetryRoutine;
     bool isMagicCircleBound;
-    PurityController boundPurityController;
-    SpiritController boundSpiritController;
-    bool isPurityZeroVisualOverride;
-    bool isSpiritZeroVisualOverride;
+    readonly Dictionary<SpriteRenderer, Color> energyEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
+    readonly Dictionary<Image, Color> energyEmptyImageColors = new Dictionary<Image, Color>();
+    bool isEnergyEmptyVisualsActive;
     bool hasEnsuredDangerOverlayLayout;
     bool hasLoggedResolvedReferences;
 
@@ -116,8 +118,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         BindStateController(ResolveStateController());
         ResolveOptionalDependencies();
-        BindVitalControllers();
         CachePurityEmptyTargets(CurrentYokaiContext.Current);
+        CacheEnergyEmptyTargets(CurrentYokaiContext.Current);
         RefreshDangerEffectOriginalColors();
         lastAppliedState = null;
         lastVisualEffectState = null;
@@ -135,7 +137,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
         StopBindRetry();
         UnbindMagicCircleActivator();
-        UnbindVitalControllers();
         BindStateController(null);
     }
 
@@ -188,8 +189,8 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         BindStateController(ResolveStateController());
         ResolveOptionalDependencies();
-        BindVitalControllers();
         CachePurityEmptyTargets(activeYokai);
+        CacheEnergyEmptyTargets(activeYokai);
         RefreshDangerEffectOriginalColors();
         SyncFromStateController(force: true);
     }
@@ -207,8 +208,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             return stateController;
 
         BindStateController(ResolveStateController());
-        if (stateController != null)
-            BindVitalControllers();
         if (stateController == null)
             WarnMissingDependencies();
 
@@ -228,8 +227,8 @@ public class YokaiStatePresentationController : MonoBehaviour
             BindStateController(ResolveStateController());
             if (stateController != null)
             {
-                BindVitalControllers();
                 CachePurityEmptyTargets(CurrentYokaiContext.Current);
+                CacheEnergyEmptyTargets(CurrentYokaiContext.Current);
                 RefreshDangerEffectOriginalColors();
                 SyncFromStateController(force: true);
                 break;
@@ -277,114 +276,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         stateController.NotifyPurifySucceeded();
     }
 
-    void BindVitalControllers()
-    {
-        PurityController nextPurity = stateController != null ? stateController.PurityController : null;
-        SpiritController nextSpirit = stateController != null ? stateController.SpiritController : null;
-
-        if (nextPurity == null)
-            nextPurity = FindObjectOfType<PurityController>(true);
-
-        if (nextSpirit == null)
-            nextSpirit = FindObjectOfType<SpiritController>(true);
-
-        BindPurityController(nextPurity);
-        BindSpiritController(nextSpirit);
-    }
-
-    void BindPurityController(PurityController controller)
-    {
-        if (boundPurityController == controller)
-            return;
-
-        if (boundPurityController != null)
-            boundPurityController.PurityChanged -= HandlePurityChanged;
-
-        boundPurityController = controller;
-
-        if (boundPurityController != null)
-            boundPurityController.PurityChanged += HandlePurityChanged;
-
-        SyncValueDrivenPurityState();
-    }
-
-    void BindSpiritController(SpiritController controller)
-    {
-        if (boundSpiritController == controller)
-            return;
-
-        if (boundSpiritController != null)
-            boundSpiritController.SpiritChanged -= HandleSpiritChanged;
-
-        boundSpiritController = controller;
-
-        if (boundSpiritController != null)
-            boundSpiritController.SpiritChanged += HandleSpiritChanged;
-
-        SyncValueDrivenSpiritState();
-    }
-
-    void UnbindVitalControllers()
-    {
-        if (boundPurityController != null)
-            boundPurityController.PurityChanged -= HandlePurityChanged;
-
-        if (boundSpiritController != null)
-            boundSpiritController.SpiritChanged -= HandleSpiritChanged;
-
-        boundPurityController = null;
-        boundSpiritController = null;
-        isPurityZeroVisualOverride = false;
-        isSpiritZeroVisualOverride = false;
-    }
-
-    void HandlePurityChanged(float current, float max)
-    {
-        bool isZero = current <= 0f;
-        if (isPurityZeroVisualOverride == isZero)
-            return;
-
-        isPurityZeroVisualOverride = isZero;
-        ApplyValueDrivenVisualState();
-    }
-
-    void HandleSpiritChanged(float current, float max)
-    {
-        bool isZero = current <= 0f;
-        if (isSpiritZeroVisualOverride == isZero)
-            return;
-
-        isSpiritZeroVisualOverride = isZero;
-        ApplyValueDrivenVisualState();
-    }
-
-    void SyncValueDrivenPurityState()
-    {
-        bool isZero = boundPurityController != null && boundPurityController.PurityNormalized <= 0f;
-        if (isPurityZeroVisualOverride == isZero)
-            return;
-
-        isPurityZeroVisualOverride = isZero;
-        ApplyValueDrivenVisualState();
-    }
-
-    void SyncValueDrivenSpiritState()
-    {
-        bool isZero = boundSpiritController != null && boundSpiritController.SpiritNormalized <= 0f;
-        if (isSpiritZeroVisualOverride == isZero)
-            return;
-
-        isSpiritZeroVisualOverride = isZero;
-        ApplyValueDrivenVisualState();
-    }
-
-    void ApplyValueDrivenVisualState()
-    {
-        YokaiState visualState = ResolveVisualState();
-        ApplyVisualEffectsOnce(visualState);
-        RefreshPresentation();
-    }
-
     public void OnStateChanged(YokaiState previousState, YokaiState newState)
     {
         if (TryResolveStateController() == null)
@@ -429,6 +320,8 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyVisualEffectsOnce(YokaiState state)
     {
+        ApplyMagicCircleForState(state);
+
         if (ShouldSuppressPresentationEffects(state))
             return;
 
@@ -444,7 +337,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyPurityEmptyVisualsForState(state);
         ApplyDangerOverlayForState(state);
         ApplyDangerEffectsForState(state);
-        ApplyMagicCircleForState(state);
         PlayStateEnterSE(state);
         if (state == YokaiState.Purifying && stateController != null)
         {
@@ -458,6 +350,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     void ApplyStateInternal(YokaiState state, bool force)
     {
         RefreshPresentation();
+        ApplyEnergyEmptyVisualsForState(state);
         ApplyVisualEffectsOnce(state);
     }
 
@@ -511,10 +404,10 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController != null && stateController.currentState == YokaiState.Purifying)
             return YokaiState.Purifying;
 
-        if ((stateController != null && stateController.IsPurityEmptyState) || isPurityZeroVisualOverride)
+        if (stateController != null && stateController.IsPurityEmptyState)
             return YokaiState.PurityEmpty;
 
-        if ((stateController != null && stateController.IsSpiritEmpty) || isSpiritZeroVisualOverride)
+        if (stateController != null && stateController.IsSpiritEmpty)
             return YokaiState.EnergyEmpty;
 
         return YokaiState.Normal;
@@ -633,6 +526,18 @@ public class YokaiStatePresentationController : MonoBehaviour
             ResetPurityEmptyVisuals();
 
         ResetPurityEmptyMotion();
+    }
+
+    void ApplyEnergyEmptyVisualsForState(YokaiState state)
+    {
+        if (state == YokaiState.EnergyEmpty)
+        {
+            EnterEnergyEmpty();
+            return;
+        }
+
+        if (isEnergyEmptyVisualsActive)
+            ResetEnergyEmptyVisuals();
     }
 
     void UpdateActionPanelButtons(bool isPurityEmpty, bool isEnergyEmpty, bool isPurifying)
@@ -797,6 +702,57 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
     }
 
+    void EnterEnergyEmpty()
+    {
+        if (energyEmptySpriteColors.Count == 0 && energyEmptyImageColors.Count == 0)
+            CacheEnergyEmptyTargets(CurrentYokaiContext.Current);
+
+        float targetAlpha = Mathf.Clamp01(energyEmptyFadeAlpha);
+
+        foreach (var pair in energyEmptySpriteColors)
+        {
+            if (pair.Key == null)
+                continue;
+
+            Color color = pair.Value;
+            color.a *= targetAlpha;
+            pair.Key.color = color;
+        }
+
+        foreach (var pair in energyEmptyImageColors)
+        {
+            if (pair.Key == null)
+                continue;
+
+            Color color = pair.Value;
+            color.a *= targetAlpha;
+            pair.Key.color = color;
+        }
+
+        isEnergyEmptyVisualsActive = true;
+    }
+
+    void ResetEnergyEmptyVisuals()
+    {
+        foreach (var pair in energyEmptySpriteColors)
+        {
+            if (pair.Key == null)
+                continue;
+
+            pair.Key.color = pair.Value;
+        }
+
+        foreach (var pair in energyEmptyImageColors)
+        {
+            if (pair.Key == null)
+                continue;
+
+            pair.Key.color = pair.Value;
+        }
+
+        isEnergyEmptyVisualsActive = false;
+    }
+
     void UpdatePurityEmptyMotion()
     {
         if (!isPurityEmptyVisualsActive || ResolveVisualState() != YokaiState.PurityEmpty)
@@ -818,14 +774,10 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         float time = Time.time * purityEmptyWobbleSpeed;
-        float pulse = Mathf.Sin(time) * purityEmptyWobbleScale;
-        float noise = (Mathf.PerlinNoise(purityEmptyNoiseSeed, time) - 0.5f) * 2f * purityEmptyWobbleScale;
-        float scaleMultiplier = 1f + pulse + noise;
+        float jitterScale = 1f + purityEmptyWobbleScale;
+        float jitterX = (Mathf.PerlinNoise(purityEmptyNoiseSeed + 1.4f, time) - 0.5f) * 2f * purityEmptyJitterAmplitude * jitterScale;
+        float jitterY = (Mathf.PerlinNoise(purityEmptyNoiseSeed + 2.1f, time + 3.7f) - 0.5f) * 2f * purityEmptyJitterAmplitude * jitterScale;
 
-        float jitterX = (Mathf.PerlinNoise(purityEmptyNoiseSeed + 1.4f, time) - 0.5f) * 2f * purityEmptyJitterAmplitude;
-        float jitterY = (Mathf.PerlinNoise(purityEmptyNoiseSeed + 2.1f, time + 3.7f) - 0.5f) * 2f * purityEmptyJitterAmplitude;
-
-        purityEmptyTargetRoot.transform.localScale = purityEmptyBaseScale * scaleMultiplier;
         purityEmptyTargetRoot.transform.localPosition = purityEmptyBasePosition + new Vector3(jitterX, jitterY, 0f);
         isPurityEmptyMotionApplied = true;
     }
@@ -835,7 +787,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (purityEmptyTargetRoot == null)
             return;
 
-        purityEmptyTargetRoot.transform.localScale = purityEmptyBaseScale;
         purityEmptyTargetRoot.transform.localPosition = purityEmptyBasePosition;
     }
 
@@ -892,7 +843,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         purityEmptyBasePosition = purityEmptyTargetRoot.transform.localPosition;
-        purityEmptyBaseScale = purityEmptyTargetRoot.transform.localScale;
     }
 
     void CachePurityEmptyTargets(GameObject targetRoot)
@@ -901,7 +851,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         purityEmptySpriteColors.Clear();
         purityEmptyImageColors.Clear();
         purityEmptyBasePosition = Vector3.zero;
-        purityEmptyBaseScale = Vector3.zero;
         purityEmptyNoiseSeed = Random.value * 10f;
 
         if (purityEmptyTargetRoot == null)
@@ -923,6 +872,31 @@ public class YokaiStatePresentationController : MonoBehaviour
                 continue;
 
             purityEmptyImageColors[image] = image.color;
+        }
+    }
+
+    void CacheEnergyEmptyTargets(GameObject targetRoot)
+    {
+        energyEmptySpriteColors.Clear();
+        energyEmptyImageColors.Clear();
+
+        if (targetRoot == null)
+            return;
+
+        foreach (var sprite in targetRoot.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            if (sprite == null)
+                continue;
+
+            energyEmptySpriteColors[sprite] = sprite.color;
+        }
+
+        foreach (var image in targetRoot.GetComponentsInChildren<Image>(true))
+        {
+            if (image == null)
+                continue;
+
+            energyEmptyImageColors[image] = image.color;
         }
     }
 
