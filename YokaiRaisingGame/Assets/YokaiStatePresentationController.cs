@@ -981,18 +981,14 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     bool ShouldSuppressPresentationEffects(YokaiState state)
     {
-        bool isUserTriggered = stateController != null && stateController.IsPurifyTriggeredByUser;
+        if (state == YokaiState.EnergyEmpty || state == YokaiState.PurityEmpty)
+            return false;
 
-        if (stateController != null && !stateController.HasUserInteracted && !isUserTriggered)
-        {
-            if (state == YokaiState.EnergyEmpty
-                || state == YokaiState.PurityEmpty
-                || state == YokaiState.Purifying)
-                return true;
-        }
-
-        if (state == YokaiState.Purifying && !IsPurifyEffectAllowed())
+        if (stateController == null)
             return true;
+
+        if (state == YokaiState.Purifying)
+            return !stateController.IsPurifyTriggeredByUser;
 
         return false;
     }
