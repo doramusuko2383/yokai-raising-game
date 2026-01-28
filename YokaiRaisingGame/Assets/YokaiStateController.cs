@@ -550,7 +550,6 @@ public class YokaiStateController : MonoBehaviour
         {
             Debug.LogWarning(
                 $"[STATE] ForceSyncPresentation ignored. state={state}, currentState={currentState}");
-            return;
         }
 
         controller.ApplyState(currentState, force: true);
