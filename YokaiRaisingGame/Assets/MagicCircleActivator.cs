@@ -13,7 +13,6 @@ public class MagicCircleActivator : MonoBehaviour
     bool hasWarnedMissingStateController;
     bool hasLoggedResolution;
     bool isActive;
-    YokaiState? lastObservedState;
 
     public event System.Action SuccessRequested;
     public event System.Action SuccessEffectRequested;
@@ -34,7 +33,6 @@ public class MagicCircleActivator : MonoBehaviour
     {
         CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
         BindStateController(null, warnIfMissing: false);
-        lastObservedState = null;
     }
 
     public void Show()
@@ -96,7 +94,7 @@ public class MagicCircleActivator : MonoBehaviour
 
     void HandleStateChanged(YokaiState previousState, YokaiState newState)
     {
-        HandleStateTransition(previousState, newState);
+        ApplyState(newState);
     }
 
     void SyncFromStateController(bool warnIfMissing)
@@ -110,7 +108,7 @@ public class MagicCircleActivator : MonoBehaviour
             }
         }
 
-        HandleStateTransition(lastObservedState, stateController.currentState);
+        ApplyState(stateController.currentState);
     }
 
     void SetActive(bool isActive)
@@ -126,24 +124,13 @@ public class MagicCircleActivator : MonoBehaviour
         magicCircleRoot.SetActive(isActive);
     }
 
-    void HandleStateTransition(YokaiState? previousState, YokaiState newState)
+    void ApplyState(YokaiState newState)
     {
-        if (previousState.HasValue && previousState.Value == newState)
-            return;
-
-        if (newState == YokaiState.Purifying && previousState != YokaiState.Purifying)
+        if (newState == YokaiState.Purifying)
             Show();
-        else if (previousState == YokaiState.Purifying && newState != YokaiState.Purifying)
+        else
             Hide();
-        else if (!previousState.HasValue)
-        {
-            if (newState == YokaiState.Purifying)
-                Show();
-            else
-                Hide();
-        }
 
-        lastObservedState = newState;
     }
 
     void WarnMissingRoot()
