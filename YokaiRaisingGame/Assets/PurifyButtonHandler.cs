@@ -27,14 +27,12 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickPurify()
     {
-        if (ResolveStateController() != null)
-            stateController.NotifyUserInteraction();
-
         if (IsActionBlocked())
             return;
 
         if (stateController != null)
         {
+            stateController.NotifyUserInteraction();
             stateController.BeginPurifying();
             TutorialManager.NotifyPurifyUsed();
         }
