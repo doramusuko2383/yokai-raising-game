@@ -13,9 +13,7 @@ public class YokaiStateController : MonoBehaviour
     bool isSpiritEmpty;
     bool isPurityEmpty;
     bool isEvolving;
-    [SerializeField]
     bool isPurifyTriggerReady;
-    [SerializeField]
     bool canUseSpecialDango;
     public bool HasUserInteracted { get; private set; } = false;
     public bool IsPurifyTriggeredByUser { get; private set; }
@@ -74,6 +72,8 @@ public class YokaiStateController : MonoBehaviour
     public bool IsSpiritEmpty => isSpiritEmpty;
     public bool IsPurityEmptyState => isPurityEmpty;
     public bool IsEvolving => isEvolving;
+    public bool IsPurifyTriggerReady => isPurifyTriggerReady;
+    public bool CanUseSpecialDango => canUseSpecialDango;
     public SpiritController SpiritController => spiritController;
     public PurityController PurityController => purityController;
     public string LastStateChangeReason => lastStateChangeReason;
@@ -158,6 +158,7 @@ public class YokaiStateController : MonoBehaviour
     public void OnSpiritEmpty()
     {
         isSpiritEmpty = true;
+        canUseSpecialDango = true;
 
         EvaluateState(reason: "SpiritEmpty", forcePresentation: true);
     }
@@ -168,6 +169,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isSpiritEmpty = false;
+        canUseSpecialDango = false;
         EvaluateState(reason: "SpiritRecovered", forcePresentation: true);
     }
 
@@ -394,6 +396,7 @@ public class YokaiStateController : MonoBehaviour
     public void OnPurityEmpty()
     {
         isPurityEmpty = true;
+        isPurifyTriggerReady = true;
 
         EvaluateState(reason: "PurityEmpty", forcePresentation: true);
     }
@@ -404,6 +407,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isPurityEmpty = false;
+        isPurifyTriggerReady = false;
         EvaluateState(reason: "PurityRecovered", forcePresentation: true);
     }
 
