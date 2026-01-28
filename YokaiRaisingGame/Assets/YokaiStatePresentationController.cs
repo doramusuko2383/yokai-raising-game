@@ -509,7 +509,10 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         if (visualState == YokaiState.Purifying)
+        {
+            magicCircleActivator.Activate();
             magicCircleActivator.Show();
+        }
         else
             magicCircleActivator.Hide();
     }
