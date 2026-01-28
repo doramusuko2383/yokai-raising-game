@@ -233,6 +233,7 @@ public class YokaiStateController : MonoBehaviour
         OnStateChanged?.Invoke(prev, newState);
         ApplyEmptyStateEffects();
         SyncPresentation(newState, force: false);
+        ForceSyncPresentationIfNeeded(newState);
         CheckForUnknownStateWarning();
     }
 
@@ -537,7 +538,11 @@ public class YokaiStateController : MonoBehaviour
 
     void ForceSyncPresentationIfNeeded(YokaiState state)
     {
-        ForceSyncPresentation(state);
+        if (state == YokaiState.EnergyEmpty || state == YokaiState.PurityEmpty)
+            return;
+
+        if (state == YokaiState.Normal)
+            ForceSyncPresentation(state);
     }
 
     void ForceSyncPresentation(YokaiState state)
