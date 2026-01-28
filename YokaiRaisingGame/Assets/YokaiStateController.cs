@@ -252,7 +252,6 @@ public class YokaiStateController : MonoBehaviour
         isPurifying = true;
         IsPurifyTriggeredByUser = true;
         SetState(YokaiState.Purifying, "BeginPurify");
-        StartPurifyFallbackIfNeeded();
     }
 
     public void StopPurifying()

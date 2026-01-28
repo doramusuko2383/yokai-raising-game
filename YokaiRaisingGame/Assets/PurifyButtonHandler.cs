@@ -34,7 +34,6 @@ public class PurifyButtonHandler : MonoBehaviour
         {
             stateController.NotifyUserInteraction();
             stateController.BeginPurifying();
-            TutorialManager.NotifyPurifyUsed();
         }
         else
         {
