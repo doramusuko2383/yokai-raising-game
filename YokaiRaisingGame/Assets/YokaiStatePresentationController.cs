@@ -364,7 +364,6 @@ public class YokaiStatePresentationController : MonoBehaviour
                 break;
         }
 
-        ApplyActionUIForState(state);
         ApplyVisualEffectsOnce(state);
         UpdatePurityEmptyVisuals(state == YokaiState.PurityEmpty && isPurityEmptyVisualsActive);
         ApplyActionUIForState(state);
