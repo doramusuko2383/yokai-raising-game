@@ -340,8 +340,22 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyStateInternal(YokaiState state)
     {
+        switch (state)
+        {
+            case YokaiState.Purifying:
+                HideAllActionButtons();
+                if (magicCircleActivator != null)
+                    magicCircleActivator.Activate();
+                break;
+            case YokaiState.EnergyEmpty:
+                ApplyEnergyEmptyVisual();
+                break;
+            case YokaiState.Normal:
+                RestoreNormalVisual();
+                break;
+        }
+
         ApplyActionUIForState(state);
-        ApplyEnergyEmptyVisualsForState(state);
         ApplyVisualEffectsOnce(state);
         UpdatePurityEmptyVisuals(state == YokaiState.PurityEmpty && isPurityEmptyVisualsActive);
     }
@@ -691,7 +705,7 @@ public class YokaiStatePresentationController : MonoBehaviour
                 continue;
 
             Color color = pair.Value;
-            color.a *= targetAlpha;
+            color.a = targetAlpha;
             pair.Key.color = color;
         }
 
@@ -701,11 +715,22 @@ public class YokaiStatePresentationController : MonoBehaviour
                 continue;
 
             Color color = pair.Value;
-            color.a *= targetAlpha;
+            color.a = targetAlpha;
             pair.Key.color = color;
         }
 
         isEnergyEmptyVisualsActive = true;
+    }
+
+    void ApplyEnergyEmptyVisual()
+    {
+        EnterEnergyEmpty();
+    }
+
+    void RestoreNormalVisual()
+    {
+        if (isEnergyEmptyVisualsActive)
+            ResetEnergyEmptyVisuals();
     }
 
     void ResetEnergyEmptyVisuals()
