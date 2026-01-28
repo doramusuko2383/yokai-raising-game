@@ -232,7 +232,7 @@ public class YokaiStateController : MonoBehaviour
         Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
         ApplyEmptyStateEffects();
-        ForceSyncPresentationIfNeeded(newState);
+        SyncPresentation(newState, force: false);
         CheckForUnknownStateWarning();
     }
 
@@ -537,27 +537,28 @@ public class YokaiStateController : MonoBehaviour
 
     void ForceSyncPresentationIfNeeded(YokaiState state)
     {
-        if (state != YokaiState.EnergyEmpty
-            && state != YokaiState.PurityEmpty
-            && state != YokaiState.Normal)
-            return;
-
         ForceSyncPresentation(state);
     }
 
     void ForceSyncPresentation(YokaiState state)
     {
-        var controller = ResolvePresentationController();
-        if (controller == null)
-            return;
-
         if (state != currentState)
         {
             Debug.LogWarning(
                 $"[STATE] ForceSyncPresentation ignored. state={state}, currentState={currentState}");
         }
 
-        controller.ApplyState(currentState, force: true);
+        SyncPresentation(currentState, force: true);
+    }
+
+    void SyncPresentation(YokaiState state, bool force)
+    {
+        var controller = ResolvePresentationController();
+        if (controller == null)
+            return;
+
+        Debug.Log($"[SYNC] ApplyState {state} force={force}");
+        controller.ApplyState(state, force: force);
     }
 
     MagicCircleActivator ResolveMagicCircleActivator()
