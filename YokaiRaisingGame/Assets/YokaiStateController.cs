@@ -85,7 +85,7 @@ public class YokaiStateController : MonoBehaviour
         ResolveSceneControllers();
         if (CurrentYokaiContext.Current != null)
         {
-            BindControllers(CurrentYokaiContext.Current);
+            BindControllers(CurrentYokaiContext.Current, ShouldAllowRebindPresentationSync());
         }
     }
 
@@ -163,7 +163,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         SyncManagerState();
-        EvaluateState(reason: reason, forcePresentation: true);
+        EvaluateState(reason: reason, forcePresentation: ShouldAllowRebindPresentationSync());
     }
 
     void EvaluateState(YokaiState? requestedState = null, string reason = "Auto", bool forcePresentation = false)
@@ -179,7 +179,7 @@ public class YokaiStateController : MonoBehaviour
         {
             SetState(nextState, reason);
         }
-        else if (forcePresentation)
+        else if (forcePresentation && ShouldAllowRebindPresentationSync())
         {
             ForceSyncPresentation(currentState);
         }
@@ -298,7 +298,7 @@ public class YokaiStateController : MonoBehaviour
             }
         }
 
-        BindControllers(activeYokai);
+        BindControllers(activeYokai, ShouldAllowRebindPresentationSync());
         SetActiveYokai(activeYokai);
     }
 
@@ -308,7 +308,7 @@ public class YokaiStateController : MonoBehaviour
         CheckForUnknownStateWarning();
     }
 
-    void BindControllers(GameObject activeYokai)
+    void BindControllers(GameObject activeYokai, bool allowRebindPresentationSync)
     {
         YokaiGrowthController nextGrowth = null;
 
@@ -325,7 +325,7 @@ public class YokaiStateController : MonoBehaviour
         if (canEvaluateState)
         {
             SyncManagerState();
-            EvaluateState(reason: "FullyInitialized", forcePresentation: true);
+            EvaluateState(reason: "FullyInitialized", forcePresentation: allowRebindPresentationSync);
         }
     }
 
@@ -514,7 +514,12 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         SyncManagerState();
-        EvaluateState(reason: reason, forcePresentation: true);
+        EvaluateState(reason: reason, forcePresentation: ShouldAllowRebindPresentationSync());
+    }
+
+    bool ShouldAllowRebindPresentationSync()
+    {
+        return currentState == YokaiState.Normal;
     }
 
     YokaiStatePresentationController ResolvePresentationController()
