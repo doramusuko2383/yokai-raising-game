@@ -316,19 +316,11 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (ShouldSuppressPresentationEffects(state))
             return;
 
-        bool isRepeatState =
-            lastVisualEffectState.HasValue &&
-            lastVisualEffectState.Value == state;
-
-        bool allowRepeat =
-            state == YokaiState.EnergyEmpty ||
-            state == YokaiState.PurityEmpty ||
-            state == YokaiState.Purifying;
-
-        if (isRepeatState && !allowRepeat)
-            return;
-
         YokaiState? previousState = lastVisualEffectState;
+        bool isRepeatState =
+            previousState.HasValue &&
+            previousState.Value == state;
+
         lastVisualEffectState = state;
 
         if (previousState == YokaiState.EnergyEmpty && state != YokaiState.EnergyEmpty)
@@ -337,13 +329,19 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyPurityEmptyVisualsForState(state);
         ApplyDangerOverlayForState(state);
         ApplyDangerEffectsForState(state);
-        PlayStateEnterSE(state);
+
+        bool shouldPlayEmptyEnterEffects = !isRepeatState
+            && previousState == YokaiState.Normal
+            && (state == YokaiState.EnergyEmpty || state == YokaiState.PurityEmpty);
+
+        if (shouldPlayEmptyEnterEffects)
+            PlayStateEnterSE(state);
         if (state == YokaiState.Purifying && stateController != null)
         {
             stateController.ConsumePurifyTrigger();
         }
 
-        if (!previousState.HasValue || previousState.Value != state)
+        if (!isRepeatState)
             HandleStateMessages(previousState, state);
     }
 
@@ -353,8 +351,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         {
             case YokaiState.Purifying:
                 HideAllActionButtons();
-                if (magicCircleActivator != null)
-                    magicCircleActivator.Activate();
                 break;
             case YokaiState.EnergyEmpty:
                 ApplyEnergyEmptyVisual();
@@ -364,6 +360,7 @@ public class YokaiStatePresentationController : MonoBehaviour
                 break;
         }
 
+        ApplyMagicCircleForState(state);
         ApplyVisualEffectsOnce(state);
         UpdatePurityEmptyVisuals(state == YokaiState.PurityEmpty && isPurityEmptyVisualsActive);
         ApplyActionUIForState(state);
@@ -528,8 +525,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         bool showSpecialDango = state == YokaiState.EnergyEmpty
             && stateController != null
             && stateController.CanUseSpecialDango;
-        bool showMagicCircle = state == YokaiState.Purifying;
-
         if (actionPanel != null)
             ApplyCanvasGroup(actionPanel, showNormalActions, showNormalActions);
 
@@ -560,8 +555,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             }
         }
 
-        ApplyMagicCircleForState(showMagicCircle ? YokaiState.Purifying : YokaiState.Normal);
-
+        bool showMagicCircle = state == YokaiState.Purifying;
         Debug.Log($"[UI] ActionButtons: Normal={showNormalActions} SpecialPurify={showSpecialPurify} SpecialDango={showSpecialDango} MagicCircle={showMagicCircle}");
     }
 
