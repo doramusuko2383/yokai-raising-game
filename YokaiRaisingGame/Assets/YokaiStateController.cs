@@ -150,7 +150,7 @@ public class YokaiStateController : MonoBehaviour
         isSpiritEmpty = true;
         canUseSpecialDango = true;
 
-        EvaluateState(reason: "SpiritEmpty", forcePresentation: true);
+        EvaluateState(reason: "SpiritEmpty");
     }
 
     public void OnSpiritRecovered()
@@ -160,7 +160,7 @@ public class YokaiStateController : MonoBehaviour
 
         isSpiritEmpty = false;
         canUseSpecialDango = false;
-        EvaluateState(reason: "SpiritRecovered", forcePresentation: true);
+        EvaluateState(reason: "SpiritRecovered");
     }
 
     public void ForceReevaluate(string reason)
@@ -184,8 +184,10 @@ public class YokaiStateController : MonoBehaviour
         if (stateChanged)
         {
             SetState(nextState, reason);
+            return;
         }
-        else if (forcePresentation && ShouldAllowRebindPresentationSync())
+
+        if (forcePresentation)
         {
             ForceSyncPresentation(currentState);
         }
@@ -389,7 +391,7 @@ public class YokaiStateController : MonoBehaviour
         isPurityEmpty = true;
         isPurifyTriggerReady = true;
 
-        EvaluateState(reason: "PurityEmpty", forcePresentation: true);
+        EvaluateState(reason: "PurityEmpty");
     }
 
     public void OnPurityRecovered()
@@ -399,7 +401,7 @@ public class YokaiStateController : MonoBehaviour
 
         isPurityEmpty = false;
         isPurifyTriggerReady = false;
-        EvaluateState(reason: "PurityRecovered", forcePresentation: true);
+        EvaluateState(reason: "PurityRecovered");
     }
 
     void HandleThresholdReached(ref bool stateFlag, string reason)
@@ -525,7 +527,7 @@ public class YokaiStateController : MonoBehaviour
 
     bool ShouldAllowRebindPresentationSync()
     {
-        return currentState == YokaiState.Normal;
+        return currentState == YokaiState.Normal && !isPurifying;
     }
 
     YokaiStatePresentationController ResolvePresentationController()
