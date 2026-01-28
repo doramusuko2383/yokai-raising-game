@@ -538,9 +538,11 @@ public class YokaiStateController : MonoBehaviour
 
     void ForceSyncPresentationIfNeeded(YokaiState state)
     {
+        // Empty系は絶対に force sync しない
         if (state == YokaiState.EnergyEmpty || state == YokaiState.PurityEmpty)
             return;
 
+        // Normal のみ UI再同期用途で許可
         if (state == YokaiState.Normal)
             ForceSyncPresentation(state);
     }
