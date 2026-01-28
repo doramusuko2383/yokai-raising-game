@@ -546,7 +546,14 @@ public class YokaiStateController : MonoBehaviour
         if (controller == null)
             return;
 
-        controller.ApplyState(state, force: true);
+        if (state != currentState)
+        {
+            Debug.LogWarning(
+                $"[STATE] ForceSyncPresentation ignored. state={state}, currentState={currentState}");
+            return;
+        }
+
+        controller.ApplyState(currentState, force: true);
     }
 
     MagicCircleActivator ResolveMagicCircleActivator()
