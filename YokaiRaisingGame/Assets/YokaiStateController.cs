@@ -189,7 +189,7 @@ public class YokaiStateController : MonoBehaviour
 
         if (forcePresentation)
         {
-            ForceSyncPresentation(currentState);
+            SyncPresentation(currentState, force: true);
         }
 
         ApplyEmptyStateEffects();
@@ -273,7 +273,7 @@ public class YokaiStateController : MonoBehaviour
         IsPurifyTriggeredByUser = false;
         StopPurifyFallback();
         SetState(YokaiState.Normal, reason);
-        EvaluateState(reason: reason, forcePresentation: true);
+        EvaluateState(reason: reason, forcePresentation: false);
     }
 
     public void BeginEvolution()
@@ -498,7 +498,7 @@ public class YokaiStateController : MonoBehaviour
         IsPurifyTriggeredByUser = false;
         SetState(YokaiState.Normal, "PurifyFinished");
         SyncManagerState();
-        EvaluateState(reason: "PurifyFinished", forcePresentation: true);
+        EvaluateState(reason: "PurifyFinished", forcePresentation: false);
     }
 
     void ResetPurifyingState()
@@ -522,12 +522,12 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         SyncManagerState();
-        EvaluateState(reason: reason, forcePresentation: ShouldAllowRebindPresentationSync());
+        EvaluateState(reason: reason, forcePresentation: false);
     }
 
     bool ShouldAllowRebindPresentationSync()
     {
-        return currentState == YokaiState.Normal && !isPurifying;
+        return false;
     }
 
     YokaiStatePresentationController ResolvePresentationController()
@@ -540,13 +540,12 @@ public class YokaiStateController : MonoBehaviour
 
     void ForceSyncPresentationIfNeeded(YokaiState state)
     {
-        // Empty系は絶対に force sync しない
-        if (state == YokaiState.EnergyEmpty || state == YokaiState.PurityEmpty)
+        // Empty / Purifying / Evolution 系では絶対に force sync しない
+        if (state != YokaiState.Normal)
             return;
 
         // Normal のみ UI再同期用途で許可
-        if (state == YokaiState.Normal)
-            ForceSyncPresentation(state);
+        ForceSyncPresentation(state);
     }
 
     void ForceSyncPresentation(YokaiState state)
