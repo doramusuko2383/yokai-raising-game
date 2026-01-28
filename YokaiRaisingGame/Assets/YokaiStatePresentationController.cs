@@ -73,7 +73,8 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isPurityEmptyMotionApplied;
     Coroutine purityEmptyReleaseRoutine;
     YokaiState? lastAppliedState;
-    YokaiState? lastVisualEffectState;
+    bool hasPlayedPurityEmptyEnter;
+    bool hasPlayedEnergyEmptyEnter;
     bool hasWarnedMissingDependencies;
     bool hasWarnedMissingOptionalDependencies;
     static YokaiStatePresentationController instance;
@@ -122,7 +123,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         CacheEnergyEmptyTargets(CurrentYokaiContext.Current);
         RefreshDangerEffectOriginalColors();
         lastAppliedState = null;
-        lastVisualEffectState = null;
+        hasPlayedPurityEmptyEnter = false;
+        hasPlayedEnergyEmptyEnter = false;
         WarnMissingOptionalDependencies();
         BindMagicCircleActivator();
         SyncFromStateController();
@@ -299,84 +301,104 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         Debug.Log($"[PRESENTATION] ApplyState: {state} (force={force})");
 
-        if (!force && lastAppliedState.HasValue && lastAppliedState.Value == state)
+        YokaiState? previousState = lastAppliedState;
+
+        if (!force && previousState.HasValue && previousState.Value == state)
             return;
 
-        ApplyStateInternal(state);
+        if (force)
+        {
+            SyncUIForState(state);
+            lastAppliedState = state;
+            return;
+        }
+
+        if (previousState.HasValue)
+            HandleStateExit(previousState.Value, state);
+
+        HandleStateEnter(state, previousState);
+        SyncUIForState(state);
         lastAppliedState = state;
     }
 
-    void HandleStateEntered(YokaiState state)
+    void HandleStateEnter(YokaiState state, YokaiState? previousState)
     {
-        SyncFromStateController();
-    }
-
-    void ApplyVisualEffectsOnce(YokaiState state)
-    {
-        if (ShouldSuppressPresentationEffects(state))
-            return;
-
-        YokaiState? previousState = lastVisualEffectState;
-        bool isRepeatState =
-            previousState.HasValue &&
-            previousState.Value == state;
-
-        lastVisualEffectState = state;
-
-        if (previousState == YokaiState.EnergyEmpty && state != YokaiState.EnergyEmpty)
-            PlayEnergyEmptyExitEffects();
-
-        ApplyPurityEmptyVisualsForState(state);
-        ApplyDangerOverlayForState(state);
-        ApplyDangerEffectsForState(state);
-
-        bool shouldPlayEmptyEnterEffects = !isRepeatState
-            && previousState == YokaiState.Normal
-            && (state == YokaiState.EnergyEmpty || state == YokaiState.PurityEmpty);
-
-        if (shouldPlayEmptyEnterEffects)
-            PlayStateEnterSE(state);
-        if (state == YokaiState.Purifying && stateController != null)
+        if (state == YokaiState.PurityEmpty)
         {
-            stateController.ConsumePurifyTrigger();
-        }
-
-        if (!isRepeatState)
-            HandleStateMessages(previousState, state);
-    }
-
-    void ApplyStateInternal(YokaiState state)
-    {
-        switch (state)
-        {
-            case YokaiState.Purifying:
-                HideAllActionButtons();
-                break;
-            case YokaiState.EnergyEmpty:
-                ApplyEnergyEmptyVisual();
-                break;
-            case YokaiState.Normal:
-                RestoreNormalVisual();
-                break;
-        }
-
-        ApplyMagicCircleForState(state);
-        ApplyVisualEffectsOnce(state);
-        UpdatePurityEmptyVisuals(state == YokaiState.PurityEmpty && isPurityEmptyVisualsActive);
-        ApplyActionUIForState(state);
-        ApplyEnergyEmptyVisualsForState(state);
-        ApplyDangerEffectsForState(state);
-    }
-
-    void SyncVisualState()
-    {
-        if (stateController == null)
-            return;
-
-        if (stateController.currentState == YokaiState.PurityEmpty && !isPurityEmptyVisualsActive)
             EnterPurityEmpty();
-        else if (stateController.currentState != YokaiState.PurityEmpty && isPurityEmptyVisualsActive)
+            ApplyDangerOverlayForState(state);
+            ApplyDangerEffectsForState(state);
+            UpdatePurityEmptyVisuals(true);
+
+            bool shouldPlay = ShouldPlayEmptyEnterEffects(previousState);
+            if (shouldPlay && !hasPlayedPurityEmptyEnter)
+            {
+                PlayStateEnterSE(state);
+                hasPlayedPurityEmptyEnter = true;
+            }
+            return;
+        }
+
+        if (state == YokaiState.EnergyEmpty)
+        {
+            EnterEnergyEmpty();
+            ApplyDangerOverlayForState(state);
+            ApplyDangerEffectsForState(state);
+
+            bool shouldPlay = ShouldPlayEmptyEnterEffects(previousState);
+            if (shouldPlay && !hasPlayedEnergyEmptyEnter)
+            {
+                PlayStateEnterSE(state);
+                hasPlayedEnergyEmptyEnter = true;
+            }
+            return;
+        }
+
+        if (state == YokaiState.Normal)
+        {
+            RestoreNormalVisual();
+            ApplyDangerOverlayForState(state);
+            ApplyDangerEffectsForState(state);
+            ResetPurityEmptyMotion();
+        }
+
+        if (state == YokaiState.Purifying && stateController != null)
+            stateController.ConsumePurifyTrigger();
+
+        HandleStateMessages(previousState, state);
+    }
+
+    void HandleStateExit(YokaiState state, YokaiState nextState)
+    {
+        if (state == YokaiState.EnergyEmpty)
+        {
+            ResetEnergyEmptyVisuals();
+            ApplyDangerOverlayForState(nextState);
+            ApplyDangerEffectsForState(nextState);
+
+            if (nextState == YokaiState.Normal)
+                hasPlayedEnergyEmptyEnter = false;
+
+            PlayEnergyEmptyExitEffects();
+            return;
+        }
+
+        if (state == YokaiState.PurityEmpty)
+        {
             RequestReleasePurityEmpty();
+            ResetPurityEmptyMotion();
+            ApplyDangerOverlayForState(nextState);
+            ApplyDangerEffectsForState(nextState);
+
+            if (nextState == YokaiState.Normal)
+                hasPlayedPurityEmptyEnter = false;
+            return;
+        }
+    }
+
+    void SyncUIForState(YokaiState state)
+    {
+        ApplyActionUIForState(state);
     }
 
     void RefreshPresentation()
@@ -500,20 +522,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
     }
 
-    void ApplyMagicCircleForState(YokaiState visualState)
-    {
-        if (magicCircleActivator == null)
-            return;
-
-        if (visualState == YokaiState.Purifying)
-        {
-            magicCircleActivator.Activate();
-            magicCircleActivator.Show();
-        }
-        else
-            magicCircleActivator.Hide();
-    }
-
     void ApplyActionUIForState(YokaiState state)
     {
         HideAllActionButtons();
@@ -555,8 +563,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             }
         }
 
-        bool showMagicCircle = state == YokaiState.Purifying;
-        Debug.Log($"[UI] ActionButtons: Normal={showNormalActions} SpecialPurify={showSpecialPurify} SpecialDango={showSpecialDango} MagicCircle={showMagicCircle}");
+        Debug.Log($"[UI] ActionButtons: Normal={showNormalActions} SpecialPurify={showSpecialPurify} SpecialDango={showSpecialDango}");
     }
 
     void HideAllActionButtons()
@@ -587,34 +594,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (purifyStopButton != null)
             ApplyCanvasGroup(purifyStopButton, false, false);
-    }
-
-    void ApplyPurityEmptyVisualsForState(YokaiState state)
-    {
-        if (state == YokaiState.PurityEmpty)
-        {
-            EnterPurityEmpty();
-            return;
-        }
-
-        if (isPurityEmptyVisualsActive)
-            RequestReleasePurityEmpty();
-        else
-            ResetPurityEmptyVisuals();
-
-        ResetPurityEmptyMotion();
-    }
-
-    void ApplyEnergyEmptyVisualsForState(YokaiState state)
-    {
-        if (state == YokaiState.EnergyEmpty)
-        {
-            EnterEnergyEmpty();
-            return;
-        }
-
-        if (isEnergyEmptyVisualsActive)
-            ResetEnergyEmptyVisuals();
     }
 
 
@@ -733,11 +712,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
 
         isEnergyEmptyVisualsActive = true;
-    }
-
-    void ApplyEnergyEmptyVisual()
-    {
-        EnterEnergyEmpty();
     }
 
     void RestoreNormalVisual()
@@ -981,12 +955,15 @@ public class YokaiStatePresentationController : MonoBehaviour
         return false;
     }
 
-    bool IsPurifyEffectAllowed()
+    bool ShouldPlayEmptyEnterEffects(YokaiState? previousState)
     {
-        if (stateController == null)
+        if (!previousState.HasValue)
             return false;
 
-        return stateController.IsPurifyTriggeredByUser;
+        if (previousState.Value == YokaiState.EnergyEmpty || previousState.Value == YokaiState.PurityEmpty)
+            return false;
+
+        return true;
     }
 
     void HandleStateMessages(YokaiState? previousState, YokaiState newState)

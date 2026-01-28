@@ -13,6 +13,7 @@ public class MagicCircleActivator : MonoBehaviour
     bool hasWarnedMissingStateController;
     bool hasLoggedResolution;
     bool isActive;
+    YokaiState? lastObservedState;
 
     public event System.Action SuccessRequested;
     public event System.Action SuccessEffectRequested;
@@ -33,6 +34,7 @@ public class MagicCircleActivator : MonoBehaviour
     {
         CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
         BindStateController(null, warnIfMissing: false);
+        lastObservedState = null;
     }
 
     public void Show()
@@ -94,10 +96,7 @@ public class MagicCircleActivator : MonoBehaviour
 
     void HandleStateChanged(YokaiState previousState, YokaiState newState)
     {
-        if (newState == YokaiState.Purifying)
-            Show();
-        else
-            Hide();
+        HandleStateTransition(previousState, newState);
     }
 
     void SyncFromStateController(bool warnIfMissing)
@@ -111,10 +110,7 @@ public class MagicCircleActivator : MonoBehaviour
             }
         }
 
-        if (stateController.currentState == YokaiState.Purifying)
-            Show();
-        else
-            Hide();
+        HandleStateTransition(lastObservedState, stateController.currentState);
     }
 
     void SetActive(bool isActive)
@@ -128,6 +124,26 @@ public class MagicCircleActivator : MonoBehaviour
         }
 
         magicCircleRoot.SetActive(isActive);
+    }
+
+    void HandleStateTransition(YokaiState? previousState, YokaiState newState)
+    {
+        if (previousState.HasValue && previousState.Value == newState)
+            return;
+
+        if (newState == YokaiState.Purifying && previousState != YokaiState.Purifying)
+            Show();
+        else if (previousState == YokaiState.Purifying && newState != YokaiState.Purifying)
+            Hide();
+        else if (!previousState.HasValue)
+        {
+            if (newState == YokaiState.Purifying)
+                Show();
+            else
+                Hide();
+        }
+
+        lastObservedState = newState;
     }
 
     void WarnMissingRoot()
