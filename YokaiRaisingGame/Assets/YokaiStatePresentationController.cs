@@ -316,7 +316,16 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (ShouldSuppressPresentationEffects(state))
             return;
 
-        if (lastVisualEffectState.HasValue && lastVisualEffectState.Value == state)
+        bool isRepeatState =
+            lastVisualEffectState.HasValue &&
+            lastVisualEffectState.Value == state;
+
+        bool allowRepeat =
+            state == YokaiState.EnergyEmpty ||
+            state == YokaiState.PurityEmpty ||
+            state == YokaiState.Purifying;
+
+        if (isRepeatState && !allowRepeat)
             return;
 
         YokaiState? previousState = lastVisualEffectState;

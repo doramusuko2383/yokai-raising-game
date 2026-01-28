@@ -12,6 +12,7 @@ public class MagicCircleActivator : MonoBehaviour
     bool hasWarnedMissingRoot;
     bool hasWarnedMissingStateController;
     bool hasLoggedResolution;
+    bool isActive;
 
     public event System.Action SuccessRequested;
     public event System.Action SuccessEffectRequested;
@@ -42,6 +43,14 @@ public class MagicCircleActivator : MonoBehaviour
     public void Hide()
     {
         SetActive(false);
+    }
+
+    public void Activate()
+    {
+        if (isActive)
+            return;
+
+        SetActive(true);
     }
 
     public void RequestSuccess()
@@ -110,6 +119,8 @@ public class MagicCircleActivator : MonoBehaviour
 
     void SetActive(bool isActive)
     {
+        this.isActive = isActive;
+
         if (magicCircleRoot == null)
         {
             WarnMissingRoot();
