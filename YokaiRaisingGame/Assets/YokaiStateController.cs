@@ -13,8 +13,22 @@ public class YokaiStateController : MonoBehaviour
     bool isSpiritEmpty;
     bool isPurityEmpty;
     bool isEvolving;
+    [SerializeField]
+    bool isPurifyTriggerReady;
+    [SerializeField]
+    bool canUseSpecialDango;
     public bool HasUserInteracted { get; private set; } = false;
     public bool IsPurifyTriggeredByUser { get; private set; }
+    public bool IsPurifyTriggerReady
+    {
+        get => isPurifyTriggerReady;
+        set => isPurifyTriggerReady = value;
+    }
+    public bool CanUseSpecialDango
+    {
+        get => canUseSpecialDango;
+        set => canUseSpecialDango = value;
+    }
 
     [Header("Dependencies")]
     [SerializeField]

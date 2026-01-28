@@ -519,14 +519,19 @@ public class YokaiStatePresentationController : MonoBehaviour
         HideAllActionButtons();
 
         bool showNormalActions = state == YokaiState.Normal || state == YokaiState.EvolutionReady;
-        bool showSpecialPurify = state == YokaiState.PurityEmpty;
+        bool showSpecialPurify = state == YokaiState.PurityEmpty
+            && stateController != null
+            && stateController.IsPurifyTriggerReady;
+        bool showSpecialDango = state == YokaiState.EnergyEmpty
+            && stateController != null
+            && stateController.CanUseSpecialDango;
         bool showMagicCircle = state == YokaiState.Purifying;
 
         if (actionPanel != null)
             ApplyCanvasGroup(actionPanel, showNormalActions, showNormalActions);
 
         if (recoverAdButton != null)
-            recoverAdButton.SetActive(false);
+            recoverAdButton.SetActive(showSpecialDango);
 
         if (purityRecoverAdButton != null)
             purityRecoverAdButton.SetActive(showSpecialPurify);
@@ -554,7 +559,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         ApplyMagicCircleForState(showMagicCircle ? YokaiState.Purifying : YokaiState.Normal);
 
-        Debug.Log($"[UI] ActionButtons: Normal={showNormalActions} SpecialPurify={showSpecialPurify} MagicCircle={showMagicCircle}");
+        Debug.Log($"[UI] ActionButtons: Normal={showNormalActions} SpecialPurify={showSpecialPurify} SpecialDango={showSpecialDango} MagicCircle={showMagicCircle}");
     }
 
     void HideAllActionButtons()
