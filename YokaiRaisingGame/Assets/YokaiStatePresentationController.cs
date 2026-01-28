@@ -367,6 +367,9 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyActionUIForState(state);
         ApplyVisualEffectsOnce(state);
         UpdatePurityEmptyVisuals(state == YokaiState.PurityEmpty && isPurityEmptyVisualsActive);
+        ApplyActionUIForState(state);
+        ApplyEnergyEmptyVisualsForState(state);
+        ApplyDangerEffectsForState(state);
     }
 
     void SyncVisualState()
