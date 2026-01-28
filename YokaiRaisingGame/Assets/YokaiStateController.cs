@@ -511,9 +511,6 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         HasUserInteracted = true;
-        var controller = ResolvePresentationController();
-        if (controller != null)
-            controller.ApplyState(currentState, force: true);
     }
 
     public void RequestEvaluateState(string reason)
