@@ -97,9 +97,14 @@ public class MagicCircleActivator : MonoBehaviour
         stateController = controller;
 
         if (stateController != null)
+        {
             stateController.OnStateChanged += HandleStateChanged;
+            HandleStateChanged(stateController.currentState, stateController.currentState);
+        }
         else if (warnIfMissing)
+        {
             WarnMissingStateController();
+        }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         LogResolution($"[MAGIC_CIRCLE] Bind StateController: {FormatController(previous)} -> {FormatController(stateController)}");
