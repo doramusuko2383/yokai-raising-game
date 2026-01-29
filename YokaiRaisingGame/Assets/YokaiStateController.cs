@@ -252,6 +252,7 @@ public class YokaiStateController : MonoBehaviour
         isPurifying = true;
         IsPurifyTriggeredByUser = true;
         SetState(YokaiState.Purifying, "BeginPurify");
+        ForceSyncPresentation(YokaiState.Purifying);
     }
 
     public void StopPurifying()
@@ -540,7 +541,13 @@ public class YokaiStateController : MonoBehaviour
 
     void ForceSyncPresentationIfNeeded(YokaiState state)
     {
-        // Empty / Purifying / Evolution 系では絶対に force sync しない
+        if (state == YokaiState.Purifying)
+        {
+            ForceSyncPresentation(state);
+            return;
+        }
+
+        // Empty / Evolution 系では絶対に force sync しない
         if (state != YokaiState.Normal)
             return;
 
