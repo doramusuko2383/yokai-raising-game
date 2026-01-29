@@ -302,18 +302,19 @@ public class YokaiStatePresentationController : MonoBehaviour
         Debug.Log($"[PRESENTATION] ApplyState: {state} (force={force})");
 
         YokaiState? previousState = lastAppliedState;
+        bool shouldForceEnter = state == YokaiState.Purifying;
 
         if (!force && previousState.HasValue && previousState.Value == state)
             return;
 
-        if (force)
+        if (force && !shouldForceEnter)
         {
             SyncUIForState(state);
             lastAppliedState = state;
             return;
         }
 
-        if (previousState.HasValue)
+        if (previousState.HasValue && previousState.Value != state)
             HandleStateExit(previousState.Value, state);
 
         HandleStateEnter(state, previousState);
