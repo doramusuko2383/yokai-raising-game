@@ -304,7 +304,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         YokaiState? previousState = lastAppliedState;
         bool shouldForceEnter = state == YokaiState.Purifying;
 
-        if (!force && previousState.HasValue && previousState.Value == state)
+        if (!force && !shouldForceEnter && previousState.HasValue && previousState.Value == state)
             return;
 
         if (force && !shouldForceEnter)
