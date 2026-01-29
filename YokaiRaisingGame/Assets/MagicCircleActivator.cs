@@ -66,6 +66,9 @@ public class MagicCircleActivator : MonoBehaviour
     void HandleCurrentYokaiConfirmed(GameObject activeYokai)
     {
         EnsureStateController(warnIfMissing: false);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        LogResolution($"[MAGIC_CIRCLE] CurrentYokai confirmed. StateController id={FormatController(stateController)}");
+#endif
         SyncFromStateController(warnIfMissing: false);
     }
 
@@ -84,16 +87,26 @@ public class MagicCircleActivator : MonoBehaviour
         if (stateController != null)
             stateController.OnStateChanged -= HandleStateChanged;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        var previous = stateController;
+#endif
         stateController = controller;
 
         if (stateController != null)
             stateController.OnStateChanged += HandleStateChanged;
         else if (warnIfMissing)
             WarnMissingStateController();
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        LogResolution($"[MAGIC_CIRCLE] Bind StateController: {FormatController(previous)} -> {FormatController(stateController)}");
+#endif
     }
 
     void HandleStateChanged(YokaiState previousState, YokaiState newState)
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        Debug.Log($"[MAGIC_CIRCLE] HandleStateChanged: {previousState} -> {newState}");
+#endif
         if (newState == YokaiState.Purifying)
             Show();
         else
@@ -124,6 +137,9 @@ public class MagicCircleActivator : MonoBehaviour
             return;
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        Debug.Log($"[MAGIC_CIRCLE] SetActive={isActive} root={magicCircleRoot.name} activeSelf={magicCircleRoot.activeSelf}");
+#endif
         magicCircleRoot.SetActive(isActive);
     }
 
@@ -165,8 +181,21 @@ public class MagicCircleActivator : MonoBehaviour
         if (hasLoggedResolution)
             return;
 
-        Debug.Log($"[MAGIC_CIRCLE] StateController resolved: {stateController != null}");
+        LogResolution($"[MAGIC_CIRCLE] StateController resolved id={FormatController(stateController)}");
         hasLoggedResolution = true;
+    }
+
+    void LogResolution(string message)
+    {
+        Debug.Log(message);
+    }
+
+    string FormatController(YokaiStateController controller)
+    {
+        if (controller == null)
+            return "null";
+
+        return $"{controller.name}#{controller.GetInstanceID()}";
     }
 #endif
 }
