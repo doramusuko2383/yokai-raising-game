@@ -2238,7 +2238,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 656228942389283711, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4729676478636256463, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: m_Pivot.x
@@ -2449,7 +2449,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5481682468745329004, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: stateController
@@ -3421,19 +3421,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
---- !u!1660057539 &9223372036854775807
-SceneRoots:
-  m_ObjectHideFlags: 0
-  m_Roots:
-  - {fileID: 519420032}
-  - {fileID: 587157696}
-  - {fileID: 152328532}
-  - {fileID: 543276398}
-  - {fileID: 2028275034}
-  - {fileID: 1905322488}
-  - {fileID: 724772127}
-  - {fileID: 895279157}
-  - {fileID: 9100000000000000002}
 --- !u!1 &9100000000000000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -3479,3 +3466,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   seClipLibrary: {fileID: 11400000, guid: 22c1155075ba4f939cefc93e9e05a127, type: 2}
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 519420032}
+  - {fileID: 587157696}
+  - {fileID: 152328532}
+  - {fileID: 543276398}
+  - {fileID: 2028275034}
+  - {fileID: 1905322488}
+  - {fileID: 724772127}
+  - {fileID: 895279157}
+  - {fileID: 9100000000000000002}
