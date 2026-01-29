@@ -94,7 +94,10 @@ public class MagicCircleActivator : MonoBehaviour
 
     void HandleStateChanged(YokaiState previousState, YokaiState newState)
     {
-        ApplyState(newState);
+        if (newState == YokaiState.Purifying)
+            Show();
+        else
+            Hide();
     }
 
     void SyncFromStateController(bool warnIfMissing)
