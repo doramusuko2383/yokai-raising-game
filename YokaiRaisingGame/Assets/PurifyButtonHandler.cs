@@ -98,17 +98,7 @@ public class PurifyButtonHandler : MonoBehaviour
 
     YokaiStateController ResolveStateController()
     {
-        var currentContext = CurrentYokaiContext.ResolveStateController();
-        if (currentContext != null)
-        {
-            stateController = currentContext;
-            return stateController;
-        }
-
-        if (stateController != null)
-            return stateController;
-
-        stateController = FindObjectOfType<YokaiStateController>(true);
+        stateController = CurrentYokaiContext.ResolveStateController();
         if (stateController == null)
             WarnMissingStateController();
 
