@@ -538,10 +538,22 @@ public class YokaiStatePresentationController : MonoBehaviour
             ApplyCanvasGroup(actionPanel, showNormalActions, showNormalActions);
 
         if (recoverAdButton != null)
+        {
             recoverAdButton.SetActive(showSpecialDango);
+            ApplyCanvasGroup(recoverAdButton, showSpecialDango, showSpecialDango);
+        }
 
         if (purityRecoverAdButton != null)
+        {
             purityRecoverAdButton.SetActive(showSpecialPurify);
+            ApplyCanvasGroup(purityRecoverAdButton, showSpecialPurify, showSpecialPurify);
+            var specialPurifyButton = purityRecoverAdButton.GetComponent<Button>();
+            if (specialPurifyButton != null)
+            {
+                specialPurifyButton.interactable = showSpecialPurify;
+                specialPurifyButton.enabled = showSpecialPurify;
+            }
+        }
 
         if (legacyPurityRecoverAdButton != null)
             legacyPurityRecoverAdButton.SetActive(false);
@@ -585,10 +597,16 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
 
         if (recoverAdButton != null)
+        {
             recoverAdButton.SetActive(false);
+            ApplyCanvasGroup(recoverAdButton, false, false);
+        }
 
         if (purityRecoverAdButton != null)
+        {
             purityRecoverAdButton.SetActive(false);
+            ApplyCanvasGroup(purityRecoverAdButton, false, false);
+        }
 
         if (legacyPurityRecoverAdButton != null)
             legacyPurityRecoverAdButton.SetActive(false);

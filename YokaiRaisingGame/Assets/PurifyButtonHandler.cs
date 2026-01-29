@@ -30,7 +30,7 @@ public class PurifyButtonHandler : MonoBehaviour
         if (IsActionBlocked())
             return;
 
-        if (stateController != null)
+        if (ResolveStateController() != null)
         {
             stateController.NotifyUserInteraction();
             stateController.BeginPurifying();
@@ -43,17 +43,19 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickEmergencyPurify()
     {
-        if (ResolveStateController() != null)
-            stateController.NotifyUserInteraction();
+        var controller = ResolveStateController();
+        if (controller != null)
+            controller.NotifyUserInteraction();
 
         if (!IsState(YokaiState.PurityEmpty))
             return;
 
         ShowAd(() =>
         {
-            if (ResolveStateController() != null)
+            var resolvedController = ResolveStateController();
+            if (resolvedController != null)
             {
-                stateController.BeginPurifying();
+                resolvedController.BeginPurifying();
                 TutorialManager.NotifyPurifyUsed();
             }
             else
@@ -96,6 +98,13 @@ public class PurifyButtonHandler : MonoBehaviour
 
     YokaiStateController ResolveStateController()
     {
+        var currentContext = CurrentYokaiContext.ResolveStateController();
+        if (currentContext != null)
+        {
+            stateController = currentContext;
+            return stateController;
+        }
+
         if (stateController != null)
             return stateController;
 
