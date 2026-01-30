@@ -332,6 +332,11 @@ public class YokaiStatePresentationController : MonoBehaviour
         HandleStateEnter(state, previousState);
         SyncUIForState(state);
         SyncMagicCircleForState(state);
+        if (state == YokaiState.Purifying && magicCircleActivator != null)
+        {
+            Debug.Log("[PRESENTATION] Force Show MagicCircle (Purifying)");
+            magicCircleActivator.Show();
+        }
         lastAppliedState = state;
     }
 
@@ -572,12 +577,31 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (purityRecoverAdButton != null)
         {
             purityRecoverAdButton.SetActive(showSpecialPurify);
-            ApplyCanvasGroup(purityRecoverAdButton, showSpecialPurify, showSpecialPurify);
             var specialPurifyButton = purityRecoverAdButton.GetComponent<Button>();
-            if (specialPurifyButton != null)
+            var specialPurifyGroup = purityRecoverAdButton.GetComponent<CanvasGroup>();
+            if (specialPurifyGroup == null)
+                specialPurifyGroup = purityRecoverAdButton.AddComponent<CanvasGroup>();
+
+            if (showSpecialPurify)
             {
-                specialPurifyButton.interactable = showSpecialPurify;
-                specialPurifyButton.enabled = showSpecialPurify;
+                purityRecoverAdButton.SetActive(true);
+                specialPurifyGroup.alpha = 1f;
+                specialPurifyGroup.interactable = true;
+                specialPurifyGroup.blocksRaycasts = true;
+                if (specialPurifyButton != null)
+                {
+                    specialPurifyButton.interactable = true;
+                    specialPurifyButton.enabled = true;
+                }
+            }
+            else
+            {
+                ApplyCanvasGroup(purityRecoverAdButton, false, false);
+                if (specialPurifyButton != null)
+                {
+                    specialPurifyButton.interactable = false;
+                    specialPurifyButton.enabled = false;
+                }
             }
         }
 
@@ -605,7 +629,10 @@ public class YokaiStatePresentationController : MonoBehaviour
         Debug.Log($"[UI] ActionButtons: Normal={showNormalActions} SpecialPurify={showSpecialPurify} SpecialDango={showSpecialDango}");
 
         if (state == YokaiState.PurityEmpty)
+        {
             LogPurityRecoverButtonState();
+            LogPurityRecoverButtonInputState();
+        }
     }
 
     void LogPurityRecoverButtonState()
@@ -634,6 +661,29 @@ public class YokaiStatePresentationController : MonoBehaviour
             $"button.interactable={buttonInteractable} " +
             $"canvasGroup=({buttonGroupInfo}) " +
             $"parentCanvasGroup=({parentGroupInfo})");
+    }
+
+    void LogPurityRecoverButtonInputState()
+    {
+        if (purityRecoverAdButton == null)
+        {
+            Debug.Log("[PURITY_UI] activeSelf=missing activeInHierarchy=missing interactable=missing canvas(alpha=missing interactable=missing blocksRaycasts=missing)");
+            return;
+        }
+
+        var button = purityRecoverAdButton.GetComponent<Button>();
+        var group = purityRecoverAdButton.GetComponent<CanvasGroup>();
+        string buttonInteractable = button != null ? button.interactable.ToString() : "missing";
+        string canvasInfo = group != null
+            ? $"alpha={group.alpha} interactable={group.interactable} blocksRaycasts={group.blocksRaycasts}"
+            : "alpha=missing interactable=missing blocksRaycasts=missing";
+
+        Debug.Log(
+            "[PURITY_UI] " +
+            $"activeSelf={purityRecoverAdButton.activeSelf} " +
+            $"activeInHierarchy={purityRecoverAdButton.activeInHierarchy} " +
+            $"interactable={buttonInteractable} " +
+            $"canvas({canvasInfo})");
     }
 
     void HideAllActionButtons()
