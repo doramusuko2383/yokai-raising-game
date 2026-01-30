@@ -75,6 +75,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     YokaiState? lastAppliedState;
     bool hasPlayedPurityEmptyEnter;
     bool hasPlayedEnergyEmptyEnter;
+    bool hasPlayedPurifyStartSE; // Purify開始SEの二重再生防止フラグ
     bool hasWarnedMissingDependencies;
     bool hasWarnedMissingOptionalDependencies;
     static YokaiStatePresentationController instance;
@@ -425,12 +426,18 @@ public class YokaiStatePresentationController : MonoBehaviour
         {
             Debug.Log("[PRESENTATION] Sync MagicCircle Show (Purifying)");
             magicCircleActivator.Show();
+            if (!hasPlayedPurifyStartSE)
+            {
+                AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START); // 魔法陣が表示された瞬間のみSE再生
+                hasPlayedPurifyStartSE = true;
+            }
             return;
         }
 
         // Purifying以外では必ず非表示にする（forceの有無で最終状態が変わらないように統一）
         Debug.Log("[PRESENTATION] Sync MagicCircle Hide (Non-Purifying)");
         magicCircleActivator.Hide();
+        hasPlayedPurifyStartSE = false; // Purifying解除時にリセット
     }
 
     void RefreshPresentation()
