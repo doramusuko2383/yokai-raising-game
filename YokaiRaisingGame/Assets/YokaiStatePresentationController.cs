@@ -321,6 +321,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (force && !shouldForceEnter)
         {
+            ResetActionUI(); // ← 全OFF専用メソッド（private）
             SyncUIForState(state);
             SyncMagicCircleForState(state);
             lastAppliedState = state;
