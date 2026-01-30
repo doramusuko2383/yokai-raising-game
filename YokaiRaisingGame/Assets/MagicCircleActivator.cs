@@ -93,6 +93,10 @@ public class MagicCircleActivator : MonoBehaviour
 
     YokaiStateController ResolveStateController()
     {
+        var presentation = YokaiStatePresentationController.Instance;
+        if (presentation != null && presentation.StateController != null)
+            return presentation.StateController;
+
         return CurrentYokaiContext.ResolveStateController();
     }
 
@@ -112,7 +116,7 @@ public class MagicCircleActivator : MonoBehaviour
         if (stateController != null)
         {
             stateController.OnStateChanged += HandleStateChanged;
-            ApplyState(stateController.currentState);
+            HandleStateChanged(stateController.currentState, stateController.currentState);
         }
         else if (warnIfMissing)
         {
