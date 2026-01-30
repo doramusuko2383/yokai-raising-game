@@ -21,7 +21,7 @@ public class MagicCircleActivator : MonoBehaviour
 
     void OnEnable()
     {
-        BindToCurrentStateController(warnIfMissing: false);
+        EnsureStateController(warnIfMissing: false);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         LogResolutionOnce();
 #endif
@@ -71,7 +71,7 @@ public class MagicCircleActivator : MonoBehaviour
 
     void HandleCurrentYokaiConfirmed(GameObject activeYokai)
     {
-        BindToCurrentStateController(warnIfMissing: false);
+        EnsureStateController(warnIfMissing: false);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         LogResolution($"[MAGIC_CIRCLE] CurrentYokai confirmed. StateController id={FormatController(stateController)}");
 #endif
@@ -99,7 +99,7 @@ public class MagicCircleActivator : MonoBehaviour
         if (stateController != null)
         {
             stateController.OnStateChanged += HandleStateChanged;
-            HandleStateChanged(stateController.currentState, stateController.currentState);
+            ApplyState(stateController.currentState);
         }
         else if (warnIfMissing)
         {
@@ -116,10 +116,7 @@ public class MagicCircleActivator : MonoBehaviour
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log($"[MAGIC_CIRCLE] HandleStateChanged: {previousState} -> {newState}");
 #endif
-        if (newState == YokaiState.Purifying)
-            Show();
-        else
-            Hide();
+        ApplyState(newState);
     }
 
     void SyncFromStateController(bool warnIfMissing)
@@ -154,11 +151,13 @@ public class MagicCircleActivator : MonoBehaviour
 
     void ApplyState(YokaiState newState)
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        Debug.Log($"[MAGIC_CIRCLE] ApplyState direct: {newState}");
+#endif
         if (newState == YokaiState.Purifying)
             Show();
         else
             Hide();
-
     }
 
     void WarnMissingRoot()
