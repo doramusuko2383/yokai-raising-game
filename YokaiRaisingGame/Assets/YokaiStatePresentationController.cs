@@ -322,6 +322,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (force && !shouldForceEnter)
         {
             SyncUIForState(state);
+            SyncMagicCircleForState(state);
             lastAppliedState = state;
             return;
         }
@@ -332,11 +333,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         HandleStateEnter(state, previousState);
         SyncUIForState(state);
         SyncMagicCircleForState(state);
-        if (state == YokaiState.Purifying && magicCircleActivator != null)
-        {
-            Debug.Log("[PRESENTATION] Force Show MagicCircle (Purifying)");
-            magicCircleActivator.Show();
-        }
         lastAppliedState = state;
     }
 
@@ -427,9 +423,14 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (state == YokaiState.Purifying)
         {
-            Debug.Log("[PRESENTATION] Force Show MagicCircle (Purifying)");
+            Debug.Log("[PRESENTATION] Sync MagicCircle Show (Purifying)");
             magicCircleActivator.Show();
+            return;
         }
+
+        // Purifying以外では必ず非表示にする（forceの有無で最終状態が変わらないように統一）
+        Debug.Log("[PRESENTATION] Sync MagicCircle Hide (Non-Purifying)");
+        magicCircleActivator.Hide();
     }
 
     void RefreshPresentation()
