@@ -13,6 +13,7 @@ public class MagicCircleActivator : MonoBehaviour
     bool hasWarnedMissingStateController;
     bool hasLoggedResolution;
     bool isActive;
+    bool isVisible;
 
     public event System.Action SuccessRequested;
     public event System.Action SuccessEffectRequested;
@@ -50,6 +51,10 @@ public class MagicCircleActivator : MonoBehaviour
 
     public void Show()
     {
+        if (isVisible)
+            return;
+
+        isVisible = true;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log("[MAGIC_CIRCLE] Show()");
 #endif
@@ -58,6 +63,10 @@ public class MagicCircleActivator : MonoBehaviour
 
     public void Hide()
     {
+        if (!isVisible)
+            return;
+
+        isVisible = false;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log("[MAGIC_CIRCLE] Hide()");
 #endif
@@ -133,7 +142,10 @@ public class MagicCircleActivator : MonoBehaviour
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log($"[MAGIC_CIRCLE] HandleStateChanged: {previousState} -> {newState}");
 #endif
-        ApplyState(newState);
+        if (newState == YokaiState.Purifying)
+            Show();
+        else
+            Hide();
     }
 
     void SyncFromStateController(bool warnIfMissing)
@@ -153,6 +165,7 @@ public class MagicCircleActivator : MonoBehaviour
     void SetActive(bool isActive)
     {
         this.isActive = isActive;
+        isVisible = isActive;
 
         if (magicCircleRoot == null)
         {
