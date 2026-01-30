@@ -425,7 +425,11 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (magicCircleActivator == null)
             return;
 
-        magicCircleActivator.ApplyStateFromPresentation(state);
+        if (state == YokaiState.Purifying)
+        {
+            Debug.Log("[PRESENTATION] Force Show MagicCircle (Purifying)");
+            magicCircleActivator.Show();
+        }
     }
 
     void RefreshPresentation()
