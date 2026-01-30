@@ -51,7 +51,7 @@ public class MagicCircleActivator : MonoBehaviour
     public void Show()
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        Debug.Log("[MAGIC_CIRCLE] Show()");
+        Debug.Log("[MAGIC_CIRCLE] Show");
 #endif
         SetActive(true);
     }
