@@ -165,6 +165,8 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (stateController != null)
             stateController.OnStateChanged += OnStateChanged;
+
+        BindMagicCircleToStateController();
     }
 
     void StartBindRetryIfNeeded()
@@ -253,8 +255,17 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (isMagicCircleBound || magicCircleActivator == null)
             return;
 
+        BindMagicCircleToStateController();
         magicCircleActivator.SuccessRequested += HandleMagicCircleSuccess;
         isMagicCircleBound = true;
+    }
+
+    void BindMagicCircleToStateController()
+    {
+        if (magicCircleActivator == null || stateController == null)
+            return;
+
+        magicCircleActivator.BindToStateController(stateController);
     }
 
     void UnbindMagicCircleActivator()
@@ -319,6 +330,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         HandleStateEnter(state, previousState);
         SyncUIForState(state);
+        SyncMagicCircleForState(state);
         lastAppliedState = state;
     }
 
@@ -400,6 +412,14 @@ public class YokaiStatePresentationController : MonoBehaviour
     void SyncUIForState(YokaiState state)
     {
         ApplyActionUIForState(state);
+    }
+
+    void SyncMagicCircleForState(YokaiState state)
+    {
+        if (magicCircleActivator == null)
+            return;
+
+        magicCircleActivator.ApplyStateFromPresentation(state);
     }
 
     void RefreshPresentation()
@@ -534,8 +554,9 @@ public class YokaiStatePresentationController : MonoBehaviour
         bool showSpecialDango = state == YokaiState.EnergyEmpty
             && stateController != null
             && stateController.CanUseSpecialDango;
+        bool showActionPanel = showNormalActions || showSpecialPurify || showSpecialDango;
         if (actionPanel != null)
-            ApplyCanvasGroup(actionPanel, showNormalActions, showNormalActions);
+            ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
 
         if (recoverAdButton != null)
         {
@@ -577,6 +598,37 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
 
         Debug.Log($"[UI] ActionButtons: Normal={showNormalActions} SpecialPurify={showSpecialPurify} SpecialDango={showSpecialDango}");
+
+        if (state == YokaiState.PurityEmpty)
+            LogPurityRecoverButtonState();
+    }
+
+    void LogPurityRecoverButtonState()
+    {
+        if (purityRecoverAdButton == null)
+        {
+            Debug.Log("[UI] PurityRecoverButton: missing reference");
+            return;
+        }
+
+        var button = purityRecoverAdButton.GetComponent<Button>();
+        var buttonGroup = purityRecoverAdButton.GetComponent<CanvasGroup>();
+        var parentGroup = actionPanel != null ? actionPanel.GetComponent<CanvasGroup>() : null;
+        string buttonGroupInfo = buttonGroup != null
+            ? $"alpha={buttonGroup.alpha} interactable={buttonGroup.interactable} blocksRaycasts={buttonGroup.blocksRaycasts}"
+            : "none";
+        string parentGroupInfo = parentGroup != null
+            ? $"alpha={parentGroup.alpha} interactable={parentGroup.interactable} blocksRaycasts={parentGroup.blocksRaycasts}"
+            : "none";
+        string buttonInteractable = button != null ? button.interactable.ToString() : "missing";
+
+        Debug.Log(
+            "[UI] PurityRecoverButtonState " +
+            $"activeSelf={purityRecoverAdButton.activeSelf} " +
+            $"activeInHierarchy={purityRecoverAdButton.activeInHierarchy} " +
+            $"button.interactable={buttonInteractable} " +
+            $"canvasGroup=({buttonGroupInfo}) " +
+            $"parentCanvasGroup=({parentGroupInfo})");
     }
 
     void HideAllActionButtons()
