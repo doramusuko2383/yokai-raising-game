@@ -89,6 +89,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     public static YokaiStatePresentationController Instance => instance;
 
     public bool IsPurityEmptyVisualsActive => isPurityEmptyVisualsActive;
+    public YokaiStateController StateController => stateController;
 
     public void ClearWeakVisuals()
     {
@@ -556,7 +557,11 @@ public class YokaiStatePresentationController : MonoBehaviour
             && stateController.CanUseSpecialDango;
         bool showActionPanel = showNormalActions || showSpecialPurify || showSpecialDango;
         if (actionPanel != null)
+        {
+            if (showActionPanel && !actionPanel.activeSelf)
+                actionPanel.SetActive(true);
             ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
+        }
 
         if (recoverAdButton != null)
         {
