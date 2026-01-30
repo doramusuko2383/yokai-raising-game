@@ -35,6 +35,19 @@ public class MagicCircleActivator : MonoBehaviour
         BindStateController(null, warnIfMissing: false);
     }
 
+    public void BindToStateController(YokaiStateController controller)
+    {
+        BindStateController(controller, warnIfMissing: true);
+    }
+
+    public void ApplyStateFromPresentation(YokaiState state)
+    {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        Debug.Log($"[MAGIC_CIRCLE] ApplyState from presentation: {state}");
+#endif
+        ApplyState(state);
+    }
+
     public void Show()
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -143,10 +156,13 @@ public class MagicCircleActivator : MonoBehaviour
             return;
         }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        Debug.Log($"[MAGIC_CIRCLE] SetActive={isActive} root={magicCircleRoot.name} activeSelf={magicCircleRoot.activeSelf}");
-#endif
         magicCircleRoot.SetActive(isActive);
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        Debug.Log(
+            $"[MAGIC_CIRCLE] SetActive={isActive} root={magicCircleRoot.name} " +
+            $"activeSelf={magicCircleRoot.activeSelf} activeInHierarchy={magicCircleRoot.activeInHierarchy}");
+#endif
     }
 
     void ApplyState(YokaiState newState)
