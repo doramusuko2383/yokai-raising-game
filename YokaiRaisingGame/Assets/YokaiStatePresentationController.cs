@@ -590,14 +590,19 @@ public class YokaiStatePresentationController : MonoBehaviour
             var specialPurifyButton = purityRecoverAdButton.GetComponent<Button>();
             var specialPurifyGroup = purityRecoverAdButton.GetComponent<CanvasGroup>();
             if (specialPurifyGroup == null)
-                specialPurifyGroup = purityRecoverAdButton.AddComponent<CanvasGroup>();
+            {
+                Debug.LogWarning("[UI] PurityRecoverAdButton is missing CanvasGroup.");
+            }
 
             if (showSpecialPurify)
             {
                 purityRecoverAdButton.SetActive(true);
-                specialPurifyGroup.alpha = 1f;
-                specialPurifyGroup.interactable = true;
-                specialPurifyGroup.blocksRaycasts = true;
+                if (specialPurifyGroup != null)
+                {
+                    specialPurifyGroup.alpha = 1f;
+                    specialPurifyGroup.interactable = true;
+                    specialPurifyGroup.blocksRaycasts = true;
+                }
                 if (specialPurifyButton != null)
                 {
                     specialPurifyButton.interactable = true;
@@ -739,7 +744,10 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         CanvasGroup group = target.GetComponent<CanvasGroup>();
         if (group == null)
-            group = target.AddComponent<CanvasGroup>();
+        {
+            Debug.LogWarning($"[UI] Missing CanvasGroup on {target.name}. Skipping ApplyCanvasGroup.");
+            return;
+        }
 
         group.alpha = visible ? 1f : 0f;
         group.interactable = interactable;
