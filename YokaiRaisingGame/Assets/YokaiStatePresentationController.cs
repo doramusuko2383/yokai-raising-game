@@ -564,7 +564,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (actionPanel == null)
             return;
 
-        // 初期化（ここだけ）
+        // まず全OFF（ここ以外でOFFにしない）
         actionPanel.SetActive(false);
 
         purifyButton?.SetActive(false);
@@ -597,7 +597,9 @@ public class YokaiStatePresentationController : MonoBehaviour
                 break;
         }
 
-        Debug.Log($"[UI FINAL LOCKED] state={state} PurityAd={purityRecoverAdButton?.activeSelf}");
+        Debug.Log(
+            $"[UI FINAL LOCKED] state={state} PurityAd={purityRecoverAdButton?.activeSelf}"
+        );
     }
 
     void LogPurityRecoverButtonState()
