@@ -197,18 +197,18 @@ public class YokaiStateController : MonoBehaviour
 
     YokaiState DetermineNextState(YokaiState? requestedState = null)
     {
-        if (!requestedState.HasValue)
-        {
-            if (isPurifying)
-                return YokaiState.Purifying;
+        if (isPurifying)
+            return YokaiState.Purifying;
 
+        if (requestedState.HasValue)
+        {
             if (isPurityEmpty)
                 return YokaiState.PurityEmpty;
 
             if (isSpiritEmpty)
                 return YokaiState.EnergyEmpty;
 
-            if ((currentState == YokaiState.Purifying && isPurifying)
+            if ((currentState == YokaiState.Purifying && !isPurifying)
                 || currentState == YokaiState.Evolving
                 || currentState == YokaiState.EvolutionReady)
                 return currentState;
@@ -216,16 +216,13 @@ public class YokaiStateController : MonoBehaviour
             return YokaiState.Normal;
         }
 
-        if (isPurifying)
-            return YokaiState.Purifying;
-
         if (isPurityEmpty)
             return YokaiState.PurityEmpty;
 
         if (isSpiritEmpty)
             return YokaiState.EnergyEmpty;
 
-        return requestedState.Value;
+        return YokaiState.Normal;
     }
 
     public void SetState(YokaiState newState, string reason)
