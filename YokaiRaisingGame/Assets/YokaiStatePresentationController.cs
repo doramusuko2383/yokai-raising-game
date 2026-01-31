@@ -8,6 +8,13 @@ namespace Yokai
 {
 public class YokaiStatePresentationController : MonoBehaviour
 {
+    enum UIVisibility
+    {
+        Hidden,
+        Disabled,
+        Enabled
+    }
+
     [Header("Dependencies")]
     [SerializeField]
     YokaiStateController stateController;
@@ -573,74 +580,28 @@ public class YokaiStatePresentationController : MonoBehaviour
             && stateController != null
             && stateController.CanUseSpecialDango;
         bool showActionPanel = showNormalActions || showSpecialPurify || showSpecialDango;
+        UIVisibility actionPanelVisibility = UIVisibility.Hidden;
+        if (showNormalActions)
+            actionPanelVisibility = UIVisibility.Enabled;
+        else if (showActionPanel)
+            actionPanelVisibility = UIVisibility.Disabled;
+
         if (actionPanel != null)
-        {
-            actionPanel.SetActive(showActionPanel);
-            ApplyCanvasGroup(actionPanel, showActionPanel, showActionPanel);
-        }
+            ApplyUIState(actionPanel, actionPanelVisibility);
 
         if (recoverAdButton != null)
-        {
-            recoverAdButton.SetActive(showSpecialDango);
-            ApplyCanvasGroup(recoverAdButton, showSpecialDango, showSpecialDango);
-        }
+            ApplyUIState(recoverAdButton, showSpecialDango ? UIVisibility.Enabled : UIVisibility.Hidden);
 
         if (purityRecoverAdButton != null)
         {
-            var specialPurifyButton = purityRecoverAdButton.GetComponent<Button>();
-            var specialPurifyGroup = purityRecoverAdButton.GetComponent<CanvasGroup>();
-            if (specialPurifyGroup == null)
-            {
-                Debug.LogWarning("[UI] PurityRecoverAdButton is missing CanvasGroup.");
-            }
-
-            if (showSpecialPurify)
-            {
-                purityRecoverAdButton.SetActive(true);
-                if (specialPurifyGroup != null)
-                {
-                    specialPurifyGroup.alpha = 1f;
-                    specialPurifyGroup.interactable = true;
-                    specialPurifyGroup.blocksRaycasts = true;
-                }
-                if (specialPurifyButton != null)
-                {
-                    specialPurifyButton.interactable = true;
-                    specialPurifyButton.enabled = true;
-                }
-            }
-            else
-            {
-                purityRecoverAdButton.SetActive(false);
-                ApplyCanvasGroup(purityRecoverAdButton, false, false);
-                if (specialPurifyButton != null)
-                {
-                    specialPurifyButton.interactable = false;
-                    specialPurifyButton.enabled = false;
-                }
-            }
+            ApplyUIState(purityRecoverAdButton, showSpecialPurify ? UIVisibility.Enabled : UIVisibility.Hidden);
         }
 
         if (legacyPurityRecoverAdButton != null)
-            legacyPurityRecoverAdButton.SetActive(false);
+            ApplyUIState(legacyPurityRecoverAdButton, UIVisibility.Hidden);
 
         if (purifyStopButton != null)
-            ApplyCanvasGroup(purifyStopButton, false, false);
-
-        if (actionPanel != null && showNormalActions)
-        {
-            var buttons = actionPanel.GetComponentsInChildren<Button>(true);
-            foreach (var button in buttons)
-            {
-                if (button == null)
-                    continue;
-
-                bool shouldShow = true;
-                ApplyCanvasGroup(button.gameObject, shouldShow, shouldShow);
-                button.interactable = shouldShow;
-                button.enabled = shouldShow;
-            }
-        }
+            ApplyUIState(purifyStopButton, UIVisibility.Hidden);
 
         Debug.Log($"[UI] ActionButtons: Normal={showNormalActions} SpecialPurify={showSpecialPurify} SpecialDango={showSpecialDango}");
 
@@ -706,38 +667,27 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (actionPanel != null)
         {
-            ApplyCanvasGroup(actionPanel, false, false);
-            var buttons = actionPanel.GetComponentsInChildren<Button>(true);
-            foreach (var button in buttons)
-            {
-                if (button == null)
-                    continue;
-
-                ApplyCanvasGroup(button.gameObject, false, false);
-                button.interactable = false;
-                button.enabled = false;
-            }
+            ApplyUIState(actionPanel, UIVisibility.Hidden);
         }
 
         if (recoverAdButton != null)
         {
-            ApplyCanvasGroup(recoverAdButton, false, false);
+            ApplyUIState(recoverAdButton, UIVisibility.Hidden);
         }
 
         if (purityRecoverAdButton != null)
         {
-            ApplyCanvasGroup(purityRecoverAdButton, false, false);
+            ApplyUIState(purityRecoverAdButton, UIVisibility.Hidden);
         }
 
         if (legacyPurityRecoverAdButton != null)
-            legacyPurityRecoverAdButton.SetActive(false);
+            ApplyUIState(legacyPurityRecoverAdButton, UIVisibility.Hidden);
 
         if (purifyStopButton != null)
-            ApplyCanvasGroup(purifyStopButton, false, false);
+            ApplyUIState(purifyStopButton, UIVisibility.Hidden);
     }
 
-
-    void ApplyCanvasGroup(GameObject target, bool visible, bool interactable)
+    void ApplyUIState(GameObject target, UIVisibility visibility)
     {
         if (target == null)
             return;
@@ -745,17 +695,28 @@ public class YokaiStatePresentationController : MonoBehaviour
         CanvasGroup group = target.GetComponent<CanvasGroup>();
         if (group == null)
         {
-            Debug.LogWarning($"[UI] Missing CanvasGroup on {target.name}. Skipping ApplyCanvasGroup.");
+            Debug.LogWarning($"[UI] Missing CanvasGroup on {target.name}. Skipping ApplyUIState.");
             return;
         }
 
-        group.alpha = visible ? 1f : 0f;
-        group.interactable = interactable;
-        group.blocksRaycasts = interactable;
-
-        var selectable = target.GetComponent<Selectable>();
-        if (selectable != null)
-            selectable.interactable = interactable;
+        switch (visibility)
+        {
+            case UIVisibility.Hidden:
+                group.alpha = 0f;
+                group.interactable = false;
+                group.blocksRaycasts = false;
+                break;
+            case UIVisibility.Disabled:
+                group.alpha = 0.4f;
+                group.interactable = false;
+                group.blocksRaycasts = false;
+                break;
+            case UIVisibility.Enabled:
+                group.alpha = 1f;
+                group.interactable = true;
+                group.blocksRaycasts = true;
+                break;
+        }
     }
 
     void UpdateDangerEffects()
