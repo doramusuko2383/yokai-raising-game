@@ -230,7 +230,10 @@ public class YokaiStateController : MonoBehaviour
     public void SetState(YokaiState newState, string reason)
     {
         if (currentState == newState)
+        {
+            Debug.Log($"[STATE SKIP] {newState} already active ({reason})");
             return;
+        }
 
         var prev = currentState;
         currentState = newState;
