@@ -185,6 +185,7 @@ public class YokaiStateController : MonoBehaviour
         {
             SetState(nextState, reason);
             ApplyEmptyStateEffects();
+            SyncPresentation(nextState, force: false);
             CheckForUnknownStateWarning();
             return;
         }
