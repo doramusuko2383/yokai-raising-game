@@ -76,6 +76,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isPurityEmptyMotionApplied;
     Coroutine purityEmptyReleaseRoutine;
     YokaiState? lastAppliedState;
+    YokaiState? lastUIAppliedState = null;
     bool hasPlayedPurityEmptyEnter;
     bool hasPlayedEnergyEmptyEnter;
     bool hasPlayedPurifyStartSE; // Purify開始SEの二重再生防止フラグ
@@ -537,6 +538,13 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (actionPanel == null)
             return;
+
+        if (lastUIAppliedState.HasValue && lastUIAppliedState.Value == state)
+        {
+            Debug.Log($"[UI SKIP] state={state} (already applied)");
+            return;
+        }
+        lastUIAppliedState = state;
 
         // 初期化（必ず一度すべてOFF）
         actionPanel.SetActive(false);
