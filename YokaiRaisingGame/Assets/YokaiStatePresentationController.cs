@@ -337,9 +337,11 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         SyncMagicCircleForState(state);
         ApplyDangerEffectsForState(state);
-        lastAppliedState = state;
-        // UI updates are centralized here to avoid redundant refreshes.
+
+        // UI updates are centralized here
         ApplyActionUIForState(state);
+
+        lastAppliedState = state;
     }
 
     void HandleStateEnter(YokaiState state, YokaiState? previousState)
@@ -587,7 +589,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
 
         Debug.Log(
-            $"[UI FINAL LOCKED] state={state} PurityAd={purityRecoverAdButton?.activeSelf}"
+            "[UI FINAL CONFIRMED] " +
+            $"state={state} PurityAd={purityRecoverAdButton?.activeSelf} frame={Time.frameCount}"
         );
     }
 
