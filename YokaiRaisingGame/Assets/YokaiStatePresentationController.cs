@@ -325,7 +325,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (force && !shouldForceEnter)
         {
-            SyncUIForState(state);
+            ApplyActionUIForState(state);
             SyncMagicCircleForState(state);
             lastAppliedState = state;
             return;
@@ -335,7 +335,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             HandleStateExit(previousState.Value, state);
 
         HandleStateEnter(state, previousState);
-        SyncUIForState(state);
+        ApplyActionUIForState(state);
         SyncMagicCircleForState(state);
         lastAppliedState = state;
     }
@@ -411,11 +411,6 @@ public class YokaiStatePresentationController : MonoBehaviour
                 hasPlayedPurityEmptyEnter = false;
             return;
         }
-    }
-
-    void SyncUIForState(YokaiState state)
-    {
-        ApplyActionUIForState(state);
     }
 
     void SyncMagicCircleForState(YokaiState state)
@@ -569,6 +564,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (actionPanel == null)
             return;
 
+        // 初期化（ここだけ）
         actionPanel.SetActive(false);
 
         purifyButton?.SetActive(false);
