@@ -7,28 +7,7 @@ using Yokai;
 public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
     [SerializeField]
-    float requiredAngle = 270f;
-
-    [SerializeField]
-    float minRadiusRatio = 0.55f;
-
-    [SerializeField]
-    float maxRadiusRatio = 1.05f;
-
-    [SerializeField]
-    int minimumSamples = 12;
-
-    [SerializeField]
-    float maxAngleJump = 70f;
-
-    [SerializeField]
-    float minAngleDelta = 0.5f;
-
-    [SerializeField]
-    float minTravelDistanceRatio = 0.75f;
-
-    [SerializeField]
-    float timeLimitSeconds = 2.5f;
+    float chargeDurationSeconds = 1.6f;
 
     [SerializeField]
     float guideFadeDuration = 0.25f;
@@ -39,7 +18,11 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     [SerializeField]
     Image magicCircleGuide;
 
-    [Header("Trail")]
+    [Header("Pentagram")]
+    [SerializeField]
+    PentagramDrawer pentagramDrawer;
+
+    [Header("Trail (Legacy)")]
     [SerializeField]
     LineRenderer swipeTrail;
 
@@ -71,16 +54,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     bool isTracking;
     bool isCompleted;
     bool hasAppliedPurify;
-    bool hasInvalidRadius;
-    bool hasInvalidPath;
-    float totalAngle;
-    float totalTravelDistance;
-    float previousAngle;
-    Vector2 previousPoint;
-    float directionSign;
-    bool hasDirection;
-    int sampleCount;
-    float swipeStartTime;
+    float pressStartTime;
     bool wasPurifying;
     CanvasGroup guideCanvasGroup;
     Coroutine guideFadeCoroutine;
@@ -96,7 +70,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         ResolveMagicCircleActivator();
         SetupGuideCanvas();
         SetupTrailRenderer();
-        ClearTrail(immediate: true);
+        ResetChargeVisuals(immediate: true);
         ToggleGuide(IsPurifying(), immediate: true);
     }
 
@@ -104,8 +78,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
     {
         CurrentYokaiContext.CurrentChanged -= HandleCurrentYokaiChanged;
         BindStateController(null);
-        //ToggleGuide(false, immediate: true);
-        //ClearTrail(immediate: true);
     }
 
     void Update()
@@ -119,18 +91,12 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             {
                 isTracking = false;
                 isCompleted = false;
-                ClearTrail(immediate: true);
+                ResetChargeVisuals(immediate: true);
             }
         }
 
-        if (isTracking && timeLimitSeconds > 0f)
-        {
-            float elapsed = Time.unscaledTime - swipeStartTime;
-            if (elapsed > timeLimitSeconds)
-            {
-                CancelSwipe("時間切れ");
-            }
-        }
+        if (isTracking)
+            UpdateChargeProgress();
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -143,23 +109,8 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         isTracking = true;
         isCompleted = false;
         hasAppliedPurify = false;
-        hasInvalidRadius = false;
-        hasInvalidPath = false;
-        totalAngle = 0f;
-        totalTravelDistance = 0f;
-        sampleCount = 0;
-        previousAngle = GetAngleFromCenter(eventData.position, eventData.pressEventCamera);
-        previousPoint = GetLocalPoint(eventData.position, eventData.pressEventCamera);
-        directionSign = 0f;
-        hasDirection = false;
-        swipeStartTime = Time.unscaledTime;
-
-        StartTrail(eventData.position, eventData.pressEventCamera);
-
-        if (!IsWithinRadius(eventData.position, eventData.pressEventCamera))
-        {
-            CancelSwipe("円外開始");
-        }
+        pressStartTime = Time.unscaledTime;
+        ResetChargeVisuals(immediate: true);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -167,48 +118,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         if (!isTracking || isCompleted)
             return;
 
-        AddTrailPoint(eventData.position, eventData.pressEventCamera);
-
-        float angle = GetAngleFromCenter(eventData.position, eventData.pressEventCamera);
-        Vector2 localPoint = GetLocalPoint(eventData.position, eventData.pressEventCamera);
-        float deltaAngle = Mathf.DeltaAngle(previousAngle, angle);
-        float absDelta = Mathf.Abs(deltaAngle);
-        previousAngle = angle;
-
-        if (absDelta < minAngleDelta)
-            return;
-
-        if (!hasDirection)
-        {
-            directionSign = Mathf.Sign(deltaAngle);
-            hasDirection = true;
-        }
-        else if (Mathf.Sign(deltaAngle) != directionSign)
-        {
-            hasInvalidPath = true;
-        }
-
-        if (absDelta > maxAngleJump)
-        {
-            hasInvalidPath = true;
-        }
-
-        totalAngle += deltaAngle;
-        totalTravelDistance += Vector2.Distance(previousPoint, localPoint);
-        previousPoint = localPoint;
-        sampleCount++;
-        if (!IsWithinRadius(eventData.position, eventData.pressEventCamera))
-        {
-            CancelSwipe("円外逸脱");
-            return;
-        }
-
-        if (IsGestureComplete())
-        {
-            isCompleted = true;
-            isTracking = false;
-            HandleSwipeSuccess();
-        }
+        UpdateChargeProgress();
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -263,7 +173,7 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         if (hasAppliedPurify)
             return;
 
-        ClearTrail(immediate: true);
+        ResetChargeVisuals(immediate: true);
         PulseMagicCircle();
 
         if (magicCircleActivator != null)
@@ -285,26 +195,6 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         ToggleGuide(false, immediate: false);
     }
 
-    bool IsGestureComplete()
-    {
-        if (sampleCount < minimumSamples)
-            return false;
-
-        if (Mathf.Abs(totalAngle) < requiredAngle)
-            return false;
-
-        if (totalTravelDistance < GetRequiredTravelDistance())
-            return false;
-
-        if (hasInvalidRadius)
-            return false;
-
-        if (hasInvalidPath)
-            return false;
-
-        return true;
-    }
-
     void CancelSwipe(string reason)
     {
         if (!isTracking)
@@ -312,74 +202,29 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
 
         isTracking = false;
         isCompleted = false;
-        ClearTrail(immediate: false);
+        ReverseChargeVisuals();
         if (IsPurifying())
             stateController.CancelPurifying("SwipeCancelled");
         ToggleGuide(false, immediate: false);
     }
 
-    float GetAngleFromCenter(Vector2 screenPosition, Camera eventCamera)
+    void UpdateChargeProgress()
     {
-        RectTransform targetRect = circleRect != null ? circleRect : transform as RectTransform;
-        if (targetRect == null)
-            return 0f;
+        float duration = Mathf.Max(0.1f, chargeDurationSeconds);
+        float elapsed = Time.unscaledTime - pressStartTime;
+        float progress = Mathf.Clamp01(elapsed / duration);
 
-        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                targetRect,
-                screenPosition,
-                eventCamera,
-                out Vector2 localPoint))
-            return 0f;
+        if (pentagramDrawer != null)
+            pentagramDrawer.SetProgress(progress);
 
-        return Mathf.Atan2(localPoint.y, localPoint.x) * Mathf.Rad2Deg;
-    }
-
-    Vector2 GetLocalPoint(Vector2 screenPosition, Camera eventCamera)
-    {
-        RectTransform targetRect = circleRect != null ? circleRect : transform as RectTransform;
-        if (targetRect == null)
-            return Vector2.zero;
-
-        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                targetRect,
-                screenPosition,
-                eventCamera,
-                out Vector2 localPoint))
-            return Vector2.zero;
-
-        return localPoint;
-    }
-
-    bool IsWithinRadius(Vector2 screenPosition, Camera eventCamera)
-    {
-        RectTransform targetRect = circleRect != null ? circleRect : transform as RectTransform;
-        if (targetRect == null)
-            return true;
-
-        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                targetRect,
-                screenPosition,
-                eventCamera,
-                out Vector2 localPoint))
-            return false;
-
-        float radius = targetRect.rect.width * 0.5f;
-        float minRadius = radius * minRadiusRatio;
-        float maxRadius = radius * maxRadiusRatio;
-        float distance = localPoint.magnitude;
-
-        return distance >= minRadius && distance <= maxRadius;
-    }
-
-    float GetRequiredTravelDistance()
-    {
-        RectTransform targetRect = circleRect != null ? circleRect : transform as RectTransform;
-        if (targetRect == null)
-            return 0f;
-
-        float radius = targetRect.rect.width * 0.5f;
-        float requiredArc = Mathf.Deg2Rad * requiredAngle * radius;
-        return Mathf.Abs(requiredArc) * Mathf.Clamp01(minTravelDistanceRatio);
+        if (progress >= 1f && !isCompleted)
+        {
+            isCompleted = true;
+            isTracking = false;
+            HandleSwipeSuccess();
+            if (pentagramDrawer != null)
+                pentagramDrawer.PlayCompleteFlash();
+        }
     }
 
     void ToggleGuide(bool isVisible)
@@ -531,6 +376,30 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
         }
 
         trailFadeCoroutine = StartCoroutine(FadeTrail());
+    }
+
+    void ResetChargeVisuals(bool immediate)
+    {
+        if (pentagramDrawer != null)
+        {
+            if (immediate)
+                pentagramDrawer.ResetImmediate();
+            else
+                pentagramDrawer.SetProgress(0f);
+        }
+
+        ClearTrail(immediate: true);
+    }
+
+    void ReverseChargeVisuals()
+    {
+        if (pentagramDrawer != null)
+        {
+            pentagramDrawer.ReverseAndClear();
+            return;
+        }
+
+        ClearTrail(immediate: false);
     }
 
     System.Collections.IEnumerator FadeTrail()
