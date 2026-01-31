@@ -325,14 +325,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (force && !shouldForceEnter)
         {
-            if (state == YokaiState.PurityEmpty)
-            {
-                ApplyActionUIForState(state);
-                SyncMagicCircleForState(state);
-                lastAppliedState = state;
-                return;
-            }
-
             SyncUIForState(state);
             SyncMagicCircleForState(state);
             lastAppliedState = state;
@@ -343,13 +335,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             HandleStateExit(previousState.Value, state);
 
         HandleStateEnter(state, previousState);
-        if (state == YokaiState.PurityEmpty)
-        {
-            SyncMagicCircleForState(state);
-            lastAppliedState = state;
-            return;
-        }
-
         SyncUIForState(state);
         SyncMagicCircleForState(state);
         lastAppliedState = state;
@@ -371,10 +356,8 @@ public class YokaiStatePresentationController : MonoBehaviour
                 PlayStateEnterSE(state);
                 hasPlayedPurityEmptyEnter = true;
             }
-            return;
         }
-
-        if (state == YokaiState.EnergyEmpty)
+        else if (state == YokaiState.EnergyEmpty)
         {
             EnterEnergyEmpty();
             ApplyDangerOverlayForState(state);
@@ -433,12 +416,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void SyncUIForState(YokaiState state)
     {
-        if (state == YokaiState.PurityEmpty)
-        {
-            ApplyActionUIForState(state);
-            return;
-        }
-
         ApplyActionUIForState(state);
     }
 
@@ -596,47 +573,50 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (state == YokaiState.PurityEmpty)
         {
             actionPanel.SetActive(true);
-            if (purifyButton != null) purifyButton.SetActive(false);
-            if (dangoButton != null) dangoButton.SetActive(false);
-            if (purityRecoverAdButton != null) purityRecoverAdButton.SetActive(true);
-            if (recoverAdButton != null) recoverAdButton.SetActive(false);
-
-            Debug.Log("[UI FINAL][LOCKED] PurityEmpty -> PurityRecoverAd ON");
-            return;
+            if (purifyButton != null)
+                purifyButton.SetActive(false);
+            if (dangoButton != null)
+                dangoButton.SetActive(false);
+            if (purityRecoverAdButton != null)
+                purityRecoverAdButton.SetActive(true);
+            if (recoverAdButton != null)
+                recoverAdButton.SetActive(false);
         }
-
-        switch (state)
+        else
         {
-            case YokaiState.Normal:
-                actionPanel.SetActive(true);
-                if (purifyButton != null)
-                    purifyButton.SetActive(true);
-                if (dangoButton != null)
-                    dangoButton.SetActive(true);
-                if (purityRecoverAdButton != null)
-                    purityRecoverAdButton.SetActive(false);
-                if (recoverAdButton != null)
-                    recoverAdButton.SetActive(false);
-                break;
+            switch (state)
+            {
+                case YokaiState.Normal:
+                    actionPanel.SetActive(true);
+                    if (purifyButton != null)
+                        purifyButton.SetActive(true);
+                    if (dangoButton != null)
+                        dangoButton.SetActive(true);
+                    if (purityRecoverAdButton != null)
+                        purityRecoverAdButton.SetActive(false);
+                    if (recoverAdButton != null)
+                        recoverAdButton.SetActive(false);
+                    break;
 
-            case YokaiState.EnergyEmpty:
-                actionPanel.SetActive(true);
-                if (purifyButton != null)
-                    purifyButton.SetActive(false);
-                if (dangoButton != null)
-                    dangoButton.SetActive(false);
-                if (purityRecoverAdButton != null)
-                    purityRecoverAdButton.SetActive(false);
-                if (recoverAdButton != null)
-                    recoverAdButton.SetActive(true);
-                break;
+                case YokaiState.EnergyEmpty:
+                    actionPanel.SetActive(true);
+                    if (purifyButton != null)
+                        purifyButton.SetActive(false);
+                    if (dangoButton != null)
+                        dangoButton.SetActive(false);
+                    if (purityRecoverAdButton != null)
+                        purityRecoverAdButton.SetActive(false);
+                    if (recoverAdButton != null)
+                        recoverAdButton.SetActive(true);
+                    break;
 
-            case YokaiState.EvolutionReady:
-                actionPanel.SetActive(false);
-                break;
+                case YokaiState.EvolutionReady:
+                    actionPanel.SetActive(false);
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
+            }
         }
 
         if (legacyPurityRecoverAdButton != null)
