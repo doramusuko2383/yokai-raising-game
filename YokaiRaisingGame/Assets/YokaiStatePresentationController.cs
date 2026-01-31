@@ -571,6 +571,31 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (actionPanel == null)
             return;
 
+        if (state == YokaiState.PurityEmpty)
+        {
+            actionPanel.SetActive(true);
+            if (purifyButton != null)
+                purifyButton.SetActive(false);
+            if (dangoButton != null)
+                dangoButton.SetActive(false);
+            if (purityRecoverAdButton != null)
+                purityRecoverAdButton.SetActive(true);
+            if (recoverAdButton != null)
+                recoverAdButton.SetActive(false);
+            if (legacyPurityRecoverAdButton != null)
+                legacyPurityRecoverAdButton.SetActive(false);
+            if (purifyStopButton != null)
+                purifyStopButton.SetActive(false);
+
+            Debug.Log(
+                "[UI FINAL] " +
+                $"Purify={(purifyButton != null && purifyButton.activeSelf)}, " +
+                $"Dango={(dangoButton != null && dangoButton.activeSelf)}, " +
+                $"PurityAd={(purityRecoverAdButton != null && purityRecoverAdButton.activeSelf)}, " +
+                $"EnergyAd={(recoverAdButton != null && recoverAdButton.activeSelf)}");
+            return;
+        }
+
         switch (state)
         {
             case YokaiState.Normal:
@@ -581,18 +606,6 @@ public class YokaiStatePresentationController : MonoBehaviour
                     dangoButton.SetActive(true);
                 if (purityRecoverAdButton != null)
                     purityRecoverAdButton.SetActive(false);
-                if (recoverAdButton != null)
-                    recoverAdButton.SetActive(false);
-                break;
-
-            case YokaiState.PurityEmpty:
-                actionPanel.SetActive(true);
-                if (purifyButton != null)
-                    purifyButton.SetActive(false);
-                if (dangoButton != null)
-                    dangoButton.SetActive(false);
-                if (purityRecoverAdButton != null)
-                    purityRecoverAdButton.SetActive(true);
                 if (recoverAdButton != null)
                     recoverAdButton.SetActive(false);
                 break;
