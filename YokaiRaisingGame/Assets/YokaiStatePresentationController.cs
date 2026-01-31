@@ -568,12 +568,13 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyActionUIForState(YokaiState state)
     {
+        if (actionPanel == null)
+            return;
+
         switch (state)
         {
             case YokaiState.Normal:
-            case YokaiState.EvolutionReady:
-                if (actionPanel != null)
-                    actionPanel.SetActive(true);
+                actionPanel.SetActive(true);
                 if (purifyButton != null)
                     purifyButton.SetActive(true);
                 if (dangoButton != null)
@@ -585,8 +586,7 @@ public class YokaiStatePresentationController : MonoBehaviour
                 break;
 
             case YokaiState.PurityEmpty:
-                if (actionPanel != null)
-                    actionPanel.SetActive(true);
+                actionPanel.SetActive(true);
                 if (purifyButton != null)
                     purifyButton.SetActive(false);
                 if (dangoButton != null)
@@ -598,8 +598,7 @@ public class YokaiStatePresentationController : MonoBehaviour
                 break;
 
             case YokaiState.EnergyEmpty:
-                if (actionPanel != null)
-                    actionPanel.SetActive(true);
+                actionPanel.SetActive(true);
                 if (purifyButton != null)
                     purifyButton.SetActive(false);
                 if (dangoButton != null)
@@ -610,9 +609,12 @@ public class YokaiStatePresentationController : MonoBehaviour
                     recoverAdButton.SetActive(true);
                 break;
 
+            case YokaiState.EvolutionReady:
+                actionPanel.SetActive(false);
+                break;
+
             default:
-                if (actionPanel != null)
-                    actionPanel.SetActive(false);
+                actionPanel.SetActive(false);
                 if (purifyButton != null)
                     purifyButton.SetActive(false);
                 if (dangoButton != null)
