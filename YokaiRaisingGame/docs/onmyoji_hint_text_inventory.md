@@ -2,7 +2,7 @@
 
 | 発生条件 | ファイル名 | 行数 | 表示テキスト |
 | --- | --- | --- | --- |
-| おきよめ操作中のガイド | Assets/MagicCircleSwipeController.cs | 141 | 円をなぞって おはらい |
+| おきよめ操作中のガイド | Assets/MagicCircleSwipeController.cs | 141 | おきよめボタンを ながおし |
 | おきよめ成功直後 | Assets/MagicCircleSwipeController.cs | 141 | おはらい 完了 |
 | チュートリアル: だんご | Assets/TutorialManager.cs | 252-253 | だんごをあげてみよう！ |
 | チュートリアル: 清浄度注意 | Assets/TutorialManager.cs | 254-255 | 放っておくと清浄度が下がるよ。ゲージを見てね！ |
