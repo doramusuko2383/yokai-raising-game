@@ -239,7 +239,7 @@ public class YokaiStateController : MonoBehaviour
         CheckForUnknownStateWarning();
     }
 
-    public void BeginPurifying()
+    public void BeginPurifying(string reason = "BeginPurify")
     {
         if (currentState != YokaiState.Normal && currentState != YokaiState.PurityEmpty)
             return;
@@ -251,7 +251,7 @@ public class YokaiStateController : MonoBehaviour
         NotifyUserInteraction();
         isPurifying = true;
         IsPurifyTriggeredByUser = true;
-        SetState(YokaiState.Purifying, "BeginPurify");
+        SetState(YokaiState.Purifying, reason);
         ForceSyncPresentation(YokaiState.Purifying);
     }
 
