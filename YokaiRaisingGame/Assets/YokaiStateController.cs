@@ -198,7 +198,9 @@ public class YokaiStateController : MonoBehaviour
     YokaiState DetermineNextState(YokaiState? requestedState = null)
     {
         if (isPurifying)
+        {
             return YokaiState.Purifying;
+        }
 
         if (requestedState.HasValue)
         {
