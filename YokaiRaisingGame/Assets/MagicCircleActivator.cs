@@ -142,7 +142,7 @@ public class MagicCircleActivator : MonoBehaviour
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log($"[MAGIC_CIRCLE] HandleStateChanged: {previousState} -> {newState}");
 #endif
-        if (newState == YokaiState.Purifying)
+        if (newState == YokaiState.Purifying || (stateController != null && stateController.isPurifying))
             Show();
         else
             Hide();
@@ -187,7 +187,7 @@ public class MagicCircleActivator : MonoBehaviour
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log($"[MAGIC_CIRCLE] ApplyState direct: {newState}");
 #endif
-        if (newState == YokaiState.Purifying)
+        if (newState == YokaiState.Purifying || (stateController != null && stateController.isPurifying))
             Show();
         else
             Hide();
