@@ -66,6 +66,18 @@ public class PurifyChargeController : MonoBehaviour
         }
     }
 
+    void OnDisable()
+    {
+        isCharging = false;
+        currentCharge = 0f;
+        hasSucceeded = false;
+
+        if (pentagramDrawer != null)
+        {
+            pentagramDrawer.ReverseAndClear();
+        }
+    }
+
     void CompletePurify()
     {
         if (hasSucceeded)
