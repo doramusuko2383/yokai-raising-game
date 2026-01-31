@@ -535,17 +535,10 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyActionUIForState(YokaiState state)
     {
-        if (dangerOverlay != null)
-        {
-            EnsureDangerOverlayLayout();
-            bool showDangerOverlay = state == YokaiState.PurityEmpty;
-            dangerOverlay.SetActive(showDangerOverlay);
-        }
-
         if (actionPanel == null)
             return;
 
-        // まず全OFF（ここ以外でOFFにしない）
+        // 初期化（必ず一度すべてOFF）
         actionPanel.SetActive(false);
 
         purifyButton?.SetActive(false);
