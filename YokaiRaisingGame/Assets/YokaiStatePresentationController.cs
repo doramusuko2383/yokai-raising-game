@@ -8,12 +8,6 @@ namespace Yokai
 {
 public class YokaiStatePresentationController : MonoBehaviour
 {
-    enum Visibility
-    {
-        Hidden,
-        Enabled,
-    }
-
     [Header("Dependencies")]
     [SerializeField]
     YokaiStateController stateController;
@@ -21,6 +15,12 @@ public class YokaiStatePresentationController : MonoBehaviour
     [Header("UI")]
     [SerializeField]
     GameObject actionPanel;
+
+    [SerializeField]
+    GameObject purifyButton;
+
+    [SerializeField]
+    GameObject dangoButton;
 
     [SerializeField]
     GameObject purityRecoverAdButton;
@@ -32,16 +32,13 @@ public class YokaiStatePresentationController : MonoBehaviour
     MagicCircleActivator magicCircleActivator;
 
     [SerializeField]
-    CanvasGroup dangerOverlay;
+    GameObject dangerOverlay;
 
     [Header("Danger Effect")]
     [SerializeField]
     YokaiDangerEffect[] dangerEffects;
 
     [Header("Purity Empty Visuals")]
-    [SerializeField]
-    float purityEmptyOverlayAlpha = 0.2f;
-
     [SerializeField]
     float purityEmptyDarkenIntensity = 0.2f;
 
@@ -511,6 +508,10 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (actionPanel == null)
             missing.Add("ActionPanel");
+        if (purifyButton == null)
+            missing.Add("PurifyButton");
+        if (dangoButton == null)
+            missing.Add("DangoButton");
         if (purityRecoverAdButton == null)
             missing.Add("PurityRecoverAdButton");
         if (purifyStopButton == null)
@@ -540,9 +541,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         EnsureDangerOverlayLayout();
         bool showDangerOverlay = visualState == YokaiState.PurityEmpty;
-        dangerOverlay.alpha = showDangerOverlay ? Mathf.Clamp01(purityEmptyOverlayAlpha) : 0f;
-        dangerOverlay.blocksRaycasts = false;
-        dangerOverlay.interactable = false;
+        dangerOverlay.SetActive(showDangerOverlay);
     }
 
     void ApplyDangerEffectsForState(YokaiState visualState)
@@ -569,8 +568,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyActionUIForState(YokaiState state)
     {
-        HideAllActionButtons();
-
         bool showNormalActions = state == YokaiState.Normal || state == YokaiState.EvolutionReady;
         bool showSpecialPurify = state == YokaiState.PurityEmpty
             && stateController != null
@@ -578,17 +575,22 @@ public class YokaiStatePresentationController : MonoBehaviour
         bool showSpecialDango = state == YokaiState.EnergyEmpty
             && stateController != null
             && stateController.CanUseSpecialDango;
-        Visibility actionPanelVisibility = showNormalActions || showSpecialPurify || showSpecialDango
-            ? Visibility.Enabled
-            : Visibility.Hidden;
-        Visibility recoverAdVisibility = showSpecialDango ? Visibility.Enabled : Visibility.Hidden;
-        Visibility purityRecoverVisibility = showSpecialPurify ? Visibility.Enabled : Visibility.Hidden;
+        bool showActionPanel = showNormalActions || showSpecialPurify || showSpecialDango;
 
-        ApplyVisibility(actionPanel, actionPanelVisibility);
-        ApplyVisibility(recoverAdButton, recoverAdVisibility);
-        ApplyVisibility(purityRecoverAdButton, purityRecoverVisibility);
-        ApplyVisibility(legacyPurityRecoverAdButton, Visibility.Hidden);
-        ApplyVisibility(purifyStopButton, Visibility.Hidden);
+        if (actionPanel != null)
+            actionPanel.SetActive(showActionPanel);
+        if (purifyButton != null)
+            purifyButton.SetActive(showNormalActions);
+        if (dangoButton != null)
+            dangoButton.SetActive(showNormalActions);
+        if (recoverAdButton != null)
+            recoverAdButton.SetActive(showSpecialDango);
+        if (purityRecoverAdButton != null)
+            purityRecoverAdButton.SetActive(showSpecialPurify);
+        if (legacyPurityRecoverAdButton != null)
+            legacyPurityRecoverAdButton.SetActive(false);
+        if (purifyStopButton != null)
+            purifyStopButton.SetActive(false);
 
         Debug.Log($"[UI] ActionButtons: Normal={showNormalActions} SpecialPurify={showSpecialPurify} SpecialDango={showSpecialDango}");
 
@@ -617,7 +619,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (purityRecoverAdButton == null)
         {
-            Debug.Log("[PURITY_UI] activeSelf=missing activeInHierarchy=missing interactable=missing canvas(alpha=missing interactable=missing blocksRaycasts=missing)");
+            Debug.Log("[PURITY_UI] activeSelf=missing activeInHierarchy=missing");
             return;
         }
 
@@ -625,41 +627,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             "[PURITY_UI] " +
             $"activeSelf={purityRecoverAdButton.activeSelf} " +
             $"activeInHierarchy={purityRecoverAdButton.activeInHierarchy}");
-    }
-
-    void HideAllActionButtons()
-    {
-        ApplyVisibility(actionPanel, Visibility.Hidden);
-        ApplyVisibility(recoverAdButton, Visibility.Hidden);
-        ApplyVisibility(purityRecoverAdButton, Visibility.Hidden);
-        ApplyVisibility(legacyPurityRecoverAdButton, Visibility.Hidden);
-        ApplyVisibility(purifyStopButton, Visibility.Hidden);
-    }
-
-    void ApplyVisibility(GameObject target, Visibility visibility)
-    {
-        if (target == null)
-            return;
-
-        if (visibility == Visibility.Hidden)
-        {
-            target.SetActive(false);
-            return;
-        }
-
-        target.SetActive(true);
-
-        CanvasGroup canvasGroup = target.GetComponent<CanvasGroup>();
-        if (canvasGroup != null)
-        {
-            canvasGroup.alpha = 1f;
-            canvasGroup.interactable = true;
-            canvasGroup.blocksRaycasts = true;
-        }
-
-        Button button = target.GetComponent<Button>();
-        if (button != null)
-            button.interactable = true;
     }
 
     void UpdateDangerEffects()
@@ -1073,7 +1040,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             }
 
             if (overlayObject != null)
-                dangerOverlay = overlayObject.GetComponent<CanvasGroup>();
+                dangerOverlay = overlayObject;
         }
 
         if (dangerEffects == null || dangerEffects.Length == 0)
