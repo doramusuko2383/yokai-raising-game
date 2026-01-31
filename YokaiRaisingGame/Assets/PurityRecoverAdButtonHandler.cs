@@ -41,10 +41,7 @@ public class PurityRecoverAdButtonHandler : MonoBehaviour
         Debug.Log("[RECOVERY] Force start purifying via Ad");
 
 
-        controller.SetState(
-            YokaiState.Purifying,
-            "PurityRecoverAd"
-        );
+        controller.BeginPurifying("PurityRecoverAd");
     }
 
     YokaiStateController ResolveStateController()
