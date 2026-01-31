@@ -308,6 +308,12 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (TryResolveStateController() == null)
             return;
 
+        if (lastAppliedState.HasValue &&
+            lastAppliedState.Value == stateController.currentState)
+        {
+            return;
+        }
+
         ApplyState(stateController.currentState, force: false);
     }
 
