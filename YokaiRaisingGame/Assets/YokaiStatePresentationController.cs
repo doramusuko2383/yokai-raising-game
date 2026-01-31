@@ -574,25 +574,12 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (state == YokaiState.PurityEmpty)
         {
             actionPanel.SetActive(true);
-            if (purifyButton != null)
-                purifyButton.SetActive(false);
-            if (dangoButton != null)
-                dangoButton.SetActive(false);
-            if (purityRecoverAdButton != null)
-                purityRecoverAdButton.SetActive(true);
-            if (recoverAdButton != null)
-                recoverAdButton.SetActive(false);
-            if (legacyPurityRecoverAdButton != null)
-                legacyPurityRecoverAdButton.SetActive(false);
-            if (purifyStopButton != null)
-                purifyStopButton.SetActive(false);
+            if (purifyButton != null) purifyButton.SetActive(false);
+            if (dangoButton != null) dangoButton.SetActive(false);
+            if (purityRecoverAdButton != null) purityRecoverAdButton.SetActive(true);
+            if (recoverAdButton != null) recoverAdButton.SetActive(false);
 
-            Debug.Log(
-                "[UI FINAL] " +
-                $"Purify={(purifyButton != null && purifyButton.activeSelf)}, " +
-                $"Dango={(dangoButton != null && dangoButton.activeSelf)}, " +
-                $"PurityAd={(purityRecoverAdButton != null && purityRecoverAdButton.activeSelf)}, " +
-                $"EnergyAd={(recoverAdButton != null && recoverAdButton.activeSelf)}");
+            Debug.Log("[UI FINAL][LOCKED] PurityEmpty -> PurityRecoverAd ON");
             return;
         }
 
@@ -627,15 +614,6 @@ public class YokaiStatePresentationController : MonoBehaviour
                 break;
 
             default:
-                actionPanel.SetActive(false);
-                if (purifyButton != null)
-                    purifyButton.SetActive(false);
-                if (dangoButton != null)
-                    dangoButton.SetActive(false);
-                if (purityRecoverAdButton != null)
-                    purityRecoverAdButton.SetActive(false);
-                if (recoverAdButton != null)
-                    recoverAdButton.SetActive(false);
                 break;
         }
 
