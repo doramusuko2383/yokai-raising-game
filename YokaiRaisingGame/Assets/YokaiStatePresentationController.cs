@@ -332,6 +332,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         SyncMagicCircleForState(state);
         ApplyDangerEffectsForState(state);
         lastAppliedState = state;
+        // UI updates are centralized here to avoid redundant refreshes.
         ApplyActionUIForState(state);
     }
 
