@@ -570,7 +570,11 @@ public class YokaiStatePresentationController : MonoBehaviour
 
             case YokaiState.PurityEmpty:
                 actionPanel.SetActive(true);
-                purityRecoverAdButton?.SetActive(true);
+                var purityAd =
+                    purityRecoverAdButton != null
+                        ? purityRecoverAdButton
+                        : legacyPurityRecoverAdButton;
+                purityAd?.SetActive(true);
                 break;
 
             case YokaiState.EnergyEmpty:
