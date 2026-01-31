@@ -17,18 +17,34 @@ public class PurityRecoverAdButtonHandler : MonoBehaviour
 
     public void OnClickPurityRecoverAd()
     {
-        if (ResolveStateController() == null)
+        Debug.Log("[RECOVERY] PurityRecoverAd button clicked");
+
+
+        var controller = ResolveStateController();
+        if (controller == null)
         {
             WarnMissingStateController();
             return;
         }
 
-        stateController.NotifyUserInteraction();
+        Debug.Log("[RECOVERY] CurrentState=" + controller.currentState);
 
-        if (stateController.currentState != YokaiState.PurityEmpty)
+
+        controller.NotifyUserInteraction();
+
+        if (controller.currentState != YokaiState.PurityEmpty)
+        {
+            Debug.LogWarning("[RECOVERY] Click ignored: not in PurityEmpty");
             return;
+        }
 
-        stateController.BeginPurifying();
+        Debug.Log("[RECOVERY] Force start purifying via Ad");
+
+
+        controller.SetState(
+            YokaiState.Purifying,
+            "PurityRecoverAd"
+        );
     }
 
     YokaiStateController ResolveStateController()
