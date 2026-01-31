@@ -656,10 +656,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             canvasGroup.interactable = true;
             canvasGroup.blocksRaycasts = true;
         }
-        else
-        {
-            Debug.LogWarning($"[UI] Missing CanvasGroup on {target.name}");
-        }
 
         Button button = target.GetComponent<Button>();
         if (button != null)
