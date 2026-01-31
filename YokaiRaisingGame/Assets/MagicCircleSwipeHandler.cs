@@ -4,7 +4,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Yokai;
 
-public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+#if false
+public class MagicCircleSwipeHandler : MonoBehaviour
 {
     [SerializeField]
     float chargeDurationSeconds = 1.6f;
@@ -511,3 +512,4 @@ public class MagicCircleSwipeHandler : MonoBehaviour, IPointerDownHandler, IDrag
             magicCircleGuide.gameObject.SetActive(false);
     }
 }
+#endif
