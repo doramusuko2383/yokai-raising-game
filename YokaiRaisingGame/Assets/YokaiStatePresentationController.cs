@@ -332,18 +332,8 @@ public class YokaiStatePresentationController : MonoBehaviour
         SyncMagicCircleForState(state);
         ApplyDangerEffectsForState(state);
         lastAppliedState = state;
-        StartCoroutine(DelaySyncActionUI(state));
-    }
-
-    void SyncActionUI(YokaiState state)
-    {
+        // UI updates are centralized here to avoid redundant refreshes.
         ApplyActionUIForState(state);
-    }
-
-    IEnumerator DelaySyncActionUI(YokaiState state)
-    {
-        yield return null;
-        SyncActionUI(state);
     }
 
     void HandleStateEnter(YokaiState state, YokaiState? previousState)
