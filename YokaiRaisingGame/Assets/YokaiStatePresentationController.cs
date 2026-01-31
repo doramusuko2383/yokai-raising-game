@@ -319,25 +319,19 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         YokaiState? previousState = lastAppliedState;
         bool shouldForceEnter = state == YokaiState.Purifying;
+        bool isSameState = previousState.HasValue && previousState.Value == state;
+        bool shouldSkipTransition = !force && !shouldForceEnter && isSameState;
 
-        if (!force && !shouldForceEnter && previousState.HasValue && previousState.Value == state)
-            return;
-
-        if (force && !shouldForceEnter)
-        {
-            ApplyActionUIForState(state);
-            SyncMagicCircleForState(state);
-            lastAppliedState = state;
-            return;
-        }
-
-        if (previousState.HasValue && previousState.Value != state)
+        if (!shouldSkipTransition && !force && previousState.HasValue && previousState.Value != state)
             HandleStateExit(previousState.Value, state);
 
-        HandleStateEnter(state, previousState);
-        ApplyActionUIForState(state);
+        if (!shouldSkipTransition && !(force && !shouldForceEnter))
+            HandleStateEnter(state, previousState);
+
         SyncMagicCircleForState(state);
+        ApplyDangerEffectsForState(state);
         lastAppliedState = state;
+        ApplyActionUIForState(state);
     }
 
     void HandleStateEnter(YokaiState state, YokaiState? previousState)
@@ -345,8 +339,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (state == YokaiState.PurityEmpty)
         {
             EnterPurityEmpty();
-            ApplyDangerOverlayForState(state);
-            ApplyDangerEffectsForState(state);
             UpdatePurityEmptyVisuals(true);
 
             bool shouldPlay = ShouldPlayEmptyEnterEffects(previousState);
@@ -359,8 +351,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         else if (state == YokaiState.EnergyEmpty)
         {
             EnterEnergyEmpty();
-            ApplyDangerOverlayForState(state);
-            ApplyDangerEffectsForState(state);
 
             bool shouldPlay = ShouldPlayEmptyEnterEffects(previousState);
             if (shouldPlay && !hasPlayedEnergyEmptyEnter)
@@ -374,8 +364,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (state == YokaiState.Normal)
         {
             RestoreNormalVisual();
-            ApplyDangerOverlayForState(state);
-            ApplyDangerEffectsForState(state);
             ResetPurityEmptyMotion();
         }
 
@@ -390,8 +378,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (state == YokaiState.EnergyEmpty)
         {
             ResetEnergyEmptyVisuals();
-            ApplyDangerOverlayForState(nextState);
-            ApplyDangerEffectsForState(nextState);
 
             if (nextState == YokaiState.Normal)
                 hasPlayedEnergyEmptyEnter = false;
@@ -404,8 +390,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         {
             RequestReleasePurityEmpty();
             ResetPurityEmptyMotion();
-            ApplyDangerOverlayForState(nextState);
-            ApplyDangerEffectsForState(nextState);
 
             if (nextState == YokaiState.Normal)
                 hasPlayedPurityEmptyEnter = false;
@@ -527,16 +511,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         hasWarnedMissingOptionalDependencies = true;
     }
 
-    void ApplyDangerOverlayForState(YokaiState visualState)
-    {
-        if (dangerOverlay == null)
-            return;
-
-        EnsureDangerOverlayLayout();
-        bool showDangerOverlay = visualState == YokaiState.PurityEmpty;
-        dangerOverlay.SetActive(showDangerOverlay);
-    }
-
     void ApplyDangerEffectsForState(YokaiState visualState)
     {
         if (dangerEffects == null || dangerEffects.Length == 0)
@@ -561,6 +535,13 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyActionUIForState(YokaiState state)
     {
+        if (dangerOverlay != null)
+        {
+            EnsureDangerOverlayLayout();
+            bool showDangerOverlay = state == YokaiState.PurityEmpty;
+            dangerOverlay.SetActive(showDangerOverlay);
+        }
+
         if (actionPanel == null)
             return;
 
