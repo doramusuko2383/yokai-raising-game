@@ -8,6 +8,12 @@ namespace Yokai
 {
 public class YokaiStatePresentationController : MonoBehaviour
 {
+    enum Visibility
+    {
+        Hidden,
+        Enabled,
+    }
+
     [Header("Dependencies")]
     [SerializeField]
     YokaiStateController stateController;
@@ -572,22 +578,17 @@ public class YokaiStatePresentationController : MonoBehaviour
         bool showSpecialDango = state == YokaiState.EnergyEmpty
             && stateController != null
             && stateController.CanUseSpecialDango;
-        bool showActionPanel = showNormalActions || showSpecialPurify || showSpecialDango;
+        Visibility actionPanelVisibility = showNormalActions || showSpecialPurify || showSpecialDango
+            ? Visibility.Enabled
+            : Visibility.Hidden;
+        Visibility recoverAdVisibility = showSpecialDango ? Visibility.Enabled : Visibility.Hidden;
+        Visibility purityRecoverVisibility = showSpecialPurify ? Visibility.Enabled : Visibility.Hidden;
 
-        if (actionPanel != null)
-            actionPanel.SetActive(showActionPanel);
-
-        if (recoverAdButton != null)
-            recoverAdButton.SetActive(showSpecialDango);
-
-        if (purityRecoverAdButton != null)
-            purityRecoverAdButton.SetActive(showSpecialPurify);
-
-        if (legacyPurityRecoverAdButton != null)
-            legacyPurityRecoverAdButton.SetActive(false);
-
-        if (purifyStopButton != null)
-            purifyStopButton.SetActive(false);
+        ApplyVisibility(actionPanel, actionPanelVisibility);
+        ApplyVisibility(recoverAdButton, recoverAdVisibility);
+        ApplyVisibility(purityRecoverAdButton, purityRecoverVisibility);
+        ApplyVisibility(legacyPurityRecoverAdButton, Visibility.Hidden);
+        ApplyVisibility(purifyStopButton, Visibility.Hidden);
 
         Debug.Log($"[UI] ActionButtons: Normal={showNormalActions} SpecialPurify={showSpecialPurify} SpecialDango={showSpecialDango}");
 
@@ -628,20 +629,41 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void HideAllActionButtons()
     {
-        if (actionPanel != null)
-            actionPanel.SetActive(false);
+        ApplyVisibility(actionPanel, Visibility.Hidden);
+        ApplyVisibility(recoverAdButton, Visibility.Hidden);
+        ApplyVisibility(purityRecoverAdButton, Visibility.Hidden);
+        ApplyVisibility(legacyPurityRecoverAdButton, Visibility.Hidden);
+        ApplyVisibility(purifyStopButton, Visibility.Hidden);
+    }
 
-        if (recoverAdButton != null)
-            recoverAdButton.SetActive(false);
+    void ApplyVisibility(GameObject target, Visibility visibility)
+    {
+        if (target == null)
+            return;
 
-        if (purityRecoverAdButton != null)
-            purityRecoverAdButton.SetActive(false);
+        if (visibility == Visibility.Hidden)
+        {
+            target.SetActive(false);
+            return;
+        }
 
-        if (legacyPurityRecoverAdButton != null)
-            legacyPurityRecoverAdButton.SetActive(false);
+        target.SetActive(true);
 
-        if (purifyStopButton != null)
-            purifyStopButton.SetActive(false);
+        CanvasGroup canvasGroup = target.GetComponent<CanvasGroup>();
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+        }
+        else
+        {
+            Debug.LogWarning($"[UI] Missing CanvasGroup on {target.name}");
+        }
+
+        Button button = target.GetComponent<Button>();
+        if (button != null)
+            button.interactable = true;
     }
 
     void UpdateDangerEffects()
