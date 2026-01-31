@@ -184,6 +184,8 @@ public class YokaiStateController : MonoBehaviour
         if (stateChanged)
         {
             SetState(nextState, reason);
+            ApplyEmptyStateEffects();
+            CheckForUnknownStateWarning();
             return;
         }
 
@@ -231,8 +233,7 @@ public class YokaiStateController : MonoBehaviour
     {
         if (currentState == newState)
         {
-            Debug.Log($"[STATE SAME] {newState} ({reason})");
-            OnStateChanged?.Invoke(currentState, newState);
+            Debug.Log($"[STATE SKIP] {newState} already active ({reason})");
             return;
         }
 
@@ -242,10 +243,6 @@ public class YokaiStateController : MonoBehaviour
 
         Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
-        ApplyEmptyStateEffects();
-        SyncPresentation(newState, force: false);
-        ForceSyncPresentationIfNeeded(newState);
-        CheckForUnknownStateWarning();
     }
 
     public void BeginPurifying(string reason = "BeginPurify")
@@ -261,6 +258,7 @@ public class YokaiStateController : MonoBehaviour
         isPurifying = true;
         IsPurifyTriggeredByUser = true;
         SetState(YokaiState.Purifying, reason);
+        ApplyEmptyStateEffects();
         ForceSyncPresentation(YokaiState.Purifying);
     }
 
@@ -546,22 +544,6 @@ public class YokaiStateController : MonoBehaviour
             return presentationController;
 
         return YokaiStatePresentationController.Instance;
-    }
-
-    void ForceSyncPresentationIfNeeded(YokaiState state)
-    {
-        if (state == YokaiState.Purifying)
-        {
-            ForceSyncPresentation(state);
-            return;
-        }
-
-        // Empty / Evolution 系では絶対に force sync しない
-        if (state != YokaiState.Normal)
-            return;
-
-        // Normal のみ UI再同期用途で許可
-        ForceSyncPresentation(state);
     }
 
     void ForceSyncPresentation(YokaiState state)

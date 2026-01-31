@@ -129,6 +129,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         CacheEnergyEmptyTargets(CurrentYokaiContext.Current);
         RefreshDangerEffectOriginalColors();
         lastAppliedState = null;
+        lastUIAppliedState = null;
         hasPlayedPurityEmptyEnter = false;
         hasPlayedEnergyEmptyEnter = false;
         WarnMissingOptionalDependencies();
@@ -308,12 +309,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (TryResolveStateController() == null)
             return;
 
-        if (lastAppliedState.HasValue &&
-            lastAppliedState.Value == stateController.currentState)
-        {
-            return;
-        }
-
         ApplyState(stateController.currentState, force: false);
     }
 
@@ -322,7 +317,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (!AreDependenciesResolved())
             return;
 
-        Debug.Log($"[PRESENTATION] ApplyState: {state} (force={force})");
+        Debug.Log($"[PRESENTATION] ApplyState: {state}");
 
         YokaiState? previousState = lastAppliedState;
         bool shouldForceEnter = state == YokaiState.Purifying;
@@ -588,10 +583,7 @@ public class YokaiStatePresentationController : MonoBehaviour
                 break;
         }
 
-        Debug.Log(
-            "[UI FINAL CONFIRMED] " +
-            $"state={state} PurityAd={purityRecoverAdButton?.activeSelf} frame={Time.frameCount}"
-        );
+        Debug.Log($"[UI FINAL CONFIRMED] state={state} PurityAd={purityRecoverAdButton?.activeSelf}");
     }
 
     void LogPurityRecoverButtonState()
