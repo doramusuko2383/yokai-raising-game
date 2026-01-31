@@ -325,6 +325,14 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (force && !shouldForceEnter)
         {
+            if (state == YokaiState.PurityEmpty)
+            {
+                ApplyActionUIForState(state);
+                SyncMagicCircleForState(state);
+                lastAppliedState = state;
+                return;
+            }
+
             SyncUIForState(state);
             SyncMagicCircleForState(state);
             lastAppliedState = state;
@@ -335,6 +343,13 @@ public class YokaiStatePresentationController : MonoBehaviour
             HandleStateExit(previousState.Value, state);
 
         HandleStateEnter(state, previousState);
+        if (state == YokaiState.PurityEmpty)
+        {
+            SyncMagicCircleForState(state);
+            lastAppliedState = state;
+            return;
+        }
+
         SyncUIForState(state);
         SyncMagicCircleForState(state);
         lastAppliedState = state;
@@ -344,6 +359,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (state == YokaiState.PurityEmpty)
         {
+            ApplyActionUIForState(state);
             EnterPurityEmpty();
             ApplyDangerOverlayForState(state);
             ApplyDangerEffectsForState(state);
@@ -417,6 +433,12 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void SyncUIForState(YokaiState state)
     {
+        if (state == YokaiState.PurityEmpty)
+        {
+            ApplyActionUIForState(state);
+            return;
+        }
+
         ApplyActionUIForState(state);
     }
 
