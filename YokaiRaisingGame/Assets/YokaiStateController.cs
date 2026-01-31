@@ -231,7 +231,8 @@ public class YokaiStateController : MonoBehaviour
     {
         if (currentState == newState)
         {
-            Debug.Log($"[STATE SKIP] {newState} already active ({reason})");
+            Debug.Log($"[STATE SAME] {newState} ({reason})");
+            OnStateChanged?.Invoke(currentState, newState);
             return;
         }
 
