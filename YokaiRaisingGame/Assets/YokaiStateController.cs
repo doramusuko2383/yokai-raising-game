@@ -199,6 +199,9 @@ public class YokaiStateController : MonoBehaviour
     {
         if (!requestedState.HasValue)
         {
+            if (isPurifying)
+                return YokaiState.Purifying;
+
             if (isPurityEmpty)
                 return YokaiState.PurityEmpty;
 
@@ -212,6 +215,9 @@ public class YokaiStateController : MonoBehaviour
 
             return YokaiState.Normal;
         }
+
+        if (isPurifying)
+            return YokaiState.Purifying;
 
         if (isPurityEmpty)
             return YokaiState.PurityEmpty;
