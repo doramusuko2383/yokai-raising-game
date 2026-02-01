@@ -71,6 +71,7 @@ public class UIPentagramDrawer : MonoBehaviour
             lr.LineList = true;
             lr.LineThickness = lineThickness;
             lr.color = lineColor;
+            lr.raycastTarget = false;
 
             lr.Points = new Vector2[2] { Vector2.zero, Vector2.zero };
             lr.SetAllDirty();
