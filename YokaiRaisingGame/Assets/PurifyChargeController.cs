@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Yokai;
@@ -7,18 +8,32 @@ public class PurifyChargeController : MonoBehaviour
     [Header("Settings")]
     public float chargeDuration = 2.0f;
 
+    [Header("Complete Sequence")]
+    public float completeWaitTime = 0.3f;
+    public float completeFadeOutDuration = 0.25f;
+    public float completeRotateBoost = 60f;
+    public float baseCircleFlashAlpha = 1.2f;
+
     [Header("Refs")]
     public UIPentagramDrawer pentagramDrawer;
+    public UIPentagramBaseCircle baseCircle;
+    public UIPentagramRotate pentagramRotate;
     public YokaiStateController stateController;
 
-    private bool isCharging = false;
-    private bool hasSucceeded = false;
-    private float currentCharge = 0f;
-    private Coroutine completeSequenceCoroutine;
+    bool isCharging = false;
+    bool hasSucceeded = false;
+    float currentCharge = 0f;
+    float baseRotateSpeed = 0f;
+    Coroutine completeSequenceCoroutine;
 
-    // =====================
-    // EventTrigger
-    // =====================
+    void Awake()
+    {
+        SyncBaseCircleScale();
+        if (pentagramRotate != null)
+        {
+            baseRotateSpeed = pentagramRotate.rotateSpeed;
+        }
+    }
 
     public void OnPointerDown(BaseEventData eventData)
     {
@@ -30,10 +45,23 @@ public class PurifyChargeController : MonoBehaviour
         isCharging = true;
         currentCharge = 0f;
 
-        // ★ 開始時は描画を0から
         if (pentagramDrawer != null)
         {
+            pentagramDrawer.ClearSuppressRendering();
             pentagramDrawer.SetProgress(0f);
+        }
+
+        SyncBaseCircleScale();
+        if (baseCircle != null)
+        {
+            baseCircle.Show();
+            baseCircle.FadeIn(completeFadeOutDuration);
+        }
+
+        if (pentagramRotate != null)
+        {
+            baseRotateSpeed = pentagramRotate.rotateSpeed;
+            pentagramRotate.StartRotate();
         }
     }
 
@@ -47,16 +75,23 @@ public class PurifyChargeController : MonoBehaviour
         isCharging = false;
         currentCharge = 0f;
 
-        // ★ 離したら逆再生で消す
         if (pentagramDrawer != null)
         {
             pentagramDrawer.ReverseAndClear();
         }
-    }
 
-    // =====================
-    // Update
-    // =====================
+        if (baseCircle != null)
+        {
+            baseCircle.FadeOut(completeFadeOutDuration);
+        }
+
+        if (pentagramRotate != null)
+        {
+            pentagramRotate.StopRotate();
+            pentagramRotate.ResetRotation();
+            pentagramRotate.rotateSpeed = baseRotateSpeed;
+        }
+    }
 
     private void Update()
     {
@@ -65,7 +100,7 @@ public class PurifyChargeController : MonoBehaviour
         if (!isCharging || hasSucceeded)
             return;
 
-        currentCharge += Time.deltaTime;
+        currentCharge += Time.unscaledDeltaTime;
         float progress = Mathf.Clamp01(currentCharge / chargeDuration);
 
         if (pentagramDrawer != null)
@@ -79,10 +114,6 @@ public class PurifyChargeController : MonoBehaviour
             CompletePurify();
         }
     }
-
-    // =====================
-    // Complete
-    // =====================
 
     private void CompletePurify()
     {
@@ -100,40 +131,66 @@ public class PurifyChargeController : MonoBehaviour
         }
         completeSequenceCoroutine = StartCoroutine(CoCompleteSequence());
 
-        if (completeSequenceCoroutine != null)
-        {
-            StopCoroutine(completeSequenceCoroutine);
-            completeSequenceCoroutine = null;
-        }
-
-
-    private System.Collections.IEnumerator CoCompleteSequence()
-    {
-        yield return new WaitForSecondsRealtime(0.3f);
-
-        if (pentagramDrawer != null)
-        {
-            pentagramDrawer.ReverseAndClear();
-        }
-
-        completeSequenceCoroutine = null;
-    }
-        // ★ 完成フラッシュ
-        if (pentagramDrawer != null)
-        {
-            pentagramDrawer.PlayCompleteFlash();
-        }
-
-        // ★ 状態遷移確定
         if (stateController != null)
         {
             stateController.NotifyPurifySucceeded();
         }
     }
 
-    // =====================
-    // External reset (保険)
-    // =====================
+    IEnumerator CoCompleteSequence()
+    {
+        float flashDuration = pentagramDrawer != null ? pentagramDrawer.completeFlashDuration : 0.2f;
+
+        if (pentagramDrawer != null)
+        {
+            pentagramDrawer.PlayCompleteFlash();
+        }
+
+        if (baseCircle != null)
+        {
+            baseCircle.PlayCompleteFlash(flashDuration, baseCircleFlashAlpha);
+        }
+
+        if (pentagramRotate != null)
+        {
+            baseRotateSpeed = pentagramRotate.rotateSpeed;
+            pentagramRotate.rotateSpeed = baseRotateSpeed + completeRotateBoost;
+            pentagramRotate.StartRotate();
+        }
+
+        yield return new WaitForSecondsRealtime(completeWaitTime);
+
+        if (pentagramDrawer != null)
+        {
+            pentagramDrawer.FadeOutLines(completeFadeOutDuration);
+        }
+
+        if (baseCircle != null)
+        {
+            baseCircle.FadeOut(completeFadeOutDuration);
+        }
+
+        yield return new WaitForSecondsRealtime(completeFadeOutDuration);
+
+        if (pentagramDrawer != null)
+        {
+            pentagramDrawer.ReverseAndClear();
+        }
+
+        if (baseCircle != null)
+        {
+            baseCircle.Hide();
+        }
+
+        if (pentagramRotate != null)
+        {
+            pentagramRotate.StopRotate();
+            pentagramRotate.ResetRotation();
+            pentagramRotate.rotateSpeed = baseRotateSpeed;
+        }
+
+        completeSequenceCoroutine = null;
+    }
 
     public void ResetPurify()
     {
@@ -145,5 +202,23 @@ public class PurifyChargeController : MonoBehaviour
         {
             pentagramDrawer.SetProgress(0f);
         }
+
+        if (baseCircle != null)
+        {
+            baseCircle.Hide();
+        }
+
+        if (pentagramRotate != null)
+        {
+            pentagramRotate.StopRotate();
+            pentagramRotate.ResetRotation();
+            pentagramRotate.rotateSpeed = baseRotateSpeed;
+        }
+    }
+
+    void SyncBaseCircleScale()
+    {
+        if (baseCircle == null || pentagramDrawer == null) return;
+        baseCircle.SetScale(pentagramDrawer.scale);
     }
 }
