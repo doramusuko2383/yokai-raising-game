@@ -14,6 +14,7 @@ public class PurifyChargeController : MonoBehaviour
     private bool isCharging = false;
     private bool hasSucceeded = false;
     private float currentCharge = 0f;
+    private Coroutine completeSequenceCoroutine;
 
     // =====================
     // EventTrigger
@@ -29,7 +30,7 @@ public class PurifyChargeController : MonoBehaviour
         isCharging = true;
         currentCharge = 0f;
 
-        // š ŠJn‚Í•`‰æ‚ğ0‚©‚ç
+        // â˜… é–‹å§‹æ™‚ã¯æç”»ã‚’0ã‹ã‚‰
         if (pentagramDrawer != null)
         {
             pentagramDrawer.SetProgress(0f);
@@ -46,7 +47,7 @@ public class PurifyChargeController : MonoBehaviour
         isCharging = false;
         currentCharge = 0f;
 
-        // š —£‚µ‚½‚ç‹tÄ¶‚ÅÁ‚·
+        // â˜… é›¢ã—ãŸã‚‰é€†å†ç”Ÿã§æ¶ˆã™
         if (pentagramDrawer != null)
         {
             pentagramDrawer.ReverseAndClear();
@@ -93,13 +94,37 @@ public class PurifyChargeController : MonoBehaviour
 
         Debug.Log("[PURIFY] Complete!");
 
-        // š Š®¬ƒtƒ‰ƒbƒVƒ…
+        if (completeSequenceCoroutine != null)
+        {
+            StopCoroutine(completeSequenceCoroutine);
+        }
+        completeSequenceCoroutine = StartCoroutine(CoCompleteSequence());
+
+        if (completeSequenceCoroutine != null)
+        {
+            StopCoroutine(completeSequenceCoroutine);
+            completeSequenceCoroutine = null;
+        }
+
+
+    private System.Collections.IEnumerator CoCompleteSequence()
+    {
+        yield return new WaitForSecondsRealtime(0.3f);
+
+        if (pentagramDrawer != null)
+        {
+            pentagramDrawer.ReverseAndClear();
+        }
+
+        completeSequenceCoroutine = null;
+    }
+        // â˜… å®Œæˆãƒ•ãƒ©ãƒƒã‚·ãƒ¥
         if (pentagramDrawer != null)
         {
             pentagramDrawer.PlayCompleteFlash();
         }
 
-        // š ó‘Ô‘JˆÚŠm’è
+        // â˜… çŠ¶æ…‹é·ç§»ç¢ºå®š
         if (stateController != null)
         {
             stateController.NotifyPurifySucceeded();
@@ -107,7 +132,7 @@ public class PurifyChargeController : MonoBehaviour
     }
 
     // =====================
-    // External reset (•ÛŒ¯)
+    // External reset (ä¿é™º)
     // =====================
 
     public void ResetPurify()
