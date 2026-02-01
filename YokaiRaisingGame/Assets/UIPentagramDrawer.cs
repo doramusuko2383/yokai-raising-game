@@ -11,13 +11,13 @@ public class UIPentagramDrawer : MonoBehaviour
     public float radius = 220f;
     public float lineThickness = 12f;
     public float scale = 1f;
-    public Color lineColor = new Color(1.0f, 0.84f, 0.2f, 1f);
+    public Color lineColor = new Color(1.0f, 0.84f, 0.25f, 1f);
 
     [Header("Animation")]
     public float reverseDuration = 0.25f;
     public float completeFlashDuration = 0.20f;
     public float completeFlashAlpha = 1.2f;
-    public float completeFlashThicknessMultiplier = 1.1f;
+    public float completeFlashThicknessBoost = 3f;
 
     float _progress01;
     Coroutine _reverseCo;
@@ -152,7 +152,7 @@ public class UIPentagramDrawer : MonoBehaviour
         Color c1 = lineColor;
         Color c2 = lineColor;
         c2.a = completeFlashAlpha;
-        float targetThickness = lineThickness * completeFlashThicknessMultiplier;
+        float targetThickness = lineThickness + completeFlashThicknessBoost;
 
         float t = 0f;
         while (t < completeFlashDuration)
