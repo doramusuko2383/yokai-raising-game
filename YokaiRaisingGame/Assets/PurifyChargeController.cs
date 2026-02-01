@@ -65,6 +65,34 @@ public class PurifyChargeController : MonoBehaviour
         }
     }
 
+    public void BeginCharge()
+    {
+        if (hasSucceeded)
+        {
+            ResetPurify();
+        }
+
+        if (pentagramDrawer != null)
+        {
+            pentagramDrawer.ClearSuppressRendering();
+            pentagramDrawer.SetProgress(0f);
+        }
+
+        SyncBaseCircleScale();
+        if (baseCircle != null)
+        {
+            baseCircle.Show();
+            baseCircle.FadeIn(completeFadeOutDuration);
+        }
+
+        if (pentagramRotate != null)
+        {
+            pentagramRotate.StopRotate();
+            pentagramRotate.ResetRotation();
+            pentagramRotate.rotateSpeed = baseRotateSpeed;
+        }
+    }
+
     public void OnPointerDown(BaseEventData eventData)
     {
         if (hasSucceeded)
@@ -169,9 +197,11 @@ public class PurifyChargeController : MonoBehaviour
         }
         completeSequenceCoroutine = StartCoroutine(CoCompleteSequence());
 
-        if (stateController != null)
+        var controller = ResolveStateController();
+        if (controller != null)
         {
-            stateController.NotifyPurifySucceeded();
+            controller.BeginPurifying("ChargeComplete");
+            controller.NotifyPurifySucceeded();
         }
     }
 
@@ -264,6 +294,16 @@ public class PurifyChargeController : MonoBehaviour
     {
         if (baseCircle == null || pentagramDrawer == null) return;
         baseCircle.SetScale(pentagramDrawer.scale);
+    }
+
+    YokaiStateController ResolveStateController()
+    {
+        if (stateController == null)
+        {
+            stateController = CurrentYokaiContext.ResolveStateController();
+        }
+
+        return stateController;
     }
 
     void StartPulse()

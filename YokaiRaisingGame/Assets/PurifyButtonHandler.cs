@@ -5,7 +5,10 @@ public class PurifyButtonHandler : MonoBehaviour
 {
     [SerializeField]
     YokaiStateController stateController;
+    [SerializeField]
+    PurifyChargeController chargeController;
     bool hasWarnedMissingStateController;
+    bool hasWarnedMissingChargeController;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     bool hasLoggedAudioResolution;
 #endif
@@ -30,14 +33,18 @@ public class PurifyButtonHandler : MonoBehaviour
         if (IsActionBlocked())
             return;
 
-        if (ResolveStateController() != null)
+        var controller = ResolveStateController();
+        if (controller != null)
+            controller.NotifyUserInteraction();
+
+        var charge = ResolveChargeController();
+        if (charge != null)
         {
-            stateController.NotifyUserInteraction();
-            stateController.BeginPurifying();
+            charge.BeginCharge();
         }
         else
         {
-            WarnMissingStateController();
+            WarnMissingChargeController();
         }
     }
 
@@ -105,6 +112,21 @@ public class PurifyButtonHandler : MonoBehaviour
         return stateController;
     }
 
+    PurifyChargeController ResolveChargeController()
+    {
+        if (chargeController == null)
+        {
+            chargeController = FindObjectOfType<PurifyChargeController>(true);
+        }
+
+        if (chargeController == null)
+        {
+            WarnMissingChargeController();
+        }
+
+        return chargeController;
+    }
+
     void WarnMissingStateController()
     {
         if (hasWarnedMissingStateController)
@@ -112,6 +134,15 @@ public class PurifyButtonHandler : MonoBehaviour
 
         Debug.LogWarning("[PURIFY] StateController not set in Inspector");
         hasWarnedMissingStateController = true;
+    }
+
+    void WarnMissingChargeController()
+    {
+        if (hasWarnedMissingChargeController)
+            return;
+
+        Debug.LogWarning("[PURIFY] ChargeController not set in Inspector");
+        hasWarnedMissingChargeController = true;
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
