@@ -19,11 +19,23 @@ using UnityEngine;
 public static class AudioHook
 {
     public static event System.Action<YokaiSE> PlayRequested;
+    public static event System.Action<YokaiSE> LoopRequested;
+    public static event System.Action<YokaiSE> LoopStopRequested;
     public static System.Func<YokaiSE, AudioClip> ClipResolver;
 
     public static void RequestPlay(YokaiSE se)
     {
         PlayRequested?.Invoke(se);
+    }
+
+    public static void RequestLoop(YokaiSE se)
+    {
+        LoopRequested?.Invoke(se);
+    }
+
+    public static void RequestStopLoop(YokaiSE se)
+    {
+        LoopStopRequested?.Invoke(se);
     }
 
     public static bool TryResolveClip(YokaiSE se, out AudioClip clip)

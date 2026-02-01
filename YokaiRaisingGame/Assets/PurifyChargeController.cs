@@ -13,21 +13,51 @@ public class PurifyChargeController : MonoBehaviour
     public float completeFadeOutDuration = 0.25f;
     public float completeRotateBoost = 60f;
     public float baseCircleFlashAlpha = 1.2f;
+    public float completePulseScale = 1.05f;
+    public float completePulseDuration = 0.12f;
 
     [Header("Refs")]
     public UIPentagramDrawer pentagramDrawer;
     public UIPentagramBaseCircle baseCircle;
     public UIPentagramRotate pentagramRotate;
+    public RectTransform pentagramRoot;
     public YokaiStateController stateController;
 
     bool isCharging = false;
     bool hasSucceeded = false;
     float currentCharge = 0f;
     float baseRotateSpeed = 0f;
+    Vector3 basePentagramScale = Vector3.one;
     Coroutine completeSequenceCoroutine;
+    Coroutine pulseCoroutine;
 
     void Awake()
     {
+        if (pentagramDrawer == null)
+        {
+            pentagramDrawer = FindObjectOfType<UIPentagramDrawer>();
+        }
+
+        if (baseCircle == null)
+        {
+            baseCircle = FindObjectOfType<UIPentagramBaseCircle>();
+        }
+
+        if (pentagramRotate == null)
+        {
+            pentagramRotate = FindObjectOfType<UIPentagramRotate>();
+        }
+
+        if (pentagramRoot == null && pentagramDrawer != null)
+        {
+            pentagramRoot = pentagramDrawer.GetComponent<RectTransform>();
+        }
+
+        if (pentagramRoot != null)
+        {
+            basePentagramScale = pentagramRoot.localScale;
+        }
+
         SyncBaseCircleScale();
         if (pentagramRotate != null)
         {
@@ -44,6 +74,9 @@ public class PurifyChargeController : MonoBehaviour
 
         isCharging = true;
         currentCharge = 0f;
+
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
+        AudioHook.RequestLoop(YokaiSE.SE_PURIFY_CHARGE);
 
         if (pentagramDrawer != null)
         {
@@ -74,6 +107,9 @@ public class PurifyChargeController : MonoBehaviour
 
         isCharging = false;
         currentCharge = 0f;
+
+        AudioHook.RequestStopLoop(YokaiSE.SE_PURIFY_CHARGE);
+        ResetPulseScale();
 
         if (pentagramDrawer != null)
         {
@@ -125,6 +161,8 @@ public class PurifyChargeController : MonoBehaviour
 
         Debug.Log("[PURIFY] Complete!");
 
+        AudioHook.RequestStopLoop(YokaiSE.SE_PURIFY_CHARGE);
+
         if (completeSequenceCoroutine != null)
         {
             StopCoroutine(completeSequenceCoroutine);
@@ -158,6 +196,8 @@ public class PurifyChargeController : MonoBehaviour
             pentagramRotate.StartRotate();
         }
 
+        StartPulse();
+
         yield return new WaitForSecondsRealtime(completeWaitTime);
 
         if (pentagramDrawer != null)
@@ -189,6 +229,7 @@ public class PurifyChargeController : MonoBehaviour
             pentagramRotate.rotateSpeed = baseRotateSpeed;
         }
 
+        ResetPulseScale();
         completeSequenceCoroutine = null;
     }
 
@@ -214,11 +255,64 @@ public class PurifyChargeController : MonoBehaviour
             pentagramRotate.ResetRotation();
             pentagramRotate.rotateSpeed = baseRotateSpeed;
         }
+
+        AudioHook.RequestStopLoop(YokaiSE.SE_PURIFY_CHARGE);
+        ResetPulseScale();
     }
 
     void SyncBaseCircleScale()
     {
         if (baseCircle == null || pentagramDrawer == null) return;
         baseCircle.SetScale(pentagramDrawer.scale);
+    }
+
+    void StartPulse()
+    {
+        if (pentagramRoot == null)
+            return;
+
+        if (pulseCoroutine != null)
+        {
+            StopCoroutine(pulseCoroutine);
+        }
+
+        pulseCoroutine = StartCoroutine(CoPulseScale());
+    }
+
+    IEnumerator CoPulseScale()
+    {
+        if (pentagramRoot == null)
+        {
+            pulseCoroutine = null;
+            yield break;
+        }
+
+        pentagramRoot.localScale = basePentagramScale * completePulseScale;
+
+        float t = 0f;
+        while (t < completePulseDuration)
+        {
+            t += Time.unscaledDeltaTime;
+            float k = (completePulseDuration <= 0f) ? 1f : (t / completePulseDuration);
+            pentagramRoot.localScale = Vector3.Lerp(basePentagramScale * completePulseScale, basePentagramScale, k);
+            yield return null;
+        }
+
+        pentagramRoot.localScale = basePentagramScale;
+        pulseCoroutine = null;
+    }
+
+    void ResetPulseScale()
+    {
+        if (pulseCoroutine != null)
+        {
+            StopCoroutine(pulseCoroutine);
+            pulseCoroutine = null;
+        }
+
+        if (pentagramRoot != null)
+        {
+            pentagramRoot.localScale = basePentagramScale;
+        }
     }
 }
