@@ -29,6 +29,9 @@ public class YokaiStatePresentationController : MonoBehaviour
     GameObject purifyStopButton;
 
     [SerializeField]
+    GameObject purifyHoldButton;
+
+    [SerializeField]
     MagicCircleActivator magicCircleActivator;
 
     [SerializeField]
@@ -409,13 +412,9 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (state == YokaiState.Purifying)
         {
-            Debug.Log("[PRESENTATION] Sync MagicCircle Show (Purifying)");
-            magicCircleActivator.Show();
-            if (!hasPlayedPurifyStartSE)
-            {
-                AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START); // 魔法陣が表示された瞬間のみSE再生
-                hasPlayedPurifyStartSE = true;
-            }
+            Debug.Log("[PRESENTATION] Sync MagicCircle Hide (Purifying)");
+            magicCircleActivator.Hide();
+            hasPlayedPurifyStartSE = false;
             return;
         }
 
@@ -498,6 +497,8 @@ public class YokaiStatePresentationController : MonoBehaviour
             missing.Add("PurityRecoverAdButton");
         if (purifyStopButton == null)
             missing.Add("PurifyStopButton");
+        if (purifyHoldButton == null)
+            missing.Add("PurifyHoldButton");
         if (dangerOverlay == null)
             missing.Add("DangerOverlay");
         if (magicCircleActivator == null)
@@ -559,6 +560,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         recoverAdButton?.SetActive(false);
         legacyPurityRecoverAdButton?.SetActive(false);
         purifyStopButton?.SetActive(false);
+        purifyHoldButton?.SetActive(false);
 
         switch (state)
         {
@@ -580,6 +582,13 @@ public class YokaiStatePresentationController : MonoBehaviour
             case YokaiState.EnergyEmpty:
                 actionPanel.SetActive(true);
                 recoverAdButton?.SetActive(true);
+                break;
+
+            case YokaiState.Purifying:
+                actionPanel.SetActive(false);
+                purifyHoldButton?.SetActive(true);
+                if (magicCircleActivator != null)
+                    magicCircleActivator.Hide();
                 break;
 
             case YokaiState.EvolutionReady:
