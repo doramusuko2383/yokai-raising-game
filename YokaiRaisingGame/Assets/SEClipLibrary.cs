@@ -13,6 +13,9 @@ public class SEClipLibrary : ScriptableObject
     AudioClip purifyStart;
 
     [SerializeField]
+    AudioClip purifyCharge;
+
+    [SerializeField]
     AudioClip purifySuccess;
 
     [Header("Evolution")]
@@ -43,6 +46,8 @@ public class SEClipLibrary : ScriptableObject
                 return uiClick;
             case YokaiSE.SE_PURIFY_START:
                 return purifyStart;
+            case YokaiSE.SE_PURIFY_CHARGE:
+                return purifyCharge;
             case YokaiSE.SE_PURIFY_SUCCESS:
                 return purifySuccess;
             case YokaiSE.SE_EVOLUTION_START:

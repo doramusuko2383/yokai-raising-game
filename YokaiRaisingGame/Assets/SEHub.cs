@@ -21,6 +21,9 @@ public static class SEHub
     static float highPriorityUntil;
     static GameObject runtimeRoot;
     static AudioSource runtimeSource;
+    static AudioSource runtimeLoopSource;
+    static bool hasActiveLoop;
+    static YokaiSE activeLoopSe;
 
     // SE設計メモ:
     // - 命名規則（将来の音ファイル名）: se_<category>_<action>.wav
@@ -33,6 +36,10 @@ public static class SEHub
     {
         AudioHook.PlayRequested -= HandlePlayRequested;
         AudioHook.PlayRequested += HandlePlayRequested;
+        AudioHook.LoopRequested -= HandleLoopRequested;
+        AudioHook.LoopRequested += HandleLoopRequested;
+        AudioHook.LoopStopRequested -= HandleLoopStopRequested;
+        AudioHook.LoopStopRequested += HandleLoopStopRequested;
     }
 
     static void HandlePlayRequested(YokaiSE se)
@@ -58,6 +65,43 @@ public static class SEHub
         if (policy.priority == SEPriority.High)
             highPriorityUntil = Mathf.Max(highPriorityUntil, now + policy.blockLowerSeconds);
 
+    }
+
+    static void HandleLoopRequested(YokaiSE se)
+    {
+        if (!EffectSettings.EnableEffects)
+        {
+            EffectSettings.LogEffectsOff($"[SE] {se} loop skipped.");
+            return;
+        }
+
+        if (!AudioHook.TryResolveClip(se, out var clip))
+            return;
+
+        EnsureLoopSource();
+        if (hasActiveLoop && activeLoopSe.Equals(se) && runtimeLoopSource.isPlaying)
+            return;
+
+        runtimeLoopSource.Stop();
+        runtimeLoopSource.clip = clip;
+        runtimeLoopSource.loop = true;
+        runtimeLoopSource.Play();
+        hasActiveLoop = true;
+        activeLoopSe = se;
+    }
+
+    static void HandleLoopStopRequested(YokaiSE se)
+    {
+        if (runtimeLoopSource == null || !hasActiveLoop)
+            return;
+
+        if (!activeLoopSe.Equals(se))
+            return;
+
+        runtimeLoopSource.Stop();
+        runtimeLoopSource.clip = null;
+        runtimeLoopSource.loop = false;
+        hasActiveLoop = false;
     }
 
     static bool CanPlay(YokaiSE se, SEPlaybackPolicy policy)
@@ -87,6 +131,7 @@ public static class SEHub
             case YokaiSE.SE_PURIFY_START:
             case YokaiSE.SE_PURIFY_SUCCESS:
             case YokaiSE.SE_PURIFY_CANCEL:
+            case YokaiSE.SE_PURIFY_CHARGE:
                 return new SEPlaybackPolicy
                 {
                     cooldownSeconds = 0.25f,
@@ -144,5 +189,21 @@ public static class SEHub
         runtimeSource = runtimeRoot.AddComponent<AudioSource>();
         runtimeSource.playOnAwake = false;
         runtimeSource.loop = false;
+    }
+
+    static void EnsureLoopSource()
+    {
+        if (runtimeRoot == null)
+        {
+            runtimeRoot = new GameObject("SEHubRuntime");
+            Object.DontDestroyOnLoad(runtimeRoot);
+        }
+
+        if (runtimeLoopSource != null)
+            return;
+
+        runtimeLoopSource = runtimeRoot.AddComponent<AudioSource>();
+        runtimeLoopSource.playOnAwake = false;
+        runtimeLoopSource.loop = true;
     }
 }
