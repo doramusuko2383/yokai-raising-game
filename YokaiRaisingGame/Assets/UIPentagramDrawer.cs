@@ -8,23 +8,28 @@ public class UIPentagramDrawer : MonoBehaviour
     public UILineRenderer[] lines = new UILineRenderer[5];
 
     [Header("Shape")]
-    public float radius = 220f;          // 五芒星の外半径（ピクセル）
-    public float lineThickness = 12f;    // 見える太さ
-    public Color lineColor = Color.white;
+    public float radius = 220f;
+    public float lineThickness = 12f;
+    public float scale = 1f;
+    public Color lineColor = new Color(1.0f, 0.84f, 0.2f, 1f);
 
     [Header("Animation")]
     public float reverseDuration = 0.25f;
     public float completeFlashDuration = 0.20f;
+    public float completeFlashAlpha = 1.2f;
+    public float completeFlashThicknessMultiplier = 1.1f;
 
     float _progress01;
     Coroutine _reverseCo;
     Coroutine _flashCo;
+    Coroutine _fadeCo;
+    bool _suppressRendering;
 
-    // 五芒星（外側5点）を作る：1つ飛ばしで結ぶと星になる
-    // 頂点順: 0→2→4→1→3→0 の5線分
+    // Outer points for pentagram
     static readonly int[] STAR_ORDER = { 0, 2, 4, 1, 3, 0 };
 
-    Vector2[] _outer5; // 半径適用済みの外側5点
+    Vector2[] _outer5;
+    float _baseThickness;
 
     void Awake()
     {
@@ -44,7 +49,6 @@ public class UIPentagramDrawer : MonoBehaviour
     {
         _outer5 = new Vector2[5];
 
-        // 上を0番にしたいので 90度開始（UI座標：上が+Y）
         for (int i = 0; i < 5; i++)
         {
             float deg = 90f + i * 72f;
@@ -56,24 +60,23 @@ public class UIPentagramDrawer : MonoBehaviour
     void ApplyStyle()
     {
         if (lines == null) return;
+        _baseThickness = lineThickness;
 
         for (int i = 0; i < lines.Length; i++)
         {
             var lr = lines[i];
             if (lr == null) continue;
 
-            lr.RelativeSize = false; // ピクセルで扱う
-            lr.LineList = true;      // 点ペアを線分として描画
+            lr.RelativeSize = false;
+            lr.LineList = true;
             lr.LineThickness = lineThickness;
             lr.color = lineColor;
 
-            // 2点（=1線分）を必ず持たせる
             lr.Points = new Vector2[2] { Vector2.zero, Vector2.zero };
             lr.SetAllDirty();
         }
     }
 
-    // 0..1 の進捗で5線分を順に表示
     public void SetProgress(float progress01)
     {
         _progress01 = Mathf.Clamp01(progress01);
@@ -81,36 +84,32 @@ public class UIPentagramDrawer : MonoBehaviour
         if (lines == null || lines.Length < 5) return;
 
         float scaled = _progress01 * 5f;
-        int full = Mathf.FloorToInt(scaled);     // 完全に出る線分数(0..5)
-        float frac = scaled - full;              // 次の線分の途中(0..1)
+        int full = Mathf.FloorToInt(scaled);
+        float frac = scaled - full;
 
         for (int seg = 0; seg < 5; seg++)
         {
             var lr = lines[seg];
             if (lr == null) continue;
 
-            // この線分の始点終点（五芒星の順番で）
-            Vector2 a = _outer5[STAR_ORDER[seg]];
-            Vector2 b = _outer5[STAR_ORDER[seg + 1]];
+            Vector2 a = _outer5[STAR_ORDER[seg]] * scale;
+            Vector2 b = _outer5[STAR_ORDER[seg + 1]] * scale;
 
             if (seg < full)
             {
-                // 全部表示
-                lr.enabled = true;
+                lr.enabled = !_suppressRendering;
                 lr.Points = new Vector2[2] { a, b };
                 lr.color = lineColor;
             }
             else if (seg == full && frac > 0f)
             {
-                // 途中まで表示
-                lr.enabled = true;
+                lr.enabled = !_suppressRendering;
                 Vector2 mid = Vector2.Lerp(a, b, frac);
                 lr.Points = new Vector2[2] { a, mid };
                 lr.color = lineColor;
             }
             else
             {
-                // 非表示（線分長0にしてもいいが、enabled切るのが確実）
                 lr.enabled = false;
             }
 
@@ -138,6 +137,7 @@ public class UIPentagramDrawer : MonoBehaviour
         }
 
         SetProgress(0f);
+        _suppressRendering = false;
         _reverseCo = null;
     }
 
@@ -149,10 +149,10 @@ public class UIPentagramDrawer : MonoBehaviour
 
     IEnumerator CoFlash()
     {
-        // 一瞬だけ明るく（アルファ上げ）
         Color c1 = lineColor;
         Color c2 = lineColor;
-        c2.a = 1f;
+        c2.a = completeFlashAlpha;
+        float targetThickness = lineThickness * completeFlashThicknessMultiplier;
 
         float t = 0f;
         while (t < completeFlashDuration)
@@ -160,8 +160,50 @@ public class UIPentagramDrawer : MonoBehaviour
             t += Time.unscaledDeltaTime;
             float k = (completeFlashDuration <= 0f) ? 1f : (t / completeFlashDuration);
 
-            // 前半で強く、後半で戻す感じ
             float a = Mathf.Lerp(c2.a, c1.a, k);
+            float thickness = Mathf.Lerp(targetThickness, lineThickness, k);
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (lines[i] == null || !lines[i].enabled) continue;
+                var cc = lines[i].color;
+                cc.a = a;
+                lines[i].color = cc;
+                lines[i].LineThickness = thickness;
+                lines[i].SetAllDirty();
+            }
+
+            yield return null;
+        }
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (lines[i] == null || !lines[i].enabled) continue;
+            lines[i].color = lineColor;
+            lines[i].LineThickness = _baseThickness;
+            lines[i].SetAllDirty();
+        }
+
+        _flashCo = null;
+    }
+
+    public void FadeOutLines(float duration)
+    {
+        if (_fadeCo != null) StopCoroutine(_fadeCo);
+        _fadeCo = StartCoroutine(CoFadeOutLines(duration));
+    }
+
+    IEnumerator CoFadeOutLines(float duration)
+    {
+        _suppressRendering = false;
+        float startAlpha = lineColor.a;
+        float t = 0f;
+
+        while (t < duration)
+        {
+            t += Time.unscaledDeltaTime;
+            float k = (duration <= 0f) ? 1f : (t / duration);
+            float a = Mathf.Lerp(startAlpha, 0f, k);
 
             for (int i = 0; i < lines.Length; i++)
             {
@@ -175,14 +217,12 @@ public class UIPentagramDrawer : MonoBehaviour
             yield return null;
         }
 
-        // 最終戻し
-        for (int i = 0; i < lines.Length; i++)
-        {
-            if (lines[i] == null || !lines[i].enabled) continue;
-            lines[i].color = lineColor;
-            lines[i].SetAllDirty();
-        }
+        _suppressRendering = true;
+        _fadeCo = null;
+    }
 
-        _flashCo = null;
+    public void ClearSuppressRendering()
+    {
+        _suppressRendering = false;
     }
 }

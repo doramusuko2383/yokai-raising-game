@@ -4,6 +4,7 @@ public class UIPentagramRotate : MonoBehaviour
 {
     [Header("Rotation")]
     public float rotateSpeed = 30f; // 度/秒（20〜40がおすすめ）
+    public bool rotateClockwise = true;
 
     bool isActive;
 
@@ -11,7 +12,8 @@ public class UIPentagramRotate : MonoBehaviour
     {
         if (!isActive) return;
 
-        transform.Rotate(0f, 0f, rotateSpeed * Time.unscaledDeltaTime);
+        float direction = rotateClockwise ? -1f : 1f;
+        transform.Rotate(0f, 0f, rotateSpeed * direction * Time.unscaledDeltaTime);
     }
 
     public void StartRotate()
