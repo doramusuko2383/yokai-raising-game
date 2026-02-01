@@ -1,85 +1,89 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Yokai;
 
 public class PurifyChargeController : MonoBehaviour
 {
-    [SerializeField]
-    float chargeDuration = 2.0f;
+    [Header("Settings")]
+    public float chargeDuration = 2.0f;
 
-    [SerializeField]
-    PentagramDrawer pentagramDrawer;
+    [Header("Refs")]
+    public UIPentagramDrawer pentagramDrawer;
+    public YokaiStateController stateController;
 
-    [SerializeField]
-    YokaiStateController stateController;
+    private bool isCharging = false;
+    private bool hasSucceeded = false;
+    private float currentCharge = 0f;
 
-    float currentCharge;
-    bool isCharging;
-    bool hasSucceeded;
+    // =====================
+    // EventTrigger
+    // =====================
 
-    void Update()
-    {
-        if (!isCharging || hasSucceeded)
-            return;
-
-        float duration = Mathf.Max(0.01f, chargeDuration);
-        currentCharge += Time.deltaTime;
-
-        float normalized = Mathf.Clamp01(currentCharge / duration);
-        if (pentagramDrawer != null)
-        {
-            pentagramDrawer.SetProgress(normalized);
-        }
-
-        if (normalized >= 1f)
-        {
-            CompletePurify();
-        }
-    }
-
-    public void OnPointerDown()
+    public void OnPointerDown(BaseEventData eventData)
     {
         if (hasSucceeded)
             return;
 
+        Debug.Log("[PURIFY] PointerDown");
+
         isCharging = true;
         currentCharge = 0f;
 
+        // ★ 開始時は描画を0から
         if (pentagramDrawer != null)
         {
             pentagramDrawer.SetProgress(0f);
         }
     }
 
-    public void OnPointerUp()
+    public void OnPointerUp(BaseEventData eventData)
     {
-        if (hasSucceeded)
+        if (!isCharging || hasSucceeded)
             return;
 
-        if (!isCharging)
-            return;
+        Debug.Log("[PURIFY] PointerUp");
 
         isCharging = false;
         currentCharge = 0f;
 
+        // ★ 離したら逆再生で消す
         if (pentagramDrawer != null)
         {
             pentagramDrawer.ReverseAndClear();
         }
     }
 
-    void OnDisable()
+    // =====================
+    // Update
+    // =====================
+
+    private void Update()
     {
-        isCharging = false;
-        currentCharge = 0f;
-        hasSucceeded = false;
+        Debug.Log($"[PURIFY] Update isCharging={isCharging}");
+
+        if (!isCharging || hasSucceeded)
+            return;
+
+        currentCharge += Time.deltaTime;
+        float progress = Mathf.Clamp01(currentCharge / chargeDuration);
 
         if (pentagramDrawer != null)
         {
-            pentagramDrawer.ReverseAndClear();
+            pentagramDrawer.SetProgress(progress);
+            Debug.Log("[PENTAGRAM] SetProgress called");
+        }
+
+        if (progress >= 1f)
+        {
+            CompletePurify();
         }
     }
 
-    void CompletePurify()
+    // =====================
+    // Complete
+    // =====================
+
+    private void CompletePurify()
     {
         if (hasSucceeded)
             return;
@@ -87,15 +91,34 @@ public class PurifyChargeController : MonoBehaviour
         hasSucceeded = true;
         isCharging = false;
 
+        Debug.Log("[PURIFY] Complete!");
+
+        // ★ 完成フラッシュ
         if (pentagramDrawer != null)
         {
-            pentagramDrawer.SetProgress(1f);
             pentagramDrawer.PlayCompleteFlash();
         }
 
+        // ★ 状態遷移確定
         if (stateController != null)
         {
             stateController.NotifyPurifySucceeded();
+        }
+    }
+
+    // =====================
+    // External reset (保険)
+    // =====================
+
+    public void ResetPurify()
+    {
+        isCharging = false;
+        hasSucceeded = false;
+        currentCharge = 0f;
+
+        if (pentagramDrawer != null)
+        {
+            pentagramDrawer.SetProgress(0f);
         }
     }
 }
