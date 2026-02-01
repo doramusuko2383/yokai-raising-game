@@ -72,6 +72,9 @@ public class PurifyChargeController : MonoBehaviour
             ResetPurify();
         }
 
+        isCharging = true;
+        currentCharge = 0f;
+
         if (pentagramDrawer != null)
         {
             pentagramDrawer.ClearSuppressRendering();

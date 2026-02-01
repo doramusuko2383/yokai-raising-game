@@ -6140,6 +6140,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1902766324}
+  - component: {fileID: 1902766325}
   m_Layer: 0
   m_Name: MagicCircleRoot
   m_TagString: Untagged
@@ -6163,6 +6164,18 @@ Transform:
   - {fileID: 1803633756}
   m_Father: {fileID: 1207660448}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!225 &1902766325
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1902766323}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &1905322486
 GameObject:
   m_ObjectHideFlags: 0
@@ -6362,7 +6375,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.05, g: 0.05, b: 0.08, a: 0}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:

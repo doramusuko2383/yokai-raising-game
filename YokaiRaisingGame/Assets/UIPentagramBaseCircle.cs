@@ -22,6 +22,11 @@ public class UIPentagramBaseCircle : MonoBehaviour
         _image = GetComponent<Image>();
         _rectTransform = GetComponent<RectTransform>();
 
+        if (_canvasGroup != null)
+        {
+            _canvasGroup.blocksRaycasts = false;
+        }
+
         if (_rectTransform != null)
         {
             _baseSize = _rectTransform.sizeDelta;
