@@ -1,361 +1,128 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Yokai;
+using Yokai; // Å© Ç†Ç»ÇΩÇÃ namespace Ç…çáÇÌÇπÇƒ
 
-public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+public class PurifyChargeController :
+    MonoBehaviour,
+    IPointerDownHandler,
+    IPointerUpHandler
 {
-    [Header("Settings")]
-    public float chargeDuration = 2.0f;
+    [Header("References")]
+    [SerializeField] private GameObject magicCircleRoot;
+    [SerializeField] private UIPentagramBaseCircle baseCircle;
+    [SerializeField] private YokaiStateController stateController;
 
-    [Header("Complete Sequence")]
-    public float completeWaitTime = 0.3f;
-    public float completeFadeOutDuration = 0.25f;
-    public float completeRotateBoost = 60f;
-    public float baseCircleFlashAlpha = 1.2f;
-    public float completePulseScale = 1.05f;
-    public float completePulseDuration = 0.12f;
+    [Header("Charge Settings")]
+    [SerializeField] private float chargeDuration = 2.0f;
+    [SerializeField] private float fadeDuration = 0.25f;
 
-    [Header("Refs")]
-    public UIPentagramDrawer pentagramDrawer;
-    public UIPentagramBaseCircle baseCircle;
-    public UIPentagramRotate pentagramRotate;
-    public RectTransform pentagramRoot;
-    public YokaiStateController stateController;
+    private bool isCharging;
+    private float chargeTimer;
+    private Coroutine fadeCoroutine;
 
-    bool isCharging = false;
-    bool hasSucceeded = false;
-    float currentCharge = 0f;
-    float baseRotateSpeed = 0f;
-    Vector3 basePentagramScale = Vector3.one;
-    Coroutine completeSequenceCoroutine;
-    Coroutine pulseCoroutine;
-
-    void Awake()
-    {
-        if (pentagramDrawer == null)
-        {
-            pentagramDrawer = FindObjectOfType<UIPentagramDrawer>();
-        }
-
-        if (baseCircle == null)
-        {
-            baseCircle = FindObjectOfType<UIPentagramBaseCircle>();
-        }
-
-        if (pentagramRotate == null)
-        {
-            pentagramRotate = FindObjectOfType<UIPentagramRotate>();
-        }
-
-        if (pentagramRoot == null && pentagramDrawer != null)
-        {
-            pentagramRoot = pentagramDrawer.GetComponent<RectTransform>();
-        }
-
-        if (pentagramRoot != null)
-        {
-            basePentagramScale = pentagramRoot.localScale;
-        }
-
-        SyncBaseCircleScale();
-        if (pentagramRotate != null)
-        {
-            baseRotateSpeed = pentagramRotate.rotateSpeed;
-        }
-    }
-
-    public void BeginCharge()
-    {
-        if (hasSucceeded)
-        {
-            ResetPurify();
-        }
-
-        isCharging = true;
-        currentCharge = 0f;
-
-        if (pentagramDrawer != null)
-        {
-            pentagramDrawer.ClearSuppressRendering();
-            pentagramDrawer.SetProgress(0f);
-        }
-
-        SyncBaseCircleScale();
-        if (baseCircle != null)
-        {
-            baseCircle.Show();
-            baseCircle.FadeIn(completeFadeOutDuration);
-        }
-
-        if (pentagramRotate != null)
-        {
-            pentagramRotate.StopRotate();
-            pentagramRotate.ResetRotation();
-            pentagramRotate.rotateSpeed = baseRotateSpeed;
-        }
-    }
+    // =========================
+    // Pointer
+    // =========================
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (hasSucceeded)
-            return;
-
-        Debug.Log("[PURIFY] PointerDown");
-
-        isCharging = true;
-        currentCharge = 0f;
-
-        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
-        AudioHook.RequestLoop(YokaiSE.SE_PURIFY_CHARGE);
-
-        if (pentagramDrawer != null)
-        {
-            pentagramDrawer.ClearSuppressRendering();
-            pentagramDrawer.SetProgress(0f);
-        }
-
-        SyncBaseCircleScale();
-        if (baseCircle != null)
-        {
-            baseCircle.Show();
-            baseCircle.FadeIn(completeFadeOutDuration);
-        }
-
-        if (pentagramRotate != null)
-        {
-            baseRotateSpeed = pentagramRotate.rotateSpeed;
-            pentagramRotate.StartRotate();
-        }
+        BeginCharge();
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (!isCharging || hasSucceeded)
-            return;
+        CancelCharge();
+    }
 
-        Debug.Log("[PURIFY] PointerUp");
+    // =========================
+    // Charge
+    // =========================
+
+    public void BeginCharge()
+    {
+        if (isCharging) return;
+
+        // êeÇ©ÇÁïKÇ∏ active
+        if (!magicCircleRoot.activeInHierarchy)
+        {
+            magicCircleRoot.SetActive(true);
+        }
+
+        isCharging = true;
+        chargeTimer = 0f;
+
+        StartFade(0f, 1f);
+
+        Debug.Log("[PURIFY] BeginCharge");
+    }
+
+    public void CancelCharge()
+    {
+        if (!isCharging) return;
 
         isCharging = false;
-        currentCharge = 0f;
+        chargeTimer = 0f;
 
-        AudioHook.RequestStopLoop(YokaiSE.SE_PURIFY_CHARGE);
-        ResetPulseScale();
+        StartFade(baseCircleAlpha: 1f, targetAlpha: 0f);
 
-        if (pentagramDrawer != null)
-        {
-            pentagramDrawer.ReverseAndClear();
-        }
-
-        if (baseCircle != null)
-        {
-            baseCircle.FadeOut(completeFadeOutDuration);
-        }
-
-        if (pentagramRotate != null)
-        {
-            pentagramRotate.StopRotate();
-            pentagramRotate.ResetRotation();
-            pentagramRotate.rotateSpeed = baseRotateSpeed;
-        }
+        Debug.Log("[PURIFY] CancelCharge");
     }
+
+    private void CompleteCharge()
+    {
+        isCharging = false;
+
+        StartFade(1f, 0f);
+
+        stateController.BeginPurifying("ChargeComplete");
+
+        Debug.Log("[PURIFY] Charge Complete");
+    }
+
+    // =========================
+    // Update
+    // =========================
 
     private void Update()
     {
-        Debug.Log($"[PURIFY] Update isCharging={isCharging}");
+        if (!isCharging) return;
 
-        if (!isCharging || hasSucceeded)
-            return;
+        chargeTimer += Time.deltaTime;
 
-        currentCharge += Time.unscaledDeltaTime;
-        float progress = Mathf.Clamp01(currentCharge / chargeDuration);
-
-        if (pentagramDrawer != null)
+        if (chargeTimer >= chargeDuration)
         {
-            pentagramDrawer.SetProgress(progress);
-            Debug.Log("[PENTAGRAM] SetProgress called");
-        }
-
-        if (progress >= 1f)
-        {
-            CompletePurify();
+            CompleteCharge();
         }
     }
 
-    private void CompletePurify()
+    // =========================
+    // Fade (Coroutine host here)
+    // =========================
+
+    private void StartFade(float baseCircleAlpha, float targetAlpha)
     {
-        if (hasSucceeded)
-            return;
-
-        hasSucceeded = true;
-        isCharging = false;
-
-        Debug.Log("[PURIFY] Complete!");
-
-        AudioHook.RequestStopLoop(YokaiSE.SE_PURIFY_CHARGE);
-
-        if (completeSequenceCoroutine != null)
+        if (fadeCoroutine != null)
         {
-            StopCoroutine(completeSequenceCoroutine);
+            StopCoroutine(fadeCoroutine);
         }
-        completeSequenceCoroutine = StartCoroutine(CoCompleteSequence());
 
-        var controller = ResolveStateController();
-        if (controller != null)
-        {
-            controller.BeginPurifying("ChargeComplete");
-            controller.NotifyPurifySucceeded();
-        }
+        fadeCoroutine = StartCoroutine(FadeRoutine(baseCircleAlpha, targetAlpha));
     }
 
-    IEnumerator CoCompleteSequence()
+    private System.Collections.IEnumerator FadeRoutine(float from, float to)
     {
-        float flashDuration = pentagramDrawer != null ? pentagramDrawer.completeFlashDuration : 0.2f;
-
-        if (pentagramDrawer != null)
-        {
-            pentagramDrawer.PlayCompleteFlash();
-        }
-
-        if (baseCircle != null)
-        {
-            baseCircle.PlayCompleteFlash(flashDuration, baseCircleFlashAlpha);
-        }
-
-        if (pentagramRotate != null)
-        {
-            baseRotateSpeed = pentagramRotate.rotateSpeed;
-            pentagramRotate.rotateSpeed = baseRotateSpeed + completeRotateBoost;
-            pentagramRotate.StartRotate();
-        }
-
-        StartPulse();
-
-        yield return new WaitForSecondsRealtime(completeWaitTime);
-
-        if (pentagramDrawer != null)
-        {
-            pentagramDrawer.FadeOutLines(completeFadeOutDuration);
-        }
-
-        if (baseCircle != null)
-        {
-            baseCircle.FadeOut(completeFadeOutDuration);
-        }
-
-        yield return new WaitForSecondsRealtime(completeFadeOutDuration);
-
-        if (pentagramDrawer != null)
-        {
-            pentagramDrawer.ReverseAndClear();
-        }
-
-        if (baseCircle != null)
-        {
-            baseCircle.Hide();
-        }
-
-        if (pentagramRotate != null)
-        {
-            pentagramRotate.StopRotate();
-            pentagramRotate.ResetRotation();
-            pentagramRotate.rotateSpeed = baseRotateSpeed;
-        }
-
-        ResetPulseScale();
-        completeSequenceCoroutine = null;
-    }
-
-    public void ResetPurify()
-    {
-        isCharging = false;
-        hasSucceeded = false;
-        currentCharge = 0f;
-
-        if (pentagramDrawer != null)
-        {
-            pentagramDrawer.SetProgress(0f);
-        }
-
-        if (baseCircle != null)
-        {
-            baseCircle.Hide();
-        }
-
-        if (pentagramRotate != null)
-        {
-            pentagramRotate.StopRotate();
-            pentagramRotate.ResetRotation();
-            pentagramRotate.rotateSpeed = baseRotateSpeed;
-        }
-
-        AudioHook.RequestStopLoop(YokaiSE.SE_PURIFY_CHARGE);
-        ResetPulseScale();
-    }
-
-    void SyncBaseCircleScale()
-    {
-        if (baseCircle == null || pentagramDrawer == null) return;
-        baseCircle.SetScale(pentagramDrawer.scale);
-    }
-
-    YokaiStateController ResolveStateController()
-    {
-        if (stateController == null)
-        {
-            stateController = CurrentYokaiContext.ResolveStateController();
-        }
-
-        return stateController;
-    }
-
-    void StartPulse()
-    {
-        if (pentagramRoot == null)
-            return;
-
-        if (pulseCoroutine != null)
-        {
-            StopCoroutine(pulseCoroutine);
-        }
-
-        pulseCoroutine = StartCoroutine(CoPulseScale());
-    }
-
-    IEnumerator CoPulseScale()
-    {
-        if (pentagramRoot == null)
-        {
-            pulseCoroutine = null;
-            yield break;
-        }
-
-        pentagramRoot.localScale = basePentagramScale * completePulseScale;
-
         float t = 0f;
-        while (t < completePulseDuration)
+
+        baseCircle.SetAlpha(from);
+
+        while (t < fadeDuration)
         {
-            t += Time.unscaledDeltaTime;
-            float k = (completePulseDuration <= 0f) ? 1f : (t / completePulseDuration);
-            pentagramRoot.localScale = Vector3.Lerp(basePentagramScale * completePulseScale, basePentagramScale, k);
+            t += Time.deltaTime;
+            float a = Mathf.Lerp(from, to, t / fadeDuration);
+            baseCircle.SetAlpha(a);
             yield return null;
         }
 
-        pentagramRoot.localScale = basePentagramScale;
-        pulseCoroutine = null;
-    }
-
-    void ResetPulseScale()
-    {
-        if (pulseCoroutine != null)
-        {
-            StopCoroutine(pulseCoroutine);
-            pulseCoroutine = null;
-        }
-
-        if (pentagramRoot != null)
-        {
-            pentagramRoot.localScale = basePentagramScale;
-        }
+        baseCircle.SetAlpha(to);
     }
 }
