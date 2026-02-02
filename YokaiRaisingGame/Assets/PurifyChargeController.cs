@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using Yokai;
 
-public class PurifyChargeController : MonoBehaviour
+public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     [Header("Settings")]
     public float chargeDuration = 2.0f;
@@ -96,7 +96,7 @@ public class PurifyChargeController : MonoBehaviour
         }
     }
 
-    public void OnPointerDown(BaseEventData eventData)
+    public void OnPointerDown(PointerEventData eventData)
     {
         if (hasSucceeded)
             return;
@@ -129,7 +129,7 @@ public class PurifyChargeController : MonoBehaviour
         }
     }
 
-    public void OnPointerUp(BaseEventData eventData)
+    public void OnPointerUp(PointerEventData eventData)
     {
         if (!isCharging || hasSucceeded)
             return;
