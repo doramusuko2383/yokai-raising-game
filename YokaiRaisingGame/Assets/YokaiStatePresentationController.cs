@@ -8,6 +8,8 @@ namespace Yokai
 {
 public class YokaiStatePresentationController : MonoBehaviour
 {
+    // Responsibility: presentation only reflects state visuals and action UI.
+    // Magic circle UI visibility is controlled by PurifyChargeController.
     [Header("Dependencies")]
     [SerializeField]
     YokaiStateController stateController;
@@ -407,21 +409,9 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void SyncMagicCircleForState(YokaiState state)
     {
-        if (magicCircleActivator == null)
-            return;
-
-        if (state == YokaiState.Purifying)
-        {
-            Debug.Log("[PRESENTATION] Sync MagicCircle Hide (Purifying)");
-            magicCircleActivator.Hide();
-            hasPlayedPurifyStartSE = false;
-            return;
-        }
-
-        // Purifying以外では必ず非表示にする（forceの有無で最終状態が変わらないように統一）
-        Debug.Log("[PRESENTATION] Sync MagicCircle Hide (Non-Purifying)");
-        magicCircleActivator.Hide();
-        hasPlayedPurifyStartSE = false; // Purifying解除時にリセット
+        // Intentionally no-op:
+        // Magic circle UI lifecycle must be driven by PurifyChargeController, not by state.
+        hasPlayedPurifyStartSE = false;
     }
 
     void RefreshPresentation()
@@ -587,8 +577,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             case YokaiState.Purifying:
                 actionPanel.SetActive(false);
                 purifyHoldButton?.SetActive(true);
-                if (magicCircleActivator != null)
-                    magicCircleActivator.Hide();
                 break;
 
             case YokaiState.EvolutionReady:
