@@ -81,6 +81,7 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
             ResetPurify();
         }
 
+        // Magic circle UI lifecycle: BeginCharge -> CompletePurify/Cancel (RequestEndMagicCircleUI).
         RequestShowMagicCircleUI();
         isCharging = true;
         currentCharge = 0f;
@@ -114,7 +115,7 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
         Debug.Log("[PURIFY] PointerDown");
         Debug.Log("[MAGIC_CIRCLE] Show start");
 
-        RequestShowMagicCircleUI();
+        // Input events trigger charge start/stop only; they must not directly control UI visibility.
         isCharging = true;
         currentCharge = 0f;
 
@@ -148,6 +149,7 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
 
         Debug.Log("[PURIFY] PointerUp");
 
+        // Input events trigger charge start/stop only; they must not directly control UI visibility.
         isCharging = false;
         currentCharge = 0f;
 
