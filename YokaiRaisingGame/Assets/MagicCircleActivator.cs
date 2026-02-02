@@ -7,6 +7,9 @@ public class MagicCircleActivator : MonoBehaviour
     GameObject magicCircleRoot;
 
     [SerializeField]
+    CanvasGroup magicCircleCanvasGroup;
+
+    [SerializeField]
     YokaiStateController stateController;
 
     bool hasWarnedMissingRoot;
@@ -71,6 +74,33 @@ public class MagicCircleActivator : MonoBehaviour
         Debug.Log("[MAGIC_CIRCLE] Hide()");
 #endif
         SetActive(false);
+    }
+
+    public void EndMagicCircleUI()
+    {
+        isActive = false;
+        isVisible = false;
+
+        if (magicCircleRoot == null)
+        {
+            WarnMissingRoot();
+            return;
+        }
+
+        if (magicCircleCanvasGroup == null)
+            magicCircleCanvasGroup = magicCircleRoot.GetComponent<CanvasGroup>();
+
+        if (magicCircleCanvasGroup != null)
+        {
+            magicCircleCanvasGroup.alpha = 0f;
+            magicCircleCanvasGroup.interactable = false;
+            magicCircleCanvasGroup.blocksRaycasts = false;
+        }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        Debug.Log("[MAGIC_CIRCLE] EndMagicCircleUI");
+#endif
+        magicCircleRoot.SetActive(false);
     }
 
     public void Activate()

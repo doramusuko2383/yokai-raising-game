@@ -22,6 +22,8 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
     public UIPentagramRotate pentagramRotate;
     public RectTransform pentagramRoot;
     public YokaiStateController stateController;
+    [SerializeField]
+    MagicCircleActivator magicCircleActivator;
 
     bool isCharging = false;
     bool hasSucceeded = false;
@@ -65,6 +67,11 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
         }
     }
 
+    void OnDisable()
+    {
+        RequestEndMagicCircleUI();
+    }
+
     public void BeginCharge()
     {
         if (hasSucceeded)
@@ -102,6 +109,7 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
             return;
 
         Debug.Log("[PURIFY] PointerDown");
+        Debug.Log("[MAGIC_CIRCLE] Show start");
 
         isCharging = true;
         currentCharge = 0f;
@@ -158,6 +166,8 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
             pentagramRotate.ResetRotation();
             pentagramRotate.rotateSpeed = baseRotateSpeed;
         }
+
+        RequestEndMagicCircleUI();
     }
 
     private void Update()
@@ -191,6 +201,7 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
         isCharging = false;
 
         Debug.Log("[PURIFY] Complete!");
+        Debug.Log("[MAGIC_CIRCLE] Purify success");
 
         AudioHook.RequestStopLoop(YokaiSE.SE_PURIFY_CHARGE);
 
@@ -206,6 +217,8 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
             controller.BeginPurifying("ChargeComplete");
             controller.NotifyPurifySucceeded();
         }
+
+        RequestEndMagicCircleUI();
     }
 
     IEnumerator CoCompleteSequence()
@@ -309,6 +322,16 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
         return stateController;
     }
 
+    MagicCircleActivator ResolveMagicCircleActivator()
+    {
+        if (magicCircleActivator == null)
+        {
+            magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
+        }
+
+        return magicCircleActivator;
+    }
+
     void StartPulse()
     {
         if (pentagramRoot == null)
@@ -357,5 +380,14 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
         {
             pentagramRoot.localScale = basePentagramScale;
         }
+    }
+
+    void RequestEndMagicCircleUI()
+    {
+        var activator = ResolveMagicCircleActivator();
+        if (activator == null)
+            return;
+
+        activator.EndMagicCircleUI();
     }
 }
