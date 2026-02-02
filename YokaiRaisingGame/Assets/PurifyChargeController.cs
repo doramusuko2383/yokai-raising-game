@@ -5,6 +5,8 @@ using Yokai;
 
 public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
+    // Responsibility: PurifyChargeController owns the magic circle UI lifecycle.
+    // State controllers/presentation must not directly hide/show the magic circle.
     [Header("Settings")]
     public float chargeDuration = 2.0f;
 
@@ -79,6 +81,7 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
             ResetPurify();
         }
 
+        RequestShowMagicCircleUI();
         isCharging = true;
         currentCharge = 0f;
 
@@ -111,6 +114,7 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
         Debug.Log("[PURIFY] PointerDown");
         Debug.Log("[MAGIC_CIRCLE] Show start");
 
+        RequestShowMagicCircleUI();
         isCharging = true;
         currentCharge = 0f;
 
@@ -172,8 +176,6 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
 
     private void Update()
     {
-        Debug.Log($"[PURIFY] Update isCharging={isCharging}");
-
         if (!isCharging || hasSucceeded)
             return;
 
@@ -183,7 +185,6 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
         if (pentagramDrawer != null)
         {
             pentagramDrawer.SetProgress(progress);
-            Debug.Log("[PENTAGRAM] SetProgress called");
         }
 
         if (progress >= 1f)
@@ -389,5 +390,14 @@ public class PurifyChargeController : MonoBehaviour, IPointerDownHandler, IPoint
             return;
 
         activator.EndMagicCircleUI();
+    }
+
+    void RequestShowMagicCircleUI()
+    {
+        var activator = ResolveMagicCircleActivator();
+        if (activator == null)
+            return;
+
+        activator.Show();
     }
 }
