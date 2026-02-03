@@ -92,11 +92,11 @@ public class YokaiStateController : MonoBehaviour
         {
             case YokaiAction.PurifyStart:
                 // 通常のおきよめ開始（通常状態のみ）
-                return true;
+                return state == YokaiState.Normal;
 
             case YokaiAction.PurifyCancel:
                 // おきよめ中のキャンセル
-                return true;
+                return state == YokaiState.Purifying;
 
             case YokaiAction.EatDango:
                 // [State Rule] State のみで決まるルール
@@ -105,12 +105,12 @@ public class YokaiStateController : MonoBehaviour
 
             case YokaiAction.EmergencyPurifyAd:
                 // 清浄度0の救済（緊急おきよめ）
-                return true;
+                return state == YokaiState.PurityEmpty;
 
             case YokaiAction.EmergencySpiritRecover:
                 // 霊力0の救済（特別おだんご）
                 // あなたの実装では canUseSpecialDango が立つので、それも条件に入れると安全
-                return true;
+                return state == YokaiState.EnergyEmpty;
 
             case YokaiAction.StartEvolution:
                 // [State Rule] State のみで決まるルール
