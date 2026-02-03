@@ -68,51 +68,74 @@ public class YokaiStateController : MonoBehaviour
     public PurityController PurityController => purityController;
     public string LastStateChangeReason => lastStateChangeReason;
 
-        public bool CanDo(YokaiAction action)
-        {
-            return IsAllowedByState(currentState, action);
-        }
-
-        private bool IsAllowedByState(YokaiState state, YokaiAction action)
-        {
-            // 進化中は基本なにもできない（演出中の誤操作を防ぐ）
-            if (state == YokaiState.Evolving)
-                return false;
-
-            // 進化待ちは「進化開始」以外なにもできない（あなたの仕様）
-            if (state == YokaiState.EvolutionReady)
-                return action == YokaiAction.StartEvolution;
-
-            switch (action)
-            {
-                case YokaiAction.PurifyStart:
-                    // 通常のおきよめ開始（通常状態のみ）
-                    return state == YokaiState.Normal && !isPurifying;
-
-                case YokaiAction.PurifyCancel:
-                    // おきよめ中のキャンセル
-                    return state == YokaiState.Purifying && isPurifying;
-
-                case YokaiAction.EatDango:
-                    // 通常だんご（通常状態のみ）
-                    return state == YokaiState.Normal;
-
-                case YokaiAction.EmergencyPurifyAd:
-                    // 清浄度0の救済（緊急おきよめ）
-                    return state == YokaiState.PurityEmpty && !isPurifying;
-
-                case YokaiAction.EmergencySpiritRecover:
-                    // 霊力0の救済（特別おだんご）
-                    // あなたの実装では canUseSpecialDango が立つので、それも条件に入れると安全
-                    return state == YokaiState.EnergyEmpty && canUseSpecialDango;
-
-                case YokaiAction.StartEvolution:
-                    // EvolutionReady 以外は上で弾いてるので一応 false
-                    return false;
-            }
-
+    public bool CanDo(YokaiAction action)
+    {
+        if (!IsAllowedByState(currentState, action))
             return false;
+
+        return IsActionConditionSatisfied(action);
+    }
+
+    private bool IsAllowedByState(YokaiState state, YokaiAction action)
+    {
+        // 進化中は基本なにもできない（演出中の誤操作を防ぐ）
+        if (state == YokaiState.Evolving)
+            return false;
+
+        // 進化待ちは「進化開始」以外なにもできない（あなたの仕様）
+        if (state == YokaiState.EvolutionReady)
+            return action == YokaiAction.StartEvolution;
+
+        switch (action)
+        {
+            case YokaiAction.PurifyStart:
+                // 通常のおきよめ開始（通常状態のみ）
+                return state == YokaiState.Normal;
+
+            case YokaiAction.PurifyCancel:
+                // おきよめ中のキャンセル
+                return state == YokaiState.Purifying;
+
+            case YokaiAction.EatDango:
+                // 通常だんご（通常状態のみ）
+                return state == YokaiState.Normal;
+
+            case YokaiAction.EmergencyPurifyAd:
+                // 清浄度0の救済（緊急おきよめ）
+                return state == YokaiState.PurityEmpty;
+
+            case YokaiAction.EmergencySpiritRecover:
+                // 霊力0の救済（特別おだんご）
+                return state == YokaiState.EnergyEmpty;
+
+            case YokaiAction.StartEvolution:
+                // EvolutionReady 以外は上で弾いてるので一応 false
+                return false;
         }
+
+        return false;
+    }
+
+    private bool IsActionConditionSatisfied(YokaiAction action)
+    {
+        switch (action)
+        {
+            case YokaiAction.PurifyStart:
+                return !isPurifying;
+
+            case YokaiAction.PurifyCancel:
+                return isPurifying;
+
+            case YokaiAction.EmergencyPurifyAd:
+                return !isPurifying;
+
+            case YokaiAction.EmergencySpiritRecover:
+                // あなたの実装では canUseSpecialDango が立つので、それも条件に入れると安全
+                return canUseSpecialDango;
+        }
+
+        return true;
+    }
 
         public void ConsumePurifyTrigger()
     {
