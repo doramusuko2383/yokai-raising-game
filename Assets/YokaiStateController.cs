@@ -118,6 +118,10 @@ public class YokaiStateController : MonoBehaviour
 
             case YokaiAction.EmergencySpiritRecover:
             case YokaiAction.EatDango:
+                Debug.LogWarning($"ExecuteAction not implemented: {action}");
+                break;
+            default:
+                Debug.LogError($"Unhandled YokaiAction in ExecuteAction: {action}");
                 break;
         }
     }
