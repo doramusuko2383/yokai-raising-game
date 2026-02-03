@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e85cdf734e474c3895c30eecfb0751e4, type: 3}
+  m_Name: SEClipLibrary
+  m_EditorClassIdentifier: 
+  uiClick: {fileID: 8300000, guid: a5304ea261a9a1449934308230158ad5, type: 3}
+  purifyStart: {fileID: 8300000, guid: fdb610981c20d434d819e9d89cdd083f, type: 3}
+  purifySuccess: {fileID: 8300000, guid: b5b6b73cfe07f18478131c6bf7733b02, type: 3}
+  evolutionStart: {fileID: 8300000, guid: 548c3b33720d8ef4088d99e108c7cc17, type: 3}
+  purityEmptyEnter: {fileID: 8300000, guid: e1773e348ff9c0b40af6e132be563c26, type: 3}
+  purityEmptyRelease: {fileID: 8300000, guid: f92fdd220708e664e9e5e9820a55855e, type: 3}
+  spiritEmpty: {fileID: 8300000, guid: 087f2824f8453f64fb41286977c20abd, type: 3}
+  spiritRecover: {fileID: 8300000, guid: 9cd072854de2aac4a8234ea37cedd67a, type: 3}
