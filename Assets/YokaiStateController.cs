@@ -76,37 +76,45 @@ public class YokaiStateController : MonoBehaviour
     private bool IsAllowedByState(YokaiState state, YokaiAction action)
     {
         // 進化中は基本なにもできない（演出中の誤操作を防ぐ）
+        // [State Rule] State のみで決まるルール
         if (state == YokaiState.Evolving)
             return false;
 
         // 進化待ちは「進化開始」以外なにもできない（あなたの仕様）
+        // [State Rule] State のみで決まるルール
         if (state == YokaiState.EvolutionReady)
             return action == YokaiAction.StartEvolution;
 
         switch (action)
         {
             case YokaiAction.PurifyStart:
+                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
                 // 通常のおきよめ開始（通常状態のみ）
                 return state == YokaiState.Normal && !isPurifying;
 
             case YokaiAction.PurifyCancel:
+                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
                 // おきよめ中のキャンセル
                 return state == YokaiState.Purifying && isPurifying;
 
             case YokaiAction.EatDango:
+                // [State Rule] State のみで決まるルール
                 // 通常だんご（通常状態のみ）
                 return state == YokaiState.Normal;
 
             case YokaiAction.EmergencyPurifyAd:
+                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
                 // 清浄度0の救済（緊急おきよめ）
                 return state == YokaiState.PurityEmpty && !isPurifying;
 
             case YokaiAction.EmergencySpiritRecover:
+                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
                 // 霊力0の救済（特別おだんご）
                 // あなたの実装では canUseSpecialDango が立つので、それも条件に入れると安全
                 return state == YokaiState.EnergyEmpty && canUseSpecialDango;
 
             case YokaiAction.StartEvolution:
+                // [State Rule] State のみで決まるルール
                 // EvolutionReady 以外は上で弾いてるので一応 false
                 return false;
         }
