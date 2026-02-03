@@ -70,10 +70,7 @@ public class YokaiStateController : MonoBehaviour
 
     public bool CanDo(YokaiAction action)
     {
-        if (!IsAllowedByState(currentState, action))
-            return false;
-
-        return IsActionConditionSatisfied(action);
+        return IsAllowedByState(currentState, action);
     }
 
     private bool IsAllowedByState(YokaiState state, YokaiAction action)
@@ -90,11 +87,11 @@ public class YokaiStateController : MonoBehaviour
         {
             case YokaiAction.PurifyStart:
                 // 通常のおきよめ開始（通常状態のみ）
-                return state == YokaiState.Normal;
+                return state == YokaiState.Normal && !isPurifying;
 
             case YokaiAction.PurifyCancel:
                 // おきよめ中のキャンセル
-                return state == YokaiState.Purifying;
+                return state == YokaiState.Purifying && isPurifying;
 
             case YokaiAction.EatDango:
                 // 通常だんご（通常状態のみ）
@@ -102,11 +99,12 @@ public class YokaiStateController : MonoBehaviour
 
             case YokaiAction.EmergencyPurifyAd:
                 // 清浄度0の救済（緊急おきよめ）
-                return state == YokaiState.PurityEmpty;
+                return state == YokaiState.PurityEmpty && !isPurifying;
 
             case YokaiAction.EmergencySpiritRecover:
                 // 霊力0の救済（特別おだんご）
-                return state == YokaiState.EnergyEmpty;
+                // あなたの実装では canUseSpecialDango が立つので、それも条件に入れると安全
+                return state == YokaiState.EnergyEmpty && canUseSpecialDango;
 
             case YokaiAction.StartEvolution:
                 // EvolutionReady 以外は上で弾いてるので一応 false
@@ -114,27 +112,6 @@ public class YokaiStateController : MonoBehaviour
         }
 
         return false;
-    }
-
-    private bool IsActionConditionSatisfied(YokaiAction action)
-    {
-        switch (action)
-        {
-            case YokaiAction.PurifyStart:
-                return !isPurifying;
-
-            case YokaiAction.PurifyCancel:
-                return isPurifying;
-
-            case YokaiAction.EmergencyPurifyAd:
-                return !isPurifying;
-
-            case YokaiAction.EmergencySpiritRecover:
-                // あなたの実装では canUseSpecialDango が立つので、それも条件に入れると安全
-                return canUseSpecialDango;
-        }
-
-        return true;
     }
 
         public void ConsumePurifyTrigger()
