@@ -27,18 +27,12 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickPurify()
     {
-        if (IsActionBlocked())
+        var controller = ResolveStateController();
+        if (controller == null)
             return;
 
-        if (ResolveStateController() != null)
-        {
-            stateController.NotifyUserInteraction();
-            stateController.BeginPurifying();
-        }
-        else
-        {
-            WarnMissingStateController();
-        }
+        controller.NotifyUserInteraction();
+        controller.TryDo(YokaiAction.PurifyStart, "UI:PurifyButton");
     }
 
     public void OnClickEmergencyPurify()
@@ -47,15 +41,12 @@ public class PurifyButtonHandler : MonoBehaviour
         if (controller != null)
             controller.NotifyUserInteraction();
 
-        if (!IsState(YokaiState.PurityEmpty))
-            return;
-
         ShowAd(() =>
         {
             var resolvedController = ResolveStateController();
             if (resolvedController != null)
             {
-                resolvedController.BeginPurifying();
+                resolvedController.TryDo(YokaiAction.EmergencyPurifyAd, "UI:EmergencyPurify");
                 TutorialManager.NotifyPurifyUsed();
             }
             else
@@ -67,28 +58,11 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickStopPurify()
     {
-        if (!IsState(YokaiState.Purifying))
+        var controller = ResolveStateController();
+        if (controller == null)
             return;
 
-        if (ResolveStateController() != null)
-            stateController.CancelPurifying("StopPurify");
-    }
-
-    bool IsActionBlocked()
-    {
-        ResolveStateController();
-        // 不具合③: 状態未同期時はブロックせず、浄化中のみを弾く。
-        return stateController != null
-            && stateController.currentState == YokaiState.Purifying;
-    }
-
-    bool IsState(YokaiState state)
-    {
-        ResolveStateController();
-        if (stateController == null || stateController.currentState == state)
-            return true;
-
-        return false;
+        controller.TryDo(YokaiAction.PurifyCancel, "UI:StopPurify");
     }
 
     void ShowAd(System.Action onCompleted)
