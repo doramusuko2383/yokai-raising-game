@@ -70,7 +70,10 @@ public class YokaiStateController : MonoBehaviour
 
     public bool CanDo(YokaiAction action)
     {
-        return IsAllowedByState(currentState, action);
+        if (!IsAllowedByState(currentState, action))
+            return false;
+
+        return IsActionConditionSatisfied(action);
     }
 
     private bool IsAllowedByState(YokaiState state, YokaiAction action)
@@ -88,14 +91,12 @@ public class YokaiStateController : MonoBehaviour
         switch (action)
         {
             case YokaiAction.PurifyStart:
-                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
                 // 通常のおきよめ開始（通常状態のみ）
-                return state == YokaiState.Normal && !isPurifying;
+                return true;
 
             case YokaiAction.PurifyCancel:
-                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
                 // おきよめ中のキャンセル
-                return state == YokaiState.Purifying && isPurifying;
+                return true;
 
             case YokaiAction.EatDango:
                 // [State Rule] State のみで決まるルール
@@ -103,15 +104,13 @@ public class YokaiStateController : MonoBehaviour
                 return state == YokaiState.Normal;
 
             case YokaiAction.EmergencyPurifyAd:
-                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
                 // 清浄度0の救済（緊急おきよめ）
-                return state == YokaiState.PurityEmpty && !isPurifying;
+                return true;
 
             case YokaiAction.EmergencySpiritRecover:
-                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
                 // 霊力0の救済（特別おだんご）
                 // あなたの実装では canUseSpecialDango が立つので、それも条件に入れると安全
-                return state == YokaiState.EnergyEmpty && canUseSpecialDango;
+                return true;
 
             case YokaiAction.StartEvolution:
                 // [State Rule] State のみで決まるルール
@@ -120,6 +119,35 @@ public class YokaiStateController : MonoBehaviour
         }
 
         return false;
+    }
+
+    private bool IsActionConditionSatisfied(YokaiAction action)
+    {
+        switch (action)
+        {
+            case YokaiAction.PurifyStart:
+                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
+                // 通常のおきよめ開始（通常状態のみ）
+                return currentState == YokaiState.Normal && !isPurifying;
+
+            case YokaiAction.PurifyCancel:
+                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
+                // おきよめ中のキャンセル
+                return currentState == YokaiState.Purifying && isPurifying;
+
+            case YokaiAction.EmergencyPurifyAd:
+                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
+                // 清浄度0の救済（緊急おきよめ）
+                return currentState == YokaiState.PurityEmpty && !isPurifying;
+
+            case YokaiAction.EmergencySpiritRecover:
+                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
+                // 霊力0の救済（特別おだんご）
+                // あなたの実装では canUseSpecialDango が立つので、それも条件に入れると安全
+                return currentState == YokaiState.EnergyEmpty && canUseSpecialDango;
+        }
+
+        return true;
     }
 
         public void ConsumePurifyTrigger()
