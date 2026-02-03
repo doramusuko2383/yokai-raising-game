@@ -70,36 +70,41 @@ public class YokaiStateController : MonoBehaviour
 
         public bool CanDo(YokaiAction action)
         {
+            return IsAllowedByState(currentState, action);
+        }
+
+        private bool IsAllowedByState(YokaiState state, YokaiAction action)
+        {
             // 進化中は基本なにもできない（演出中の誤操作を防ぐ）
-            if (currentState == YokaiState.Evolving)
+            if (state == YokaiState.Evolving)
                 return false;
 
             // 進化待ちは「進化開始」以外なにもできない（あなたの仕様）
-            if (currentState == YokaiState.EvolutionReady)
+            if (state == YokaiState.EvolutionReady)
                 return action == YokaiAction.StartEvolution;
 
             switch (action)
             {
                 case YokaiAction.PurifyStart:
                     // 通常のおきよめ開始（通常状態のみ）
-                    return currentState == YokaiState.Normal && !isPurifying;
+                    return state == YokaiState.Normal && !isPurifying;
 
                 case YokaiAction.PurifyCancel:
                     // おきよめ中のキャンセル
-                    return currentState == YokaiState.Purifying && isPurifying;
+                    return state == YokaiState.Purifying && isPurifying;
 
                 case YokaiAction.EatDango:
                     // 通常だんご（通常状態のみ）
-                    return currentState == YokaiState.Normal;
+                    return state == YokaiState.Normal;
 
                 case YokaiAction.EmergencyPurifyAd:
                     // 清浄度0の救済（緊急おきよめ）
-                    return currentState == YokaiState.PurityEmpty && !isPurifying;
+                    return state == YokaiState.PurityEmpty && !isPurifying;
 
                 case YokaiAction.EmergencySpiritRecover:
                     // 霊力0の救済（特別おだんご）
                     // あなたの実装では canUseSpecialDango が立つので、それも条件に入れると安全
-                    return currentState == YokaiState.EnergyEmpty && canUseSpecialDango;
+                    return state == YokaiState.EnergyEmpty && canUseSpecialDango;
 
                 case YokaiAction.StartEvolution:
                     // EvolutionReady 以外は上で弾いてるので一応 false
