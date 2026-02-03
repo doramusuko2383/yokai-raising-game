@@ -76,6 +76,52 @@ public class YokaiStateController : MonoBehaviour
         return IsActionConditionSatisfied(action);
     }
 
+    public bool TryDo(YokaiAction action, string reason = null)
+    {
+        if (!CanDo(action))
+        {
+            return false;
+        }
+
+        ExecuteAction(action, reason);
+        return true;
+    }
+
+    void ExecuteAction(YokaiAction action, string reason)
+    {
+        switch (action)
+        {
+            case YokaiAction.PurifyStart:
+                if (reason == null)
+                    BeginPurifying();
+                else
+                    BeginPurifying(reason);
+                break;
+
+            case YokaiAction.PurifyCancel:
+                if (reason == null)
+                    CancelPurifying();
+                else
+                    CancelPurifying(reason);
+                break;
+
+            case YokaiAction.EmergencyPurifyAd:
+                if (reason == null)
+                    BeginPurifying();
+                else
+                    BeginPurifying(reason);
+                break;
+
+            case YokaiAction.StartEvolution:
+                BeginEvolution();
+                break;
+
+            case YokaiAction.EmergencySpiritRecover:
+            case YokaiAction.EatDango:
+                break;
+        }
+    }
+
     private bool IsAllowedByState(YokaiState state, YokaiAction action)
     {
         // 進化中は基本なにもできない（演出中の誤操作を防ぐ）
