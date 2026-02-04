@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Serialization;
 using Yokai;
 
@@ -13,6 +14,13 @@ public class DangoButtonHandler : MonoBehaviour
 
     [SerializeField]
     float dangoAmount = 30f;
+
+    [Header("UI References")]
+    [SerializeField]
+    GameObject dangoRoot;
+
+    [SerializeField]
+    Button dangoButton;
     bool hasWarnedMissingStateController;
     bool hasWarnedMissingSpiritController;
     bool hasWarnedMissingAudioHook;
@@ -51,12 +59,36 @@ public class DangoButtonHandler : MonoBehaviour
         stateController.TryDo(YokaiAction.EatDango, "UI:Dango");
     }
 
+    public void RefreshUI()
+    {
+        ResolveDependencies(logIfMissingOnce: false);
+        if (stateController == null)
+        {
+            SetAllDisabled();
+            return;
+        }
+
+        bool canEat = stateController.CanDo(YokaiAction.EatDango);
+        if (dangoRoot != null)
+            dangoRoot.SetActive(canEat);
+        if (dangoButton != null)
+            dangoButton.interactable = canEat;
+    }
+
     bool IsActionBlocked()
     {
         if (stateController == null)
             return false;
 
         return !stateController.CanDo(YokaiAction.EatDango);
+    }
+
+    void SetAllDisabled()
+    {
+        if (dangoRoot != null)
+            dangoRoot.SetActive(false);
+        if (dangoButton != null)
+            dangoButton.interactable = false;
     }
 
     void ResolveDependencies(bool logIfMissingOnce)
