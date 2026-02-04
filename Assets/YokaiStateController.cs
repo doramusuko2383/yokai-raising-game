@@ -120,7 +120,10 @@ public class YokaiStateController : MonoBehaviour
                 break;
 
             case YokaiAction.EmergencySpiritRecover:
-                Debug.LogWarning($"ExecuteAction not implemented: {action}");
+                spiritController.AddSpirit(dangoAmount);
+                TutorialManager.NotifyDangoUsed();
+                MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
+                RequestEvaluateState("SpiritRecovered");
                 break;
             case YokaiAction.EatDango:
                 spiritController.AddSpirit(dangoAmount);
