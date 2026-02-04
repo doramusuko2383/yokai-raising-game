@@ -48,10 +48,7 @@ public class DangoButtonHandler : MonoBehaviour
             return;
         }
 
-        spiritController.AddSpirit(dangoAmount);
-        TutorialManager.NotifyDangoUsed();
-        MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
-        stateController.RequestEvaluateState("SpiritRecovered");
+        stateController.TryDo(YokaiAction.EatDango, "UI:Dango");
     }
 
     bool IsActionBlocked()
