@@ -46,7 +46,9 @@ public class DangoButtonHandler : MonoBehaviour
         }
 
         if (!stateController.CanDo(YokaiAction.EatDango))
+        {
             return;
+        }
 
         stateController.NotifyUserInteraction();
 
