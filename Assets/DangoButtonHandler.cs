@@ -56,8 +56,7 @@ public class DangoButtonHandler : MonoBehaviour
         if (stateController == null)
             return false;
 
-        return stateController.currentState != YokaiState.Normal
-            && stateController.currentState != YokaiState.EvolutionReady;
+        return !stateController.CanDo(YokaiAction.EatDango);
     }
 
     void ResolveDependencies(bool logIfMissingOnce)
