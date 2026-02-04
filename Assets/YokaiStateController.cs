@@ -39,6 +39,9 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     float dangoAmount = 30f;
 
+    [SerializeField]
+    float emergencySpiritRecoverRatio = 0.5f;
+
     bool evolutionResultPending;
     YokaiEvolutionStage evolutionResultStage;
     const float EvolutionReadyScale = 2.0f;
@@ -46,6 +49,7 @@ public class YokaiStateController : MonoBehaviour
     bool hasWarnedUnknownState;
     bool hasWarnedMissingPurifyControllers;
     bool hasWarnedMissingMagicCircle;
+    bool hasWarnedMissingSpiritController;
     Coroutine purifyFallbackRoutine;
     string lastStateChangeReason;
 
@@ -120,7 +124,17 @@ public class YokaiStateController : MonoBehaviour
                 break;
 
             case YokaiAction.EmergencySpiritRecover:
-                Debug.LogWarning($"ExecuteAction not implemented: {action}");
+                NotifyUserInteraction();
+                if (spiritController == null)
+                {
+                    WarnMissingSpiritController();
+                    return;
+                }
+
+                float recoverAmount = spiritController.maxSpirit * emergencySpiritRecoverRatio;
+                spiritController.AddSpirit(recoverAmount);
+                AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
+                RequestEvaluateState("SpiritRecovered");
                 break;
             case YokaiAction.EatDango:
                 spiritController.AddSpirit(dangoAmount);
@@ -672,6 +686,15 @@ public class YokaiStateController : MonoBehaviour
 
         SyncManagerState();
         EvaluateState(reason: reason, forcePresentation: false);
+    }
+
+    void WarnMissingSpiritController()
+    {
+        if (hasWarnedMissingSpiritController)
+            return;
+
+        Debug.LogWarning("[RECOVERY] SpiritController not set in Inspector");
+        hasWarnedMissingSpiritController = true;
     }
 
     bool ShouldAllowRebindPresentationSync()
