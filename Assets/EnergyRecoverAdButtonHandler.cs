@@ -5,11 +5,7 @@ public class EnergyRecoverAdButtonHandler : MonoBehaviour
 {
     [SerializeField]
     YokaiStateController stateController;
-
-    [SerializeField]
-    float recoverRatio = 0.5f;
     bool hasWarnedMissingStateController;
-    bool hasWarnedMissingSpiritController;
 
     public void BindStateController(YokaiStateController controller)
     {
@@ -27,21 +23,11 @@ public class EnergyRecoverAdButtonHandler : MonoBehaviour
             return;
         }
 
+        if (!stateController.CanDo(YokaiAction.EmergencySpiritRecover))
+            return;
+
         stateController.NotifyUserInteraction();
-
-        if (stateController.currentState == YokaiState.EnergyEmpty)
-        {
-            var spiritController = stateController.SpiritController;
-            if (spiritController == null)
-            {
-                WarnMissingSpiritController();
-                return;
-            }
-
-            spiritController.AddSpiritRatio(recoverRatio);
-            AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
-            stateController.RequestEvaluateState("SpiritRecovered");
-        }
+        stateController.TryDo(YokaiAction.EmergencySpiritRecover, "UI:EmergencySpiritRecover");
     }
 
     YokaiStateController ResolveStateController()
@@ -62,12 +48,4 @@ public class EnergyRecoverAdButtonHandler : MonoBehaviour
         hasWarnedMissingStateController = true;
     }
 
-    void WarnMissingSpiritController()
-    {
-        if (hasWarnedMissingSpiritController)
-            return;
-
-        Debug.LogWarning("[RECOVERY] SpiritController not set in Inspector");
-        hasWarnedMissingSpiritController = true;
-    }
 }
