@@ -388,8 +388,6 @@ public class YokaiStateController : MonoBehaviour
         if (isPurifying)
             return;
 
-        // 緊急おきよめもユーザー操作として明示的に通知する。
-        NotifyUserInteraction();
         isPurifying = true;
         IsPurifyTriggeredByUser = true;
         SetState(YokaiState.Purifying, reason);
