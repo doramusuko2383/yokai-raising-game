@@ -47,7 +47,7 @@ public class DangoButtonHandler : MonoBehaviour
 
         stateController.NotifyUserInteraction();
 
-        if (IsActionBlocked())
+        if (!stateController.CanDo(YokaiAction.EatDango))
             return;
 
         if (spiritController == null)
@@ -73,14 +73,6 @@ public class DangoButtonHandler : MonoBehaviour
             dangoRoot.SetActive(canEat);
         if (dangoButton != null)
             dangoButton.interactable = canEat;
-    }
-
-    bool IsActionBlocked()
-    {
-        if (stateController == null)
-            return false;
-
-        return !stateController.CanDo(YokaiAction.EatDango);
     }
 
     void SetAllDisabled()

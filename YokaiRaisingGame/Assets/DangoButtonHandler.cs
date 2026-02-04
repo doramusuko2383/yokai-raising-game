@@ -39,7 +39,7 @@ public class DangoButtonHandler : MonoBehaviour
 
         stateController.NotifyUserInteraction();
 
-        if (IsActionBlocked())
+        if (!stateController.CanDo(YokaiAction.EatDango))
             return;
 
         if (spiritController == null)
@@ -52,15 +52,6 @@ public class DangoButtonHandler : MonoBehaviour
         TutorialManager.NotifyDangoUsed();
         MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
         stateController.RequestEvaluateState("SpiritRecovered");
-    }
-
-    bool IsActionBlocked()
-    {
-        if (stateController == null)
-            return false;
-
-        return stateController.currentState != YokaiState.Normal
-            && stateController.currentState != YokaiState.EvolutionReady;
     }
 
     void ResolveDependencies(bool logIfMissingOnce)
