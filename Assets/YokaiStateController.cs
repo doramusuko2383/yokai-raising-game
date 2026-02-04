@@ -119,8 +119,8 @@ public class YokaiStateController : MonoBehaviour
                 BeginEvolution();
                 break;
 
-            case YokaiAction.EmergencySpiritRecover:
             case YokaiAction.EatDango:
+            case YokaiAction.EmergencySpiritRecover:
                 RecoverSpirit();
                 break;
             default:
@@ -129,7 +129,7 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
-    void RecoverSpirit()
+    private void RecoverSpirit()
     {
         spiritController.AddSpirit(dangoAmount);
         TutorialManager.NotifyDangoUsed();
