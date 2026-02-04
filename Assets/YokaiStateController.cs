@@ -120,21 +120,21 @@ public class YokaiStateController : MonoBehaviour
                 break;
 
             case YokaiAction.EmergencySpiritRecover:
-                spiritController.AddSpirit(dangoAmount);
-                TutorialManager.NotifyDangoUsed();
-                MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
-                RequestEvaluateState("SpiritRecovered");
-                break;
             case YokaiAction.EatDango:
-                spiritController.AddSpirit(dangoAmount);
-                TutorialManager.NotifyDangoUsed();
-                MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
-                RequestEvaluateState("SpiritRecovered");
+                RecoverSpirit();
                 break;
             default:
                 Debug.LogError($"Unhandled YokaiAction in ExecuteAction: {action}");
                 break;
         }
+    }
+
+    void RecoverSpirit()
+    {
+        spiritController.AddSpirit(dangoAmount);
+        TutorialManager.NotifyDangoUsed();
+        MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
+        RequestEvaluateState("SpiritRecovered");
     }
 
     private bool IsAllowedByState(YokaiState state, YokaiAction action)
