@@ -160,6 +160,7 @@ public class YokaiStateController : MonoBehaviour
                 return state == YokaiState.Purifying;
 
             case YokaiAction.EatDango:
+            case YokaiAction.EmergencySpiritRecover:
                 // [State Rule] State のみで決まるルール
                 // 通常だんご（通常状態のみ）
                 return state == YokaiState.Normal;
@@ -167,11 +168,6 @@ public class YokaiStateController : MonoBehaviour
             case YokaiAction.EmergencyPurifyAd:
                 // 清浄度0の救済（緊急おきよめ）
                 return state == YokaiState.PurityEmpty;
-
-            case YokaiAction.EmergencySpiritRecover:
-                // 霊力0の救済（特別おだんご）
-                // あなたの実装では canUseSpecialDango が立つので、それも条件に入れると安全
-                return state == YokaiState.EnergyEmpty;
 
             case YokaiAction.StartEvolution:
                 // [State Rule] State のみで決まるルール
@@ -201,11 +197,6 @@ public class YokaiStateController : MonoBehaviour
                 // 清浄度0の救済（緊急おきよめ）
                 return currentState == YokaiState.PurityEmpty && !isPurifying;
 
-            case YokaiAction.EmergencySpiritRecover:
-                // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
-                // 霊力0の救済（特別おだんご）
-                // あなたの実装では canUseSpecialDango が立つので、それも条件に入れると安全
-                return currentState == YokaiState.EnergyEmpty && canUseSpecialDango;
         }
 
         return true;
