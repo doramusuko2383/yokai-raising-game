@@ -36,6 +36,9 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     SpiritController spiritController;
 
+    [SerializeField]
+    float dangoAmount = 30f;
+
     bool evolutionResultPending;
     YokaiEvolutionStage evolutionResultStage;
     const float EvolutionReadyScale = 2.0f;
@@ -117,8 +120,13 @@ public class YokaiStateController : MonoBehaviour
                 break;
 
             case YokaiAction.EmergencySpiritRecover:
-            case YokaiAction.EatDango:
                 Debug.LogWarning($"ExecuteAction not implemented: {action}");
+                break;
+            case YokaiAction.EatDango:
+                spiritController.AddSpirit(dangoAmount);
+                TutorialManager.NotifyDangoUsed();
+                MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
+                RequestEvaluateState("SpiritRecovered");
                 break;
             default:
                 Debug.LogError($"Unhandled YokaiAction in ExecuteAction: {action}");
