@@ -1,10 +1,31 @@
 using UnityEngine;
+using UnityEngine.UI;
 using Yokai;
 
 public class PurifyButtonHandler : MonoBehaviour
 {
     [SerializeField]
     YokaiStateController stateController;
+
+    [Header("UI References")]
+    [SerializeField]
+    GameObject purifyRoot;
+
+    [SerializeField]
+    Button purifyButton;
+
+    [SerializeField]
+    GameObject emergencyPurifyRoot;
+
+    [SerializeField]
+    Button emergencyPurifyButton;
+
+    [SerializeField]
+    GameObject stopPurifyRoot;
+
+    [SerializeField]
+    Button stopPurifyButton;
+
     bool hasWarnedMissingStateController;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     bool hasLoggedAudioResolution;
@@ -15,6 +36,7 @@ public class PurifyButtonHandler : MonoBehaviour
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         LogAudioResolutionOnce();
 #endif
+        RefreshUI();
     }
 
     public void BindStateController(YokaiStateController controller)
@@ -31,16 +53,11 @@ public class PurifyButtonHandler : MonoBehaviour
         if (controller == null)
             return;
 
-        controller.NotifyUserInteraction();
         controller.TryDo(YokaiAction.PurifyStart, "UI:PurifyButton");
     }
 
     public void OnClickEmergencyPurify()
     {
-        var controller = ResolveStateController();
-        if (controller != null)
-            controller.NotifyUserInteraction();
-
         ShowAd(() =>
         {
             var resolvedController = ResolveStateController();
@@ -63,6 +80,29 @@ public class PurifyButtonHandler : MonoBehaviour
             return;
 
         controller.TryDo(YokaiAction.PurifyCancel, "UI:StopPurify");
+    }
+
+    public void RefreshUI()
+    {
+        var controller = ResolveStateController();
+        bool canPurify = controller != null && controller.CanDo(YokaiAction.PurifyStart);
+        bool canEmergency = controller != null && controller.CanDo(YokaiAction.EmergencyPurifyAd);
+        bool canStop = controller != null && controller.CanDo(YokaiAction.PurifyCancel);
+
+        if (purifyRoot != null)
+            purifyRoot.SetActive(canPurify);
+        if (purifyButton != null)
+            purifyButton.interactable = canPurify;
+
+        if (emergencyPurifyRoot != null)
+            emergencyPurifyRoot.SetActive(canEmergency);
+        if (emergencyPurifyButton != null)
+            emergencyPurifyButton.interactable = canEmergency;
+
+        if (stopPurifyRoot != null)
+            stopPurifyRoot.SetActive(canStop);
+        if (stopPurifyButton != null)
+            stopPurifyButton.interactable = canStop;
     }
 
     void ShowAd(System.Action onCompleted)
