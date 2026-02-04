@@ -85,9 +85,15 @@ public class PurifyButtonHandler : MonoBehaviour
     public void RefreshUI()
     {
         var controller = ResolveStateController();
-        bool canPurify = controller != null && controller.CanDo(YokaiAction.PurifyStart);
-        bool canEmergency = controller != null && controller.CanDo(YokaiAction.EmergencyPurifyAd);
-        bool canStop = controller != null && controller.CanDo(YokaiAction.PurifyCancel);
+        if (controller == null)
+        {
+            SetAllDisabled();
+            return;
+        }
+
+        bool canPurify = controller.CanDo(YokaiAction.PurifyStart);
+        bool canEmergency = controller.CanDo(YokaiAction.EmergencyPurifyAd);
+        bool canStop = controller.CanDo(YokaiAction.PurifyCancel);
 
         if (purifyRoot != null)
             purifyRoot.SetActive(canPurify);
@@ -103,6 +109,29 @@ public class PurifyButtonHandler : MonoBehaviour
             stopPurifyRoot.SetActive(canStop);
         if (stopPurifyButton != null)
             stopPurifyButton.interactable = canStop;
+    }
+
+    void Update()
+    {
+        RefreshUI();
+    }
+
+    void SetAllDisabled()
+    {
+        if (purifyRoot != null)
+            purifyRoot.SetActive(false);
+        if (purifyButton != null)
+            purifyButton.interactable = false;
+
+        if (emergencyPurifyRoot != null)
+            emergencyPurifyRoot.SetActive(false);
+        if (emergencyPurifyButton != null)
+            emergencyPurifyButton.interactable = false;
+
+        if (stopPurifyRoot != null)
+            stopPurifyRoot.SetActive(false);
+        if (stopPurifyButton != null)
+            stopPurifyButton.interactable = false;
     }
 
     void ShowAd(System.Action onCompleted)
