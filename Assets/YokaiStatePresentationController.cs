@@ -412,9 +412,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (state == YokaiState.Purifying)
         {
-            Debug.Log("[PRESENTATION] Sync MagicCircle Hide (Purifying)");
-            if (magicCircleActivator != null)
-                magicCircleActivator.Hide();
             if (pentagramUI != null)
                 pentagramUI.SetActive(true);
             hasPlayedPurifyStartSE = false;
