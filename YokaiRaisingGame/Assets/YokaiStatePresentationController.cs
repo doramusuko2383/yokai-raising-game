@@ -35,6 +35,9 @@ public class YokaiStatePresentationController : MonoBehaviour
     MagicCircleActivator magicCircleActivator;
 
     [SerializeField]
+    GameObject pentagramUI;
+
+    [SerializeField]
     GameObject dangerOverlay;
 
     [Header("Danger Effect")]
@@ -407,20 +410,23 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void SyncMagicCircleForState(YokaiState state)
     {
-        if (magicCircleActivator == null)
-            return;
-
         if (state == YokaiState.Purifying)
         {
             Debug.Log("[PRESENTATION] Sync MagicCircle Hide (Purifying)");
-            magicCircleActivator.Hide();
+            if (magicCircleActivator != null)
+                magicCircleActivator.Hide();
+            if (pentagramUI != null)
+                pentagramUI.SetActive(true);
             hasPlayedPurifyStartSE = false;
             return;
         }
 
         // Purifying以外では必ず非表示にする（forceの有無で最終状態が変わらないように統一）
         Debug.Log("[PRESENTATION] Sync MagicCircle Hide (Non-Purifying)");
-        magicCircleActivator.Hide();
+        if (magicCircleActivator != null)
+            magicCircleActivator.Hide();
+        if (pentagramUI != null)
+            pentagramUI.SetActive(false);
         hasPlayedPurifyStartSE = false; // Purifying解除時にリセット
     }
 
