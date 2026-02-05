@@ -671,7 +671,6 @@ public class YokaiStateController : MonoBehaviour
             hasWarnedMissingPurifyControllers = true;
         }
 
-        SyncManagerState();
         if (isPurityEmpty)
             isPurityEmpty = false;
 
@@ -680,10 +679,15 @@ public class YokaiStateController : MonoBehaviour
 
         var presentation = ResolvePresentationController();
         if (presentation != null)
+        {
             presentation.ApplyState(YokaiState.Normal, force: true);
+            presentation.ApplyActionUIForState(YokaiState.Normal);
+        }
 
         ResolveMagicCircleActivator()?.Hide();
         MentorMessageService.ShowHint(OnmyojiHintType.PurityEmergencyRecover);
+        SyncManagerState();
+        EvaluateState(reason: reason, forcePresentation: false);
     }
 
     void ResetPurifyingState()
