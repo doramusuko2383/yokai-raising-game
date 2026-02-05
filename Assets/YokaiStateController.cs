@@ -665,11 +665,9 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.PurityEmpty)
             return;
 
-        Debug.Log("[EMERGENCY PURIFY] Execute");
-
         isPurifying = false;
         IsPurifyTriggeredByUser = false;
-        purityController?.RecoverPurityByRatio(0.5f);
+        purityController.RecoverPurityByRatio(0.5f);
         isPurityEmpty = false;
         SetState(YokaiState.Normal, reason);
         ForceSyncPresentation(YokaiState.Normal);
