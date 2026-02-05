@@ -665,12 +665,16 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.PurityEmpty)
             return;
 
-        isPurifying = false;
-        IsPurifyTriggeredByUser = false;
-        purityController.RecoverPurityByRatio(0.5f);
+        var wasPurityEmpty = currentState == YokaiState.PurityEmpty;
+        if (purityController != null)
+            purityController.RecoverPurityByRatio(0.5f);
+        else
+            Debug.LogWarning("[EMERGENCY PURIFY] purityController is null");
+
         isPurityEmpty = false;
         SetState(YokaiState.Normal, reason);
-        ForceSyncPresentation(YokaiState.Normal);
+        if (wasPurityEmpty)
+            ForceSyncPresentation(YokaiState.Normal);
 
         ResolveMagicCircleActivator()?.Hide();
         MentorMessageService.ShowHint(OnmyojiHintType.PurityEmergencyRecover);
