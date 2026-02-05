@@ -9,6 +9,7 @@ public static class OnmyojiHintCatalog
         { OnmyojiHintType.PurityWarning, "せいじょうどが さがってきとるのう" },
         { OnmyojiHintType.PurityEmpty, "せいじょうどが なくなって モノノケに なってしもうた" },
         { OnmyojiHintType.PurityRecovered, "あぶない ところじゃったわい" },
+        { OnmyojiHintType.PurityEmergencyRecover, "けがれが溜まりすぎておる。\nこのままではモノノケになってしまう……\n案ずるでない、わしにまかせい！" },
         { OnmyojiHintType.OkIYomeGuide, "おきよめボタンを ながおし するのじゃ" },
         { OnmyojiHintType.OkIYomeSuccess, "よしよし、きれいに なったぞい" },
         { OnmyojiHintType.EvolutionStart, "なにか ようすが おかしいようじゃ" },

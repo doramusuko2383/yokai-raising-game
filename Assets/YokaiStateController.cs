@@ -390,6 +390,12 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginPurifying(string reason = "BeginPurify")
     {
+        if (reason == "PurityRecoverAd")
+        {
+            Debug.LogWarning("[PURIFY] BeginPurifying blocked for emergency recover");
+            return;
+        }
+
         if (currentState != YokaiState.Normal && currentState != YokaiState.PurityEmpty)
             return;
 
@@ -663,25 +669,16 @@ public class YokaiStateController : MonoBehaviour
 
         isPurifying = false;
         IsPurifyTriggeredByUser = false;
-        isPurifyTriggerReady = false;
-        StopPurifyFallback();
-
-        if (purityController != null)
-        {
-            purityController.RecoverPurityByRatio(0.5f);
-        }
-        else if (!hasWarnedMissingPurifyControllers)
-        {
-            Debug.LogWarning("[PURIFY] PurityController is missing for emergency purify recovery.");
-            hasWarnedMissingPurifyControllers = true;
-        }
-
+        purityController?.RecoverPurityByRatio(0.5f);
         isPurityEmpty = false;
         SetState(YokaiState.Normal, reason);
         ForceSyncPresentation(YokaiState.Normal);
 
+        ResolveMagicCircleActivator()?.Hide();
         MentorMessageService.ShowHint(OnmyojiHintType.PurityEmergencyRecover);
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
+        SyncManagerState();
+        EvaluateState(reason, forcePresentation: false);
     }
 
     void ResetPurifyingState()
