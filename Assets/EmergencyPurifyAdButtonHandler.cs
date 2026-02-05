@@ -34,7 +34,8 @@ public class EmergencyPurifyAdButtonHandler : MonoBehaviour
         if (controller == null)
             return;
 
-        controller.TryDo(YokaiAction.EmergencyPurifyAd, "UI:EmergencyPurify");
+        Debug.Log("[EMERGENCY PURIFY] Triggered from UI button");
+        controller.TryDo(YokaiAction.EmergencyPurifyAd, "EmergencyPurify");
     }
 
     public void RefreshUI()
