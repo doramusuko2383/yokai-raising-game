@@ -37,10 +37,10 @@ public class PurifyChargeController : MonoBehaviour
 
     public void StartCharging()
     {
-        Debug.Log("[CHARGE] StartCharging called");
-
         if (hasSucceeded)
             return;
+
+        Debug.Log("[CHARGE] StartCharging called");
 
         isCharging = true;
         currentCharge = 0f;
@@ -48,9 +48,11 @@ public class PurifyChargeController : MonoBehaviour
 
     public void CancelCharging()
     {
+        // 成功後は一切キャンセルさせない
         if (hasSucceeded)
             return;
 
+        // チャージ中でなければ何もしない
         if (!isCharging)
             return;
 
@@ -70,8 +72,6 @@ public class PurifyChargeController : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log($"[CHARGE] Update isCharging={isCharging} succeeded={hasSucceeded}");
-
         if (!isCharging || hasSucceeded)
             return;
 
@@ -79,7 +79,7 @@ public class PurifyChargeController : MonoBehaviour
             stateController != null &&
             stateController.CurrentState == YokaiState.Purifying;
 
-        // Purifying 以外では進めない
+        // Purifying 以外では進行しない
         if (!isPurifyingState)
             return;
 
@@ -87,20 +87,11 @@ public class PurifyChargeController : MonoBehaviour
         float progress = Mathf.Clamp01(currentCharge / chargeDuration);
 
         if (pentagramDrawer != null)
-        {
             pentagramDrawer.SetProgress(progress);
-            Debug.Log("[PENTAGRAM] SetProgress called: " + progress);
-        }
 
         if (progress >= 1f)
-        {
             CompletePurify();
-        }
     }
-
-    // =====================
-    // Complete
-    // =====================
 
     private void CompletePurify()
     {
@@ -112,31 +103,31 @@ public class PurifyChargeController : MonoBehaviour
         hasSucceeded = true;
         isCharging = false;
 
+        if (returnRoutine != null)
+        {
+            StopCoroutine(returnRoutine);
+            returnRoutine = null;
+        }
+
         if (pentagramDrawer != null)
             pentagramDrawer.SetProgress(0f);
 
-        // ★ 完成フラッシュ
-       // if (pentagramDrawer != null)
-        //{
-         //   pentagramDrawer.PlayCompleteFlash();
-       // }
-
-        // ★ 状態遷移確定
         if (stateController != null)
-        {
             stateController.NotifyPurifySucceeded();
-        }
     }
 
-    // =====================
-    // External reset (保険)
-    // =====================
-
+    // 外部からのリセット用（次回おきよめ用）
     public void ResetPurify()
     {
         isCharging = false;
         hasSucceeded = false;
         currentCharge = 0f;
+
+        if (returnRoutine != null)
+        {
+            StopCoroutine(returnRoutine);
+            returnRoutine = null;
+        }
 
         if (pentagramDrawer != null)
             pentagramDrawer.SetProgress(0f);
