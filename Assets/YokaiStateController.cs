@@ -656,7 +656,8 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.PurityEmpty)
             return;
 
-        StopPurifyFallback();
+        Debug.Log("[EMERGENCY PURIFY] Execute");
+
         isPurifying = false;
         IsPurifyTriggeredByUser = false;
         isPurifyTriggerReady = false;
@@ -671,21 +672,18 @@ public class YokaiStateController : MonoBehaviour
             hasWarnedMissingPurifyControllers = true;
         }
 
-        if (isPurityEmpty)
-            isPurityEmpty = false;
+        StopPurifyFallback();
 
+        isPurityEmpty = false;
         SetState(YokaiState.Normal, reason);
         ApplyEmptyStateEffects();
-
-        var presentation = ResolvePresentationController();
-        if (presentation != null)
-        {
-            presentation.ApplyState(YokaiState.Normal, force: true);
-            presentation.ApplyActionUIForState(YokaiState.Normal);
-        }
+        ForceSyncPresentation(YokaiState.Normal);
 
         ResolveMagicCircleActivator()?.Hide();
+
         MentorMessageService.ShowHint(OnmyojiHintType.PurityEmergencyRecover);
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
+
         SyncManagerState();
         EvaluateState(reason: reason, forcePresentation: false);
     }
