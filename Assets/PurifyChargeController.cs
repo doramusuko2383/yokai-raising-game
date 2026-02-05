@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using Yokai;
 
 public class PurifyChargeController : MonoBehaviour
@@ -15,27 +14,6 @@ public class PurifyChargeController : MonoBehaviour
     private bool hasSucceeded = false;
     private float currentCharge = 0f;
 
-    // =====================
-    // EventTrigger
-    // =====================
-
-    public void OnPointerDown(BaseEventData eventData)
-    {
-        if (hasSucceeded)
-            return;
-
-        Debug.Log("[PURIFY] PointerDown");
-
-        isCharging = true;
-        currentCharge = 0f;
-
-        // ★ 開始時は描画を0から
-        //if (pentagramDrawer != null)
-        //{
-           // pentagramDrawer.SetProgress(0f);
-        //}
-    }
-
     public void StartCharging()
     {
         if (hasSucceeded)
@@ -45,12 +23,10 @@ public class PurifyChargeController : MonoBehaviour
         currentCharge = 0f;
     }
 
-    public void OnPointerUp(BaseEventData eventData)
+    public void CancelCharging()
     {
         if (!isCharging || hasSucceeded)
             return;
-
-        Debug.Log("[PURIFY] PointerUp");
 
         isCharging = false;
         currentCharge = 0f;
@@ -66,10 +42,6 @@ public class PurifyChargeController : MonoBehaviour
          //   pentagramDrawer.ReverseAndClear();
         //}
     }
-
-    // =====================
-    // Update
-    // =====================
 
     private void Update()
     {
