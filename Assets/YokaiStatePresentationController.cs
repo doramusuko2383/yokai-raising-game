@@ -414,6 +414,9 @@ public class YokaiStatePresentationController : MonoBehaviour
         {
             if (pentagramUI != null)
                 pentagramUI.SetActive(true);
+            var charge = FindObjectOfType<PurifyChargeController>();
+            if (charge != null)
+                charge.StartCharging();
             hasPlayedPurifyStartSE = false;
             return;
         }
