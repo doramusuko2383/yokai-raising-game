@@ -672,9 +672,9 @@ public class YokaiStateController : MonoBehaviour
             Debug.LogWarning("[EMERGENCY PURIFY] purityController is null");
 
         isPurityEmpty = false;
-        SetState(YokaiState.Normal, reason);
         if (wasPurityEmpty)
             ForceSyncPresentation(YokaiState.Normal);
+        SetState(YokaiState.Normal, reason);
 
         ResolveMagicCircleActivator()?.Hide();
         MentorMessageService.ShowHint(OnmyojiHintType.PurityEmergencyRecover);
