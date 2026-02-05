@@ -576,6 +576,11 @@ public class YokaiStatePresentationController : MonoBehaviour
                 actionPanel.SetActive(true);
                 purifyButton?.SetActive(true);
                 dangoButton?.SetActive(true);
+                purifyHoldButton?.SetActive(false);
+                if (magicCircleActivator != null)
+                    magicCircleActivator.Hide();
+                if (pentagramUI != null)
+                    pentagramUI.SetActive(false);
                 break;
 
             case YokaiState.PurityEmpty:
