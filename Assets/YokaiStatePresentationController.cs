@@ -550,7 +550,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (actionPanel == null)
             return;
 
-        if (lastUIAppliedState.HasValue && lastUIAppliedState.Value == state)
+        if (lastUIAppliedState.HasValue && lastUIAppliedState.Value == state && state != YokaiState.Normal)
         {
             Debug.Log($"[UI SKIP] state={state} (already applied)");
             return;
@@ -574,6 +574,11 @@ public class YokaiStatePresentationController : MonoBehaviour
                 actionPanel.SetActive(true);
                 purifyButton?.SetActive(true);
                 dangoButton?.SetActive(true);
+                purifyHoldButton?.SetActive(false);
+                if (magicCircleActivator != null)
+                    magicCircleActivator.Hide();
+                if (pentagramUI != null)
+                    pentagramUI.SetActive(false);
                 break;
 
             case YokaiState.PurityEmpty:
