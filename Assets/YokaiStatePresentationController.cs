@@ -550,7 +550,9 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (actionPanel == null)
             return;
 
-        if (lastUIAppliedState.HasValue && lastUIAppliedState.Value == state && state != YokaiState.Normal)
+        if (state != YokaiState.Normal &&
+            lastUIAppliedState.HasValue &&
+            lastUIAppliedState.Value == state)
         {
             Debug.Log($"[UI SKIP] state={state} (already applied)");
             return;
