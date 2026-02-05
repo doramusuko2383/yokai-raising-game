@@ -29,6 +29,9 @@ public class PurifyChargeController : MonoBehaviour
     {
         Debug.Log("[CHARGE] CancelCharging called");
 
+        if (hasSucceeded)
+            return;
+
         if (!isCharging)
             return;
 
@@ -78,10 +81,13 @@ public class PurifyChargeController : MonoBehaviour
         if (hasSucceeded)
             return;
 
+        Debug.Log("[PURIFY] Complete!");
+
         hasSucceeded = true;
         isCharging = false;
 
-        Debug.Log("[PURIFY] Complete!");
+        if (pentagramDrawer != null)
+            pentagramDrawer.SetProgress(0f);
 
         // ★ 完成フラッシュ
        // if (pentagramDrawer != null)
@@ -106,9 +112,7 @@ public class PurifyChargeController : MonoBehaviour
         hasSucceeded = false;
         currentCharge = 0f;
 
-       // if (pentagramDrawer != null)
-        //{
-         //   pentagramDrawer.SetProgress(0f);
-        //}
+        if (pentagramDrawer != null)
+            pentagramDrawer.SetProgress(0f);
     }
 }
