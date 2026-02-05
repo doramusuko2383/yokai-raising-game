@@ -8,7 +8,7 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (IsPurityEmpty())
+        if (ShouldIgnoreInput())
             return;
 
         Debug.Log("[INPUT] PointerDown on PentagramInputCatcher");
@@ -24,7 +24,7 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (IsPurityEmpty())
+        if (ShouldIgnoreInput())
             return;
 
         Debug.Log("[INPUT] PointerUp on PentagramInputCatcher");
@@ -40,7 +40,7 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (IsPurityEmpty())
+        if (ShouldIgnoreInput())
             return;
 
         Debug.Log("[INPUT] PointerExit on PentagramInputCatcher");
@@ -54,7 +54,7 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
         chargeController.CancelCharging();
     }
 
-    bool IsPurityEmpty()
+    bool ShouldIgnoreInput()
     {
         var stateController = CurrentYokaiContext.ResolveStateController();
         return stateController != null && stateController.currentState == YokaiState.PurityEmpty;

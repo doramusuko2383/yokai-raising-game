@@ -58,17 +58,13 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickEmergencyPurify()
     {
-        var resolvedController = ResolveStateController();
-        if (resolvedController != null)
-        {
-            Debug.Log("[EMERGENCY PURIFY] Triggered from UI button");
-            resolvedController.TryDo(YokaiAction.EmergencyPurifyAd, "EmergencyPurify");
-            TutorialManager.NotifyPurifyUsed();
-        }
-        else
-        {
-            WarnMissingStateController();
-        }
+        var controller = ResolveStateController();
+        if (controller == null)
+            return;
+
+        Debug.Log("[EMERGENCY PURIFY] Button clicked");
+        controller.TryDo(YokaiAction.EmergencyPurifyAd, "EmergencyPurify");
+        TutorialManager.NotifyPurifyUsed();
     }
 
     public void OnClickStopPurify()
