@@ -545,7 +545,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
     }
 
-    void ApplyActionUIForState(YokaiState state)
+    public void ApplyActionUIForState(YokaiState state)
     {
         // Always rebuild UI when returning to Normal
         if (state == YokaiState.Normal)
@@ -563,7 +563,10 @@ public class YokaiStatePresentationController : MonoBehaviour
             Debug.Log($"[UI SKIP] state={state} (already applied)");
             return;
         }
-        lastUIAppliedState = state;
+        if (state != YokaiState.Normal)
+        {
+            lastUIAppliedState = state;
+        }
 
         // 初期化（必ず一度すべてOFF）
         actionPanel.SetActive(false);

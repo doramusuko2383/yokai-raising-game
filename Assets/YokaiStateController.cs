@@ -651,6 +651,7 @@ public class YokaiStateController : MonoBehaviour
         isPurifying = false;
         IsPurifyTriggeredByUser = false;
         SetState(YokaiState.Normal, "PurifyFinished");
+        ResolvePresentationController()?.ApplyActionUIForState(YokaiState.Normal);
         SyncManagerState();
         EvaluateState(reason: "PurifyFinished", forcePresentation: false);
     }
