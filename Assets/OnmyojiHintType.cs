@@ -5,6 +5,7 @@ public enum OnmyojiHintType
     PurityWarning,
     PurityEmpty,
     PurityRecovered,
+    PurityEmergencyRecover,
     OkIYomeGuide,
     OkIYomeSuccess,
     EvolutionStart,

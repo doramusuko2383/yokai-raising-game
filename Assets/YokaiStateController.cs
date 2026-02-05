@@ -112,10 +112,7 @@ public class YokaiStateController : MonoBehaviour
                 break;
 
             case YokaiAction.EmergencyPurifyAd:
-                if (reason == null)
-                    BeginPurifying();
-                else
-                    BeginPurifying(reason);
+                ExecuteEmergencyPurify(reason ?? "EmergencyPurify");
                 break;
 
             case YokaiAction.StartEvolution:
@@ -174,9 +171,7 @@ public class YokaiStateController : MonoBehaviour
             case YokaiAction.EmergencySpiritRecover:
                 // [State Rule] State のみで決まるルール
                 // 霊力0の救済（EnergyEmpty のみ）
-                bool isAllowed = state == YokaiState.EnergyEmpty;
-                Debug.Log($"[YokaiStateController] IsAllowedByState EmergencySpiritRecover state={state} return={isAllowed}");
-                return isAllowed;
+                return state == YokaiState.EnergyEmpty;
 
             case YokaiAction.EmergencyPurifyAd:
                 // 清浄度0の救済（緊急おきよめ）
@@ -654,6 +649,41 @@ public class YokaiStateController : MonoBehaviour
         ResolvePresentationController()?.ApplyActionUIForState(YokaiState.Normal);
         SyncManagerState();
         EvaluateState(reason: "PurifyFinished", forcePresentation: false);
+    }
+
+    void ExecuteEmergencyPurify(string reason)
+    {
+        if (currentState != YokaiState.PurityEmpty)
+            return;
+
+        StopPurifyFallback();
+        isPurifying = false;
+        IsPurifyTriggeredByUser = false;
+        isPurifyTriggerReady = false;
+
+        if (purityController != null)
+        {
+            purityController.RecoverPurityByRatio(0.5f);
+        }
+        else if (!hasWarnedMissingPurifyControllers)
+        {
+            Debug.LogWarning("[PURIFY] PurityController is missing for emergency purify recovery.");
+            hasWarnedMissingPurifyControllers = true;
+        }
+
+        SyncManagerState();
+        if (isPurityEmpty)
+            isPurityEmpty = false;
+
+        SetState(YokaiState.Normal, reason);
+        ApplyEmptyStateEffects();
+
+        var presentation = ResolvePresentationController();
+        if (presentation != null)
+            presentation.ApplyState(YokaiState.Normal, force: true);
+
+        ResolveMagicCircleActivator()?.Hide();
+        MentorMessageService.ShowHint(OnmyojiHintType.PurityEmergencyRecover);
     }
 
     void ResetPurifyingState()
