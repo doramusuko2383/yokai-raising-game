@@ -10,6 +10,8 @@ public class YokaiStateController : MonoBehaviour
     public YokaiState currentState = YokaiState.Normal;
     public bool isPurifying;
     public event System.Action<YokaiState, YokaiState> OnStateChanged;
+    public YokaiState CurrentState => currentState;
+
     bool isSpiritEmpty;
     bool isPurityEmpty;
     bool isEvolving;
