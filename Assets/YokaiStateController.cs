@@ -665,22 +665,11 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.PurityEmpty)
             return;
 
-        var wasPurityEmpty = currentState == YokaiState.PurityEmpty;
         if (purityController != null)
             purityController.RecoverPurityByRatio(0.5f);
-        else
-            Debug.LogWarning("[EMERGENCY PURIFY] purityController is null");
 
-        isPurityEmpty = false;
-        if (wasPurityEmpty)
-            ForceSyncPresentation(YokaiState.Normal);
-        SetState(YokaiState.Normal, reason);
-
-        ResolveMagicCircleActivator()?.Hide();
         MentorMessageService.ShowHint(OnmyojiHintType.PurityEmergencyRecover);
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
-        SyncManagerState();
-        EvaluateState(null, reason, forcePresentation: false);
     }
 
     void ResetPurifyingState()
