@@ -76,7 +76,6 @@ public class YokaiStateController : MonoBehaviour
     public bool CanDo(YokaiAction action)
     {
         bool isAllowedByState = IsAllowedByState(currentState, action);
-        Debug.Log($"[YokaiStateController] CanDo action={action} currentState={currentState} isAllowedByState={isAllowedByState}");
         if (!isAllowedByState)
             return false;
 
