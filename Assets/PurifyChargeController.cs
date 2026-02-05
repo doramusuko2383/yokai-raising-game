@@ -113,7 +113,10 @@ public class PurifyChargeController : MonoBehaviour
             pentagramDrawer.SetProgress(0f);
 
         if (stateController != null)
+        {
             stateController.NotifyPurifySucceeded();
+            stateController.ForceSyncPresentation(YokaiState.Normal);
+        }
     }
 
     // 外部からのリセット用（次回おきよめ用）
