@@ -117,7 +117,9 @@ public class PurifyChargeController : MonoBehaviour
             stateController.NotifyPurifySucceeded();
 
             if (stateController.CurrentState == YokaiState.Purifying)
+            {
                 stateController.ForceSyncPresentation(YokaiState.Normal);
+            }
         }
     }
 
