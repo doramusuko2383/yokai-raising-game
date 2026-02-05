@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using Yokai;
 
@@ -47,13 +48,13 @@ public class PurifyChargeController : MonoBehaviour
 
     public void CancelCharging()
     {
-        Debug.Log("[CHARGE] CancelCharging called");
-
         if (hasSucceeded)
             return;
 
         if (!isCharging)
             return;
+
+        Debug.Log("[CHARGE] CancelCharging called");
 
         isCharging = false;
 
