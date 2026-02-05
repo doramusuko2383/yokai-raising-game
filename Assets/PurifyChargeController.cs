@@ -18,8 +18,6 @@ public class PurifyChargeController : MonoBehaviour
     {
         if (hasSucceeded)
             return;
-        if (stateController.CurrentState != YokaiState.Purifying)
-            return;
 
         isCharging = true;
         currentCharge = 0f;
