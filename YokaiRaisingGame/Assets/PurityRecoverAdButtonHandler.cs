@@ -38,10 +38,10 @@ public class PurityRecoverAdButtonHandler : MonoBehaviour
             return;
         }
 
-        Debug.Log("[RECOVERY] Force start purifying via Ad");
+        Debug.Log("[RECOVERY] Execute emergency purify via Ad");
 
 
-        controller.BeginPurifying("PurityRecoverAd");
+        controller.ExecuteEmergencyPurify("PurityRecoverAd");
     }
 
     YokaiStateController ResolveStateController()
