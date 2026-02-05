@@ -680,7 +680,7 @@ public class YokaiStateController : MonoBehaviour
         MentorMessageService.ShowHint(OnmyojiHintType.PurityEmergencyRecover);
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
         SyncManagerState();
-        EvaluateState(reason, forcePresentation: false);
+        EvaluateState(null, reason, forcePresentation: false);
     }
 
     void ResetPurifyingState()
