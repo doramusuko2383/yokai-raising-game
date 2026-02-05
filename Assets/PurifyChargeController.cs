@@ -18,6 +18,8 @@ public class PurifyChargeController : MonoBehaviour
     {
         if (hasSucceeded)
             return;
+        if (stateController.CurrentState != YokaiState.Purifying)
+            return;
 
         isCharging = true;
         currentCharge = 0f;
@@ -25,32 +27,28 @@ public class PurifyChargeController : MonoBehaviour
 
     public void CancelCharging()
     {
-        if (!isCharging || hasSucceeded)
+        if (!isCharging)
             return;
 
         isCharging = false;
         currentCharge = 0f;
 
-        if (stateController != null && stateController.CurrentState == YokaiState.Purifying)
-        {
-            return;
-        }
-
-        // ★ 離したら逆再生で消す
-       // if (pentagramDrawer != null)
-        //{
-         //   pentagramDrawer.ReverseAndClear();
-        //}
+        if (pentagramDrawer != null)
+            pentagramDrawer.SetProgress(0f);
     }
 
     private void Update()
     {
-        Debug.Log($"[PURIFY] Update isCharging={isCharging}");
-
         if (!isCharging || hasSucceeded)
             return;
 
-        bool isPurifyingState = stateController == null || stateController.CurrentState == YokaiState.Purifying;
+        bool isPurifyingState =
+            stateController != null &&
+            stateController.CurrentState == YokaiState.Purifying;
+
+        // Purifying 以外では進めない
+        if (!isPurifyingState)
+            return;
 
         currentCharge += Time.deltaTime;
         float progress = Mathf.Clamp01(currentCharge / chargeDuration);
@@ -58,11 +56,8 @@ public class PurifyChargeController : MonoBehaviour
         if (pentagramDrawer != null)
         {
             pentagramDrawer.SetProgress(progress);
-            Debug.Log("[PENTAGRAM] SetProgress called");
+            Debug.Log("[PENTAGRAM] SetProgress called: " + progress);
         }
-
-        if (!isPurifyingState)
-            return;
 
         if (progress >= 1f)
         {
