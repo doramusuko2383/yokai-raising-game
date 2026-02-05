@@ -547,15 +547,10 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     public void ApplyActionUIForState(YokaiState state)
     {
-        // Always rebuild UI when returning to Normal
-        if (state == YokaiState.Normal)
-        {
-            lastUIAppliedState = null;
-        }
-
         if (actionPanel == null)
             return;
 
+        // ★ Normal は必ず再構築（スキップも記録もしない）
         if (state != YokaiState.Normal &&
             lastUIAppliedState.HasValue &&
             lastUIAppliedState.Value == state)
@@ -563,12 +558,18 @@ public class YokaiStatePresentationController : MonoBehaviour
             Debug.Log($"[UI SKIP] state={state} (already applied)");
             return;
         }
+
+        // ★ Normal 以外だけ記録
         if (state != YokaiState.Normal)
         {
             lastUIAppliedState = state;
         }
+        else
+        {
+            lastUIAppliedState = null;
+        }
 
-        // 初期化（必ず一度すべてOFF）
+        // --- ここからUI初期化 ---
         actionPanel.SetActive(false);
 
         purifyButton?.SetActive(false);
