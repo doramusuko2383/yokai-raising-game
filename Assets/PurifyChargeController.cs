@@ -36,6 +36,15 @@ public class PurifyChargeController : MonoBehaviour
         //}
     }
 
+    public void StartCharging()
+    {
+        if (hasSucceeded)
+            return;
+
+        isCharging = true;
+        currentCharge = 0f;
+    }
+
     public void OnPointerUp(BaseEventData eventData)
     {
         if (!isCharging || hasSucceeded)
@@ -66,11 +75,10 @@ public class PurifyChargeController : MonoBehaviour
     {
         Debug.Log($"[PURIFY] Update isCharging={isCharging}");
 
-        if (stateController != null && stateController.CurrentState != YokaiState.Purifying)
-            return;
-
         if (!isCharging || hasSucceeded)
             return;
+
+        bool isPurifyingState = stateController == null || stateController.CurrentState == YokaiState.Purifying;
 
         currentCharge += Time.deltaTime;
         float progress = Mathf.Clamp01(currentCharge / chargeDuration);
@@ -80,6 +88,9 @@ public class PurifyChargeController : MonoBehaviour
             pentagramDrawer.SetProgress(progress);
             Debug.Log("[PENTAGRAM] SetProgress called");
         }
+
+        if (!isPurifyingState)
+            return;
 
         if (progress >= 1f)
         {
