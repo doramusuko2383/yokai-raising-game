@@ -13,6 +13,26 @@ public class PurifyChargeController : MonoBehaviour
     private bool isCharging = false;
     private bool hasSucceeded = false;
     private float currentCharge = 0f;
+    private Coroutine returnRoutine;
+
+    private IEnumerator ReturnPentagram(float fromProgress, float duration)
+    {
+        float t = 0f;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float p = Mathf.Lerp(fromProgress, 0f, t / duration);
+
+            if (pentagramDrawer != null)
+                pentagramDrawer.SetProgress(p);
+
+            yield return null;
+        }
+
+        if (pentagramDrawer != null)
+            pentagramDrawer.SetProgress(0f);
+    }
 
     public void StartCharging()
     {
@@ -36,10 +56,15 @@ public class PurifyChargeController : MonoBehaviour
             return;
 
         isCharging = false;
-        currentCharge = 0f;
 
-        if (pentagramDrawer != null)
-            pentagramDrawer.SetProgress(0f);
+        float currentProgress = Mathf.Clamp01(currentCharge / chargeDuration);
+
+        if (returnRoutine != null)
+            StopCoroutine(returnRoutine);
+
+        returnRoutine = StartCoroutine(ReturnPentagram(currentProgress, 0.3f));
+
+        currentCharge = 0f;
     }
 
     private void Update()
