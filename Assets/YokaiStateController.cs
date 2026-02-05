@@ -73,7 +73,9 @@ public class YokaiStateController : MonoBehaviour
 
     public bool CanDo(YokaiAction action)
     {
-        if (!IsAllowedByState(currentState, action))
+        bool isAllowedByState = IsAllowedByState(currentState, action);
+        Debug.Log($"[YokaiStateController] CanDo action={action} currentState={currentState} isAllowedByState={isAllowedByState}");
+        if (!isAllowedByState)
             return false;
 
         return IsActionConditionSatisfied(action);
@@ -119,8 +121,12 @@ public class YokaiStateController : MonoBehaviour
                 BeginEvolution();
                 break;
 
-            case YokaiAction.EatDango:
             case YokaiAction.EmergencySpiritRecover:
+                Debug.Log("[YokaiStateController] ExecuteAction EmergencySpiritRecover reached");
+                RecoverSpirit();
+                break;
+
+            case YokaiAction.EatDango:
                 RecoverSpirit();
                 break;
             default:
@@ -160,10 +166,16 @@ public class YokaiStateController : MonoBehaviour
                 return state == YokaiState.Purifying;
 
             case YokaiAction.EatDango:
-            case YokaiAction.EmergencySpiritRecover:
                 // [State Rule] State のみで決まるルール
                 // 通常だんご（通常状態のみ）
                 return state == YokaiState.Normal;
+
+            case YokaiAction.EmergencySpiritRecover:
+                // [State Rule] State のみで決まるルール
+                // 通常だんご（通常状態のみ）
+                bool isAllowed = state == YokaiState.Normal;
+                Debug.Log($"[YokaiStateController] IsAllowedByState EmergencySpiritRecover state={state} return={isAllowed}");
+                return isAllowed;
 
             case YokaiAction.EmergencyPurifyAd:
                 // 清浄度0の救済（緊急おきよめ）
