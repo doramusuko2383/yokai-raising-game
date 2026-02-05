@@ -172,8 +172,8 @@ public class YokaiStateController : MonoBehaviour
 
             case YokaiAction.EmergencySpiritRecover:
                 // [State Rule] State のみで決まるルール
-                // 通常だんご（通常状態のみ）
-                bool isAllowed = state == YokaiState.Normal;
+                // 霊力0の救済（EnergyEmpty のみ）
+                bool isAllowed = state == YokaiState.EnergyEmpty;
                 Debug.Log($"[YokaiStateController] IsAllowedByState EmergencySpiritRecover state={state} return={isAllowed}");
                 return isAllowed;
 
