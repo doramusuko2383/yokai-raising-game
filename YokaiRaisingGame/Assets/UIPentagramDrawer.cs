@@ -3,10 +3,7 @@ using UnityEngine.UI.Extensions;
 
 public class UIPentagramDrawer : MonoBehaviour
 {
-    [Header("UI Lines (5 segments)")]
     [SerializeField] UILineRenderer[] lines = new UILineRenderer[5];
-
-    [Header("Shape")]
     [SerializeField] float radius = 220f;
 
     static readonly int[] StarOrder = { 0, 2, 4, 1, 3, 0 };
@@ -25,7 +22,7 @@ public class UIPentagramDrawer : MonoBehaviour
 
         for (int segment = 0; segment < 5; segment++)
         {
-            var line = lines[segment];
+            UILineRenderer line = lines[segment];
             if (line == null)
                 continue;
 
@@ -65,9 +62,7 @@ public class UIPentagramDrawer : MonoBehaviour
 
     Vector2 GetOrigin()
     {
-        RectTransform rectTransform = transform.parent as RectTransform;
-        if (rectTransform == null)
-            rectTransform = transform as RectTransform;
+        RectTransform rectTransform = transform as RectTransform;
         if (rectTransform == null)
             return Vector2.zero;
 
