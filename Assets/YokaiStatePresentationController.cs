@@ -547,6 +547,12 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyActionUIForState(YokaiState state)
     {
+        // Always rebuild UI when returning to Normal
+        if (state == YokaiState.Normal)
+        {
+            lastUIAppliedState = null;
+        }
+
         if (actionPanel == null)
             return;
 
