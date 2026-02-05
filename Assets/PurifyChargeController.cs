@@ -16,6 +16,8 @@ public class PurifyChargeController : MonoBehaviour
 
     public void StartCharging()
     {
+        Debug.Log("[CHARGE] StartCharging called");
+
         if (hasSucceeded)
             return;
 
@@ -25,6 +27,8 @@ public class PurifyChargeController : MonoBehaviour
 
     public void CancelCharging()
     {
+        Debug.Log("[CHARGE] CancelCharging called");
+
         if (!isCharging)
             return;
 
@@ -37,6 +41,8 @@ public class PurifyChargeController : MonoBehaviour
 
     private void Update()
     {
+        Debug.Log($"[CHARGE] Update isCharging={isCharging} succeeded={hasSucceeded}");
+
         if (!isCharging || hasSucceeded)
             return;
 
