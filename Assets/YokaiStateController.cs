@@ -86,6 +86,12 @@ public class YokaiStateController : MonoBehaviour
 
     public bool TryDo(YokaiAction action, string reason = null)
     {
+        if (action == YokaiAction.Purify)
+        {
+            Debug.Log("[LEGACY] Purify action disabled");
+            return false;
+        }
+
         if (!CanDo(action))
         {
             return false;
@@ -99,6 +105,10 @@ public class YokaiStateController : MonoBehaviour
     {
         switch (action)
         {
+            case YokaiAction.Purify:
+                Debug.Log("[LEGACY] Purify action disabled");
+                return;
+
             case YokaiAction.PurifyStart:
                 if (reason == null)
                     BeginPurifying();
