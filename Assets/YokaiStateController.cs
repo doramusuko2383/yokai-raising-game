@@ -50,6 +50,8 @@ public class YokaiStateController : MonoBehaviour
     bool hasWarnedMissingMagicCircle;
     Coroutine purifyFallbackRoutine;
     string lastStateChangeReason;
+    string lastPurityRecoveredReason;
+    int lastPurityRecoveredFrame = -1;
 
     [Header("Purify Fallback")]
     [SerializeField]
@@ -390,12 +392,6 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginPurifying(string reason = "BeginPurify")
     {
-        if (reason == "PurityRecoverAd")
-        {
-            Debug.LogWarning("[PURIFY] BeginPurifying blocked for emergency recover");
-            return;
-        }
-
         if (currentState != YokaiState.Normal && currentState != YokaiState.PurityEmpty)
             return;
 
@@ -552,8 +548,17 @@ public class YokaiStateController : MonoBehaviour
         EvaluateState(reason: "PurityEmpty");
     }
 
-    public void OnPurityRecovered()
+    public void OnPurityRecovered(string reason)
     {
+        if (reason == lastPurityRecoveredReason
+            && Time.frameCount <= lastPurityRecoveredFrame + 1)
+        {
+            return;
+        }
+
+        lastPurityRecoveredReason = reason;
+        lastPurityRecoveredFrame = Time.frameCount;
+
         if (!isPurityEmpty)
             return;
 
@@ -667,9 +672,6 @@ public class YokaiStateController : MonoBehaviour
 
         if (purityController != null)
             purityController.RecoverPurityByRatio(0.5f);
-
-        MentorMessageService.ShowHint(OnmyojiHintType.PurityEmergencyRecover);
-        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
     }
 
     void ResetPurifyingState()

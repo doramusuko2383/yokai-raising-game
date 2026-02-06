@@ -29,7 +29,7 @@ public class PurityController : MonoBehaviour
 
     System.Action<float, float> purityChanged;
     public event System.Action OnPurityEmpty;
-    public event System.Action OnPurityRecovered;
+    public event System.Action<string> OnPurityRecovered;
     public event System.Action<float, float> PurityChanged
     {
         add
@@ -94,7 +94,7 @@ public class PurityController : MonoBehaviour
         SyncGaugeToValues();
 
         NotifyPurityChanged("ChangePurity");
-        UpdatePurityEmptyState();
+        UpdatePurityEmptyState("ChangePurity");
     }
 
     public void AddPurity(float amount, string reason = "AddPurity")
@@ -118,7 +118,7 @@ public class PurityController : MonoBehaviour
         SyncGaugeToValues();
 
         NotifyPurityChanged(reason);
-        UpdatePurityEmptyState();
+        UpdatePurityEmptyState(reason);
     }
 
     public void SetPurityRatio(float ratio)
@@ -160,7 +160,7 @@ public class PurityController : MonoBehaviour
         EnsureDefaults();
         ResolveWorldConfigIfNeeded();
         InitializeGauge();
-        UpdatePurityEmptyState();
+        UpdatePurityEmptyState(reason);
         initialized = true;
         NotifyPurityChanged(reason);
     }
@@ -212,7 +212,7 @@ public class PurityController : MonoBehaviour
         maxPurity = purityGauge.Max;
     }
 
-    void UpdatePurityEmptyState()
+    void UpdatePurityEmptyState(string reason)
     {
         if (purity <= 0f)
         {
@@ -233,10 +233,16 @@ public class PurityController : MonoBehaviour
         }
         else
         {
+            var stateController = CurrentYokaiContext.StateController;
+            if (stateController != null && stateController.currentState != YokaiState.PurityEmpty)
+            {
+                return;
+            }
+
             if (isPurityEmpty)
             {
                 isPurityEmpty = false;
-                OnPurityRecovered?.Invoke();
+                OnPurityRecovered?.Invoke(reason);
             }
         }
     }
