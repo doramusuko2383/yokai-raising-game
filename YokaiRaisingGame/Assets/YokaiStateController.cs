@@ -521,20 +521,9 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.PurityEmpty)
             return;
 
-        Debug.Log("[EMERGENCY PURIFY] Execute");
-
-        isPurifying = false;
-        IsPurifyTriggeredByUser = false;
         purityController?.RecoverPurityByRatio(0.5f);
-        isPurityEmpty = false;
-        SetState(YokaiState.Normal, reason);
-        ForceSyncPresentation(YokaiState.Normal);
-
-        ResolveMagicCircleActivator()?.Hide();
         MentorMessageService.ShowHint(OnmyojiHintType.PurityEmergencyRecover);
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
-        SyncManagerState();
-        EvaluateState(reason, forcePresentation: false);
     }
 
     void ResetPurifyingState()
