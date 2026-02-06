@@ -39,6 +39,7 @@ public class PurifyChargeController : MonoBehaviour
 
     public void StartCharging()
     {
+        Debug.Log("[PURIFY HOLD] StartCharging CALLED");
         if (hasSucceeded)
             return;
 
