@@ -40,6 +40,7 @@ public class PurifyChargeController : MonoBehaviour
         if (hasSucceeded)
             return;
 
+        Debug.Log($"[PURIFY HOLD] StartCharge state={stateController.CurrentState}");
         Debug.Log("[CHARGE] StartCharging called");
 
         isCharging = true;
