@@ -4,6 +4,7 @@ using Yokai;
 public class MagicCircleActivator : MonoBehaviour
 {
     const string LegacyBlockedMessage = "[LEGACY BLOCKED] MagicCircleActivator";
+    const string LegacyUnexpectedMessage = "[LEGACY][ERROR] unexpected magic circle activation";
 
     [SerializeField]
     GameObject magicCircleRoot;
@@ -62,12 +63,12 @@ public class MagicCircleActivator : MonoBehaviour
 
     public void Show()
     {
-        LogLegacyBlocked(nameof(Show));
+        LogLegacyUnexpected(nameof(Show));
     }
 
     public void Hide()
     {
-        LogLegacyBlocked(nameof(Hide));
+        LogLegacyUnexpected(nameof(Hide));
     }
 
     public void Activate()
@@ -164,7 +165,7 @@ public class MagicCircleActivator : MonoBehaviour
 
     void SetActive(bool isActive)
     {
-        LogLegacyBlocked(nameof(SetActive));
+        LogLegacyUnexpected(nameof(SetActive));
     }
 
     void Awake()
@@ -194,6 +195,15 @@ public class MagicCircleActivator : MonoBehaviour
             return false;
 
         Debug.Log($"{LegacyBlockedMessage}::{methodName}");
+        return true;
+    }
+
+    bool LogLegacyUnexpected(string methodName)
+    {
+        if (!isLegacyDisabled)
+            return false;
+
+        Debug.LogError($"{LegacyUnexpectedMessage}::{methodName}");
         return true;
     }
 

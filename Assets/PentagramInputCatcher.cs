@@ -19,7 +19,7 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
             return;
         }
 
-        chargeController.StartCharging();
+        chargeController.StartCharging(eventData);
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -35,7 +35,7 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
             return;
         }
 
-        chargeController.CancelCharging();
+        chargeController.Cancel(eventData);
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -51,7 +51,7 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
             return;
         }
 
-        chargeController.CancelCharging();
+        chargeController.Cancel(eventData);
     }
 
     bool ShouldIgnoreInput()

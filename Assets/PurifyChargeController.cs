@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Yokai;
 
 public class PurifyChargeController : MonoBehaviour
@@ -10,6 +11,8 @@ public class PurifyChargeController : MonoBehaviour
     [Header("Refs")]
     public UIPentagramDrawer pentagramDrawer;
     public YokaiStateController stateController;
+    [SerializeField] MagicCircleSwipeController magicCircle;
+    [SerializeField] GameObject purifyHoldRoot;
 
     private bool isCharging = false;
     private bool hasSucceeded = false;
@@ -35,31 +38,32 @@ public class PurifyChargeController : MonoBehaviour
             pentagramDrawer.SetProgress(0f);
     }
 
-    public void StartCharging()
+    public void StartCharging(BaseEventData e)
     {
         if (hasSucceeded)
             return;
 
-        Debug.Log($"[PURIFY HOLD] StartCharge state={stateController.CurrentState}");
-        Debug.Log("[CHARGE] StartCharging called");
+        Debug.Log("[PURIFY][HOLD] StartCharging");
+
+        if (magicCircle != null)
+            magicCircle.Show();
 
         isCharging = true;
         currentCharge = 0f;
     }
 
-    public void CancelCharging()
+    public void Cancel(BaseEventData e)
     {
         // 成功後は一切キャンセルさせない
         if (hasSucceeded)
             return;
 
-        // チャージ中でなければ何もしない
-        if (!isCharging)
-            return;
-
-        Debug.Log("[CHARGE] CancelCharging called");
+        Debug.Log("[PURIFY][HOLD] Cancel");
 
         isCharging = false;
+
+        if (magicCircle != null)
+            magicCircle.Hide();
 
         float currentProgress = Mathf.Clamp01(currentCharge / chargeDuration);
 
@@ -91,15 +95,15 @@ public class PurifyChargeController : MonoBehaviour
             pentagramDrawer.SetProgress(progress);
 
         if (progress >= 1f)
-            CompletePurify();
+            Complete();
     }
 
-    private void CompletePurify()
+    private void Complete()
     {
         if (hasSucceeded)
             return;
 
-        Debug.Log("[PURIFY] Complete!");
+        Debug.Log("[PURIFY][HOLD] Complete");
 
         hasSucceeded = true;
         isCharging = false;
@@ -113,10 +117,17 @@ public class PurifyChargeController : MonoBehaviour
         if (pentagramDrawer != null)
             pentagramDrawer.SetProgress(0f);
 
-        if (stateController != null)
+        var controller = ResolveStateController();
+        if (controller != null)
         {
-            stateController.NotifyPurifySucceeded();
+            controller.TryDo(YokaiAction.PurifySuccess, "HoldComplete");
         }
+
+        if (magicCircle != null)
+            magicCircle.Hide();
+
+        if (purifyHoldRoot != null)
+            purifyHoldRoot.SetActive(false);
     }
 
     // 外部からのリセット用（次回おきよめ用）
@@ -134,5 +145,11 @@ public class PurifyChargeController : MonoBehaviour
 
         if (pentagramDrawer != null)
             pentagramDrawer.SetProgress(0f);
+    }
+
+    YokaiStateController ResolveStateController()
+    {
+        return CurrentYokaiContext.ResolveStateController()
+            ?? stateController;
     }
 }
