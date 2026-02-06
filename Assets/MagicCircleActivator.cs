@@ -51,26 +51,12 @@ public class MagicCircleActivator : MonoBehaviour
 
     public void Show()
     {
-        if (isVisible)
-            return;
-
-        isVisible = true;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        Debug.Log("[MAGIC_CIRCLE] Show");
-#endif
-        SetActive(true);
+        Debug.Log("[LEGACY] MagicCircleActivator disabled");
     }
 
     public void Hide()
     {
-        if (!isVisible)
-            return;
-
-        isVisible = false;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        Debug.Log("[MAGIC_CIRCLE] Hide()");
-#endif
-        SetActive(false);
+        Debug.Log("[LEGACY] MagicCircleActivator disabled");
     }
 
     public void Activate()
@@ -161,22 +147,17 @@ public class MagicCircleActivator : MonoBehaviour
 
     void SetActive(bool isActive)
     {
-        this.isActive = isActive;
-        isVisible = isActive;
+        Debug.Log("[LEGACY] MagicCircleActivator disabled");
+    }
 
-        if (magicCircleRoot == null)
-        {
-            WarnMissingRoot();
-            return;
-        }
+    void Awake()
+    {
+        Debug.Log("[LEGACY] MagicCircleActivator disabled");
+    }
 
-        magicCircleRoot.SetActive(isActive);
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        Debug.Log(
-            $"[MAGIC_CIRCLE] SetActive={isActive} root={magicCircleRoot.name} " +
-            $"activeSelf={magicCircleRoot.activeSelf} activeInHierarchy={magicCircleRoot.activeInHierarchy}");
-#endif
+    void Start()
+    {
+        Debug.Log("[LEGACY] MagicCircleActivator disabled");
     }
 
     void ApplyState(YokaiState newState)
