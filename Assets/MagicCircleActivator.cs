@@ -3,11 +3,16 @@ using Yokai;
 
 public class MagicCircleActivator : MonoBehaviour
 {
+    const string LegacyBlockedMessage = "[LEGACY BLOCKED] MagicCircleActivator";
+
     [SerializeField]
     GameObject magicCircleRoot;
 
     [SerializeField]
     YokaiStateController stateController;
+
+    [SerializeField]
+    bool isLegacyDisabled = true;
 
     bool hasWarnedMissingRoot;
     bool hasWarnedMissingStateController;
@@ -22,6 +27,9 @@ public class MagicCircleActivator : MonoBehaviour
 
     void OnEnable()
     {
+        if (LogLegacyBlocked(nameof(OnEnable)))
+            return;
+
         EnsureStateController(warnIfMissing: false);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         LogResolutionOnce();
@@ -43,6 +51,9 @@ public class MagicCircleActivator : MonoBehaviour
 
     public void ApplyStateFromPresentation(YokaiState state)
     {
+        if (LogLegacyBlocked(nameof(ApplyStateFromPresentation)))
+            return;
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log($"[MAGIC_CIRCLE] ApplyState from presentation: {state}");
 #endif
@@ -51,12 +62,12 @@ public class MagicCircleActivator : MonoBehaviour
 
     public void Show()
     {
-        Debug.Log("[LEGACY] MagicCircleActivator disabled");
+        LogLegacyBlocked(nameof(Show));
     }
 
     public void Hide()
     {
-        Debug.Log("[LEGACY] MagicCircleActivator disabled");
+        LogLegacyBlocked(nameof(Hide));
     }
 
     public void Activate()
@@ -125,6 +136,9 @@ public class MagicCircleActivator : MonoBehaviour
 
     void HandleStateChanged(YokaiState previousState, YokaiState newState)
     {
+        if (LogLegacyBlocked(nameof(HandleStateChanged)))
+            return;
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log($"[MAGIC_CIRCLE] HandleStateChanged: {previousState} -> {newState}");
 #endif
@@ -133,6 +147,9 @@ public class MagicCircleActivator : MonoBehaviour
 
     void SyncFromStateController(bool warnIfMissing)
     {
+        if (LogLegacyBlocked(nameof(SyncFromStateController)))
+            return;
+
         if (stateController == null)
         {
             EnsureStateController(warnIfMissing);
@@ -147,25 +164,37 @@ public class MagicCircleActivator : MonoBehaviour
 
     void SetActive(bool isActive)
     {
-        Debug.Log("[LEGACY] MagicCircleActivator disabled");
+        LogLegacyBlocked(nameof(SetActive));
     }
 
     void Awake()
     {
-        Debug.Log("[LEGACY] MagicCircleActivator disabled");
+        LogLegacyBlocked(nameof(Awake));
     }
 
     void Start()
     {
-        Debug.Log("[LEGACY] MagicCircleActivator disabled");
+        LogLegacyBlocked(nameof(Start));
     }
 
     void ApplyState(YokaiState newState)
     {
+        if (LogLegacyBlocked(nameof(ApplyState)))
+            return;
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log($"[MAGIC_CIRCLE] ApplyState direct: {newState}");
 #endif
         Hide();
+    }
+
+    bool LogLegacyBlocked(string methodName)
+    {
+        if (!isLegacyDisabled)
+            return false;
+
+        Debug.Log($"{LegacyBlockedMessage}::{methodName}");
+        return true;
     }
 
     void WarnMissingRoot()
