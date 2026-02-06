@@ -49,8 +49,12 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickPurify()
     {
-        Debug.Log("[LEGACY] PurifyButtonHandler disabled");
-        return;
+        Debug.Log("[PURIFY][DEBUG] Btn_Purify OnClick received");
+    }
+
+    public void OnClickPurify_DebugOnly()
+    {
+        Debug.Log("[PURIFY][DEBUG] Btn_Purify OnClick received");
     }
 
     public void OnClickEmergencyPurify()
