@@ -405,12 +405,9 @@ public class YokaiStateController : MonoBehaviour
         IsPurifyTriggeredByUser = true;
         HasUserInteracted = false;
         ResolveMagicCircleActivator()?.Show();
-        SetState(YokaiState.Purifying, reason);
-        if (currentState == YokaiState.PurityEmpty)
-        {
-            ApplyEmptyStateEffects();
-        }
-        ForceSyncPresentation(YokaiState.Purifying);
+        // NOTE:
+        // 通常おきよめ中は State を変更しない
+        // 成功 or キャンセル時にのみ State を変える
     }
 
     public void StopPurifying()
