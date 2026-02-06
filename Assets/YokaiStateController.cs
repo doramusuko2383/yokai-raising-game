@@ -392,14 +392,19 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginPurifying(string reason = "BeginPurify")
     {
-        if (currentState != YokaiState.Normal && currentState != YokaiState.PurityEmpty)
+        if (currentState != YokaiState.Normal)
+        {
+            Debug.Log($"[PURIFY HOLD] blocked: state={currentState}");
             return;
+        }
 
         if (isPurifying)
             return;
 
         isPurifying = true;
         IsPurifyTriggeredByUser = true;
+        HasUserInteracted = false;
+        ResolveMagicCircleActivator()?.Show();
         SetState(YokaiState.Purifying, reason);
         if (currentState == YokaiState.PurityEmpty)
         {
@@ -669,6 +674,10 @@ public class YokaiStateController : MonoBehaviour
     {
         if (currentState != YokaiState.PurityEmpty)
             return;
+
+        isPurifying = false;
+        IsPurifyTriggeredByUser = false;
+        ResolveMagicCircleActivator()?.Hide();
 
         if (purityController != null)
             purityController.RecoverPurityByRatio(0.5f);
