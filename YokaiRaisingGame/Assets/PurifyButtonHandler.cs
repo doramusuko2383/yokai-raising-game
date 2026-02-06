@@ -49,11 +49,8 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickPurify()
     {
-        var controller = ResolveStateController();
-        if (controller == null)
-            return;
-
-        controller.TryDo(YokaiAction.PurifyStart, "UI:PurifyButton");
+        Debug.Log("[LEGACY] PurifyButtonHandler disabled");
+        return;
     }
 
     public void OnClickEmergencyPurify()
