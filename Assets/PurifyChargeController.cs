@@ -120,7 +120,7 @@ public class PurifyChargeController : MonoBehaviour
         var controller = ResolveStateController();
         if (controller != null)
         {
-            controller.TryDo(YokaiAction.PurifySuccess, "HoldComplete");
+            controller.StopPurifyingForSuccess();
         }
 
         if (magicCircle != null)
