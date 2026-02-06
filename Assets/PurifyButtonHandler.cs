@@ -49,7 +49,16 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickPurify()
     {
-        Debug.Log("[PURIFY][DEBUG] Btn_Purify OnClick received");
+        Debug.Log("[PURIFY] OnClickPurify");
+
+        var controller = ResolveStateController();
+        if (controller == null)
+        {
+            Debug.LogError("[PURIFY] StateController missing");
+            return;
+        }
+
+        controller.TryDo(YokaiAction.PurifyStart, "UI:PurifyClick");
     }
 
     public void OnClickPurify_DebugOnly()

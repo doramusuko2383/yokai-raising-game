@@ -412,22 +412,11 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (state == YokaiState.Purifying)
         {
-            if (pentagramUI != null)
-                pentagramUI.SetActive(true);
-            var charge = FindObjectOfType<PurifyChargeController>();
-            if (charge != null)
-                charge.StartCharging();
             hasPlayedPurifyStartSE = false;
             return;
         }
 
-        // Purifying以外では必ず非表示にする（forceの有無で最終状態が変わらないように統一）
-        Debug.Log("[PRESENTATION] Sync MagicCircle Hide (Non-Purifying)");
-        if (magicCircleActivator != null)
-            magicCircleActivator.Hide();
-        if (pentagramUI != null)
-            pentagramUI.SetActive(false);
-        hasPlayedPurifyStartSE = false; // Purifying解除時にリセット
+        hasPlayedPurifyStartSE = false;
     }
 
     void RefreshPresentation()
@@ -547,6 +536,13 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     public void ApplyActionUIForState(YokaiState state)
     {
+        bool isPurifying = state == YokaiState.Purifying;
+        if (isPurifying)
+            Debug.Log("[PRESENTATION] Enter Purifying");
+
+        if (purifyHoldButton != null)
+            purifyHoldButton.SetActive(isPurifying);
+
         if (actionPanel == null)
             return;
 
@@ -578,19 +574,12 @@ public class YokaiStatePresentationController : MonoBehaviour
         recoverAdButton?.SetActive(false);
         legacyPurityRecoverAdButton?.SetActive(false);
         purifyStopButton?.SetActive(false);
-        purifyHoldButton?.SetActive(false);
-
         switch (state)
         {
             case YokaiState.Normal:
                 actionPanel.SetActive(true);
                 purifyButton?.SetActive(true);
                 dangoButton?.SetActive(true);
-                purifyHoldButton?.SetActive(false);
-                if (magicCircleActivator != null)
-                    magicCircleActivator.Hide();
-                if (pentagramUI != null)
-                    pentagramUI.SetActive(false);
                 break;
 
             case YokaiState.PurityEmpty:
@@ -609,9 +598,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
             case YokaiState.Purifying:
                 actionPanel.SetActive(false);
-                purifyHoldButton?.SetActive(true);
-                if (magicCircleActivator != null)
-                    magicCircleActivator.Hide();
                 break;
 
             case YokaiState.EvolutionReady:
