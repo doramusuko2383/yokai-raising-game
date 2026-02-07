@@ -38,12 +38,35 @@ public class PurifyChargeController : MonoBehaviour
             pentagramDrawer.SetProgress(0f);
     }
 
-    public void StartCharging(BaseEventData e)
+    public void OnPointerDown()
+    {
+        StartCharging();
+    }
+
+    public void OnPointerDown(BaseEventData e)
+    {
+        StartCharging();
+    }
+
+    public void OnPointerUp()
+    {
+        CancelCharging();
+    }
+
+    public void OnPointerUp(BaseEventData e)
+    {
+        CancelCharging();
+    }
+
+    public void StartCharging()
     {
         if (hasSucceeded)
             return;
 
         Debug.Log("[PURIFY][HOLD] StartCharging");
+
+        if (purifyHoldRoot != null && !purifyHoldRoot.activeSelf)
+            purifyHoldRoot.SetActive(true);
 
         if (magicCircle != null)
             magicCircle.Show();
@@ -52,13 +75,21 @@ public class PurifyChargeController : MonoBehaviour
         currentCharge = 0f;
     }
 
-    public void Cancel(BaseEventData e)
+    public void StartCharging(BaseEventData e)
+    {
+        StartCharging();
+    }
+
+    public void CancelCharging()
     {
         // 成功後は一切キャンセルさせない
         if (hasSucceeded)
             return;
 
-        Debug.Log("[PURIFY][HOLD] Cancel");
+        Debug.Log("[PURIFY][HOLD] CancelCharging");
+
+        if (purifyHoldRoot != null && !purifyHoldRoot.activeSelf)
+            purifyHoldRoot.SetActive(true);
 
         isCharging = false;
 
@@ -73,6 +104,11 @@ public class PurifyChargeController : MonoBehaviour
         returnRoutine = StartCoroutine(ReturnPentagram(currentProgress, 0.3f));
 
         currentCharge = 0f;
+    }
+
+    public void Cancel(BaseEventData e)
+    {
+        CancelCharging();
     }
 
     private void Update()
