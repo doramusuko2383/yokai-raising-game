@@ -84,7 +84,7 @@ public class PurifyChargeController : MonoBehaviour
 
         if (stateController != null)
         {
-            stateController.StopPurifyingForSuccess("PurifyHold");
+            stateController.StopPurifyingForSuccess();
         }
     }
 
