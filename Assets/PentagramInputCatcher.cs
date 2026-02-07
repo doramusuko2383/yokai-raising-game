@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Yokai;
 
 public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
 {
@@ -8,9 +7,6 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (ShouldIgnoreInput())
-            return;
-
         Debug.Log("[INPUT] PointerDown on PentagramInputCatcher");
 
         if (chargeController == null)
@@ -24,9 +20,6 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (ShouldIgnoreInput())
-            return;
-
         Debug.Log("[INPUT] PointerUp on PentagramInputCatcher");
 
         if (chargeController == null)
@@ -40,9 +33,6 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (ShouldIgnoreInput())
-            return;
-
         Debug.Log("[INPUT] PointerExit on PentagramInputCatcher");
 
         if (chargeController == null)
@@ -52,11 +42,5 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
         }
 
         chargeController.CancelCharging();
-    }
-
-    bool ShouldIgnoreInput()
-    {
-        var stateController = CurrentYokaiContext.ResolveStateController();
-        return stateController != null && stateController.currentState == YokaiState.PurityEmpty;
     }
 }
