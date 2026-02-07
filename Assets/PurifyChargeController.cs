@@ -40,25 +40,35 @@ public class PurifyChargeController : MonoBehaviour
 
     public void OnPointerDown()
     {
-        StartCharging();
+        HandlePointerDown();
     }
 
     public void OnPointerDown(BaseEventData e)
     {
-        StartCharging();
+        HandlePointerDown();
     }
 
     public void OnPointerUp()
     {
-        CancelCharging();
+        HandlePointerUp();
     }
 
     public void OnPointerUp(BaseEventData e)
     {
-        CancelCharging();
+        HandlePointerUp();
     }
 
-    public void StartCharging()
+    private void HandlePointerDown()
+    {
+        StartChargingInternal();
+    }
+
+    private void HandlePointerUp()
+    {
+        CancelChargingInternal();
+    }
+
+    private void StartChargingInternal()
     {
         if (hasSucceeded)
             return;
@@ -75,12 +85,7 @@ public class PurifyChargeController : MonoBehaviour
         currentCharge = 0f;
     }
 
-    public void StartCharging(BaseEventData e)
-    {
-        StartCharging();
-    }
-
-    public void CancelCharging()
+    private void CancelChargingInternal()
     {
         // 成功後は一切キャンセルさせない
         if (hasSucceeded)
@@ -88,10 +93,10 @@ public class PurifyChargeController : MonoBehaviour
 
         Debug.Log("[PURIFY][HOLD] CancelCharging");
 
-        if (purifyHoldRoot != null && !purifyHoldRoot.activeSelf)
-            purifyHoldRoot.SetActive(true);
-
         isCharging = false;
+
+        if (purifyHoldRoot != null && purifyHoldRoot.activeSelf)
+            purifyHoldRoot.SetActive(false);
 
         if (magicCircle != null)
             magicCircle.Hide();
@@ -104,11 +109,6 @@ public class PurifyChargeController : MonoBehaviour
         returnRoutine = StartCoroutine(ReturnPentagram(currentProgress, 0.3f));
 
         currentCharge = 0f;
-    }
-
-    public void Cancel(BaseEventData e)
-    {
-        CancelCharging();
     }
 
     private void Update()
@@ -126,6 +126,8 @@ public class PurifyChargeController : MonoBehaviour
 
         currentCharge += Time.deltaTime;
         float progress = Mathf.Clamp01(currentCharge / chargeDuration);
+
+        Debug.Log($"[PURIFY][HOLD] Progress={progress:0.00}");
 
         if (pentagramDrawer != null)
             pentagramDrawer.SetProgress(progress);
