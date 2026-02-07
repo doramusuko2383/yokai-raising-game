@@ -1,5 +1,5 @@
+using System;
 using UnityEngine;
-using Yokai;
 
 public class PurifyChargeController : MonoBehaviour
 {
@@ -10,7 +10,7 @@ public class PurifyChargeController : MonoBehaviour
     private bool hasSucceeded = false;
     private float currentCharge = 0f;
 
-    private YokaiStateController stateController;
+    public event Action OnPurifyHoldCompleted;
 
     private void Awake()
     {
@@ -82,16 +82,7 @@ public class PurifyChargeController : MonoBehaviour
 
         Debug.Log("[PURIFY HOLD] Complete");
 
-        var stateController = CurrentYokaiContext.ResolveStateController();
-        if (stateController != null)
-        {
-            stateController.StopPurifyingForSuccess();
-
-        }
-        else
-        {
-            Debug.LogWarning("[PURIFY HOLD] StateController missing on Complete");
-        }
+        OnPurifyHoldCompleted?.Invoke();
     }
 
     /// <summary>

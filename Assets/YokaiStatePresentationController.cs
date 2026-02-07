@@ -272,7 +272,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         BindMagicCircleToStateController();
-        magicCircleActivator.SuccessRequested += HandleMagicCircleSuccess;
         isMagicCircleBound = true;
     }
 
@@ -289,20 +288,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (!isMagicCircleBound || magicCircleActivator == null)
             return;
 
-        magicCircleActivator.SuccessRequested -= HandleMagicCircleSuccess;
         isMagicCircleBound = false;
-    }
-
-    void HandleMagicCircleSuccess()
-    {
-        if (stateController == null)
-        {
-            BindStateController(ResolveStateController());
-            if (stateController == null)
-                return;
-        }
-
-        stateController.NotifyPurifySucceeded();
     }
 
     public void OnStateChanged(YokaiState previousState, YokaiState newState)
