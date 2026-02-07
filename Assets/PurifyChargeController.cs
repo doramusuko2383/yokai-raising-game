@@ -3,69 +3,75 @@ using Yokai;
 
 public class PurifyChargeController : MonoBehaviour
 {
-    [Header("Settings")]
+    [Header("Charge Settings")]
     [SerializeField] private float chargeDuration = 2.0f;
-
-    [Header("Refs")]
-    [SerializeField] private UIPentagramDrawer pentagramDrawer;
-    [SerializeField] private YokaiStateController stateController;
-    [SerializeField] private MagicCircleSwipeController magicCircle;
-    [SerializeField] private GameObject purifyHoldRoot;
 
     private bool isCharging = false;
     private bool hasSucceeded = false;
     private float currentCharge = 0f;
 
-    public void StartCharging()
+    private YokaiStateController stateController;
+
+    private void Awake()
     {
-        if (hasSucceeded || isCharging)
-            return;
-
-        Debug.Log("[PURIFY HOLD] StartCharging");
-
-        isCharging = true;
-        currentCharge = 0f;
-
-        if (purifyHoldRoot != null)
-            purifyHoldRoot.SetActive(true);
-
-        if (pentagramDrawer != null)
+        stateController = CurrentYokaiContext.ResolveStateController();
+        if (stateController == null)
         {
-            pentagramDrawer.gameObject.SetActive(true);
-            pentagramDrawer.SetProgress(0f);
+            Debug.LogWarning("[PURIFY HOLD] StateController not resolved");
         }
     }
 
+    /// <summary>
+    /// 五芒星の PointerDown から呼ばれる
+    /// </summary>
+    public void StartCharging()
+    {
+        if (hasSucceeded)
+            return;
+
+        if (isCharging)
+            return;
+
+        Debug.Log("[PURIFY HOLD] StartCharging CALLED");
+
+        isCharging = true;
+        currentCharge = 0f;
+    }
+
+    /// <summary>
+    /// PointerUp / Exit から呼ばれる
+    /// </summary>
     public void CancelCharging()
     {
-        if (!isCharging || hasSucceeded)
+        if (!isCharging)
+            return;
+
+        if (hasSucceeded)
             return;
 
         Debug.Log("[PURIFY HOLD] CancelCharging");
 
         isCharging = false;
         currentCharge = 0f;
-
-        if (pentagramDrawer != null)
-            pentagramDrawer.SetProgress(0f);
-
-        if (purifyHoldRoot != null)
-            purifyHoldRoot.SetActive(false);
     }
 
     private void Update()
     {
-        if (!isCharging || hasSucceeded)
+        if (!isCharging)
+            return;
+
+        if (hasSucceeded)
             return;
 
         currentCharge += Time.deltaTime;
-        float progress = Mathf.Clamp01(currentCharge / chargeDuration);
+        float progress = currentCharge / chargeDuration;
 
-        if (pentagramDrawer != null)
-            pentagramDrawer.SetProgress(progress);
+        Debug.Log($"[PURIFY HOLD] Progress={progress:F2}");
 
-        if (progress >= 1f)
+        if (currentCharge >= chargeDuration)
+        {
             Complete();
+        }
     }
 
     private void Complete()
@@ -73,36 +79,30 @@ public class PurifyChargeController : MonoBehaviour
         if (hasSucceeded)
             return;
 
-        Debug.Log("[PURIFY HOLD] Complete");
-
         hasSucceeded = true;
         isCharging = false;
 
-        if (pentagramDrawer != null)
-            pentagramDrawer.SetProgress(0f);
+        Debug.Log("[PURIFY HOLD] Complete");
 
-        var controller = ResolveStateController();
-        if (controller != null)
-            controller.StopPurifyingForSuccess();
-
-        if (purifyHoldRoot != null)
-            purifyHoldRoot.SetActive(false);
+        if (stateController != null)
+        {
+            stateController.StopPurifyingForSuccess("PurifyHold");
+        }
+        else
+        {
+            Debug.LogWarning("[PURIFY HOLD] StateController missing on Complete");
+        }
     }
 
-    // 外部からのリセット用（次回おきよめ用）
-    private void ResetPurify()
+    /// <summary>
+    /// State 側から「おきよめ終了・中断」された場合に呼ぶ
+    /// </summary>
+    public void ResetCharge()
     {
         isCharging = false;
         hasSucceeded = false;
         currentCharge = 0f;
 
-        if (pentagramDrawer != null)
-            pentagramDrawer.SetProgress(0f);
-    }
-
-    YokaiStateController ResolveStateController()
-    {
-        return CurrentYokaiContext.ResolveStateController()
-            ?? stateController;
+        Debug.Log("[PURIFY HOLD] ResetCharge");
     }
 }
