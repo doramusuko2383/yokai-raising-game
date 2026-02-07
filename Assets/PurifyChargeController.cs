@@ -18,9 +18,10 @@ public class PurifyChargeController : MonoBehaviour
 
     public void StartCharging()
     {
-        Debug.Log("[PURIFY HOLD] StartCharging CALLED");
-        if (hasSucceeded)
+        if (hasSucceeded || isCharging)
             return;
+
+        Debug.Log("[PURIFY HOLD] StartCharging");
 
         isCharging = true;
         currentCharge = 0f;
@@ -37,6 +38,9 @@ public class PurifyChargeController : MonoBehaviour
 
     public void CancelCharging()
     {
+        if (!isCharging || hasSucceeded)
+            return;
+
         Debug.Log("[PURIFY HOLD] CancelCharging");
 
         isCharging = false;
@@ -44,6 +48,9 @@ public class PurifyChargeController : MonoBehaviour
 
         if (pentagramDrawer != null)
             pentagramDrawer.SetProgress(0f);
+
+        if (purifyHoldRoot != null)
+            purifyHoldRoot.SetActive(false);
     }
 
     private void Update()
@@ -53,8 +60,6 @@ public class PurifyChargeController : MonoBehaviour
 
         currentCharge += Time.deltaTime;
         float progress = Mathf.Clamp01(currentCharge / chargeDuration);
-
-        Debug.Log("[PURIFY HOLD] Progress=" + progress);
 
         if (pentagramDrawer != null)
             pentagramDrawer.SetProgress(progress);
