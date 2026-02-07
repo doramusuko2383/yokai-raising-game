@@ -2,7 +2,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using Yokai;
 
-public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
+public class PentagramInputCatcher : MonoBehaviour,
+    IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
 {
     [SerializeField] private PurifyChargeController chargeController;
 
@@ -11,11 +12,11 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
         if (ShouldIgnoreInput())
             return;
 
-        Debug.Log("[INPUT] PointerDown on PentagramInputCatcher");
+        Debug.Log("[PENTAGRAM] PointerDown detected");
 
         if (chargeController == null)
         {
-            Debug.LogWarning("[INPUT] chargeController is NULL");
+            Debug.LogWarning("[PENTAGRAM] chargeController is NULL");
             return;
         }
 
@@ -27,15 +28,9 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
         if (ShouldIgnoreInput())
             return;
 
-        Debug.Log("[INPUT] PointerUp on PentagramInputCatcher");
+        Debug.Log("[PENTAGRAM] PointerUp detected");
 
-        if (chargeController == null)
-        {
-            Debug.LogWarning("[INPUT] chargeController is NULL");
-            return;
-        }
-
-        chargeController.CancelCharging();
+        chargeController?.CancelCharging();
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -43,20 +38,15 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
         if (ShouldIgnoreInput())
             return;
 
-        Debug.Log("[INPUT] PointerExit on PentagramInputCatcher");
+        Debug.Log("[PENTAGRAM] PointerExit detected");
 
-        if (chargeController == null)
-        {
-            Debug.LogWarning("[INPUT] chargeController is NULL");
-            return;
-        }
-
-        chargeController.CancelCharging();
+        chargeController?.CancelCharging();
     }
 
-    bool ShouldIgnoreInput()
+    private bool ShouldIgnoreInput()
     {
         var stateController = CurrentYokaiContext.ResolveStateController();
-        return stateController != null && stateController.currentState == YokaiState.PurityEmpty;
+        return stateController == null
+            || stateController.CurrentState != YokaiState.Purifying;
     }
 }
