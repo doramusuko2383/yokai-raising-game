@@ -78,9 +78,12 @@
     <Compile Include="Assets\YokaiGrowthController.cs" />
     <Compile Include="Assets\EvolutionButtonHandler.cs" />
     <Compile Include="Assets\PentagramInputCatcher.cs" />
+    <Compile Include="Assets\Debug\UIClickProbe.cs" />
     <Compile Include="Assets\PentagramDrawer.cs" />
     <Compile Include="Assets\DebugSceneResetButton.cs" />
+    <Compile Include="Assets\Debug\EventSystemProbe.cs" />
     <Compile Include="Assets\EffectSettings.cs" />
+    <Compile Include="Assets\Debug\InputKillSwitchProbe.cs" />
     <Compile Include="Assets\YokaiStatePresentationController.cs" />
     <Compile Include="Assets\MagicCircleSwipeController.cs" />
     <Compile Include="Assets\PurifyChargeController.cs" />
