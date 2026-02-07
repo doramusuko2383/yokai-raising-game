@@ -37,9 +37,6 @@ public class PurifyChargeController : MonoBehaviour
 
     public void CancelCharging()
     {
-        if (hasSucceeded)
-            return;
-
         Debug.Log("[PURIFY HOLD] CancelCharging");
 
         isCharging = false;
