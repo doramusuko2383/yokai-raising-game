@@ -9,44 +9,35 @@ public class PentagramInputCatcher : MonoBehaviour,
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (ShouldIgnoreInput())
+        if (!CanHandleInput())
             return;
-
-        Debug.Log("[PENTAGRAM] PointerDown detected");
-
-        if (chargeController == null)
-        {
-            Debug.LogWarning("[PENTAGRAM] chargeController is NULL");
-            return;
-        }
 
         chargeController.StartCharging();
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (ShouldIgnoreInput())
+        if (!CanHandleInput())
             return;
 
-        Debug.Log("[PENTAGRAM] PointerUp detected");
-
-        chargeController?.CancelCharging();
+        chargeController.CancelCharging();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (ShouldIgnoreInput())
+        if (!CanHandleInput())
             return;
 
-        Debug.Log("[PENTAGRAM] PointerExit detected");
-
-        chargeController?.CancelCharging();
+        chargeController.CancelCharging();
     }
 
-    private bool ShouldIgnoreInput()
+    private bool CanHandleInput()
     {
+        if (chargeController == null)
+            return false;
+
         var stateController = CurrentYokaiContext.ResolveStateController();
-        return stateController == null
-            || stateController.CurrentState != YokaiState.Purifying;
+        return stateController != null
+            && stateController.CurrentState == YokaiState.Purifying;
     }
 }
