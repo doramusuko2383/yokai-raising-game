@@ -14,12 +14,18 @@ public class PurifyChargeController : MonoBehaviour
 
     private void Awake()
     {
-        stateController = CurrentYokaiContext.ResolveStateController();
+
     }
 
+    /// <summary>
+    /// 五芒星の PointerDown から呼ばれる
+    /// </summary>
     public void StartCharging()
     {
-        if (isCharging || hasSucceeded)
+        if (hasSucceeded)
+            return;
+
+        if (isCharging)
             return;
 
         Debug.Log("[PURIFY HOLD] StartCharging CALLED");
@@ -28,9 +34,15 @@ public class PurifyChargeController : MonoBehaviour
         currentCharge = 0f;
     }
 
+    /// <summary>
+    /// PointerUp / Exit から呼ばれる
+    /// </summary>
     public void CancelCharging()
     {
         if (!isCharging)
+            return;
+
+        if (hasSucceeded)
             return;
 
         Debug.Log("[PURIFY HOLD] CancelCharging");
@@ -41,25 +53,13 @@ public class PurifyChargeController : MonoBehaviour
 
     private void Update()
     {
-        if (hasSucceeded)
-            return;
+        Debug.Log("[PURIFY HOLD] Update tick");
 
         if (!isCharging)
             return;
 
-#if UNITY_EDITOR || UNITY_STANDALONE
-        if (!Input.GetMouseButton(0))
-        {
-            CancelCharging();
+        if (hasSucceeded)
             return;
-        }
-#else
-        if (Input.touchCount == 0)
-        {
-            CancelCharging();
-            return;
-        }
-#endif
 
         currentCharge += Time.deltaTime;
         float progress = currentCharge / chargeDuration;
@@ -82,16 +82,27 @@ public class PurifyChargeController : MonoBehaviour
 
         Debug.Log("[PURIFY HOLD] Complete");
 
+        var stateController = CurrentYokaiContext.ResolveStateController();
         if (stateController != null)
         {
             stateController.StopPurifyingForSuccess();
+
+        }
+        else
+        {
+            Debug.LogWarning("[PURIFY HOLD] StateController missing on Complete");
         }
     }
 
+    /// <summary>
+    /// State 側から「おきよめ終了・中断」された場合に呼ぶ
+    /// </summary>
     public void ResetCharge()
     {
         isCharging = false;
         hasSucceeded = false;
         currentCharge = 0f;
+
+        Debug.Log("[PURIFY HOLD] ResetCharge");
     }
 }
