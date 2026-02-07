@@ -45,11 +45,17 @@ public class PurifyChargeController : MonoBehaviour
 
         Debug.Log("[PURIFY][HOLD] StartCharging");
 
-        if (purifyHoldRoot != null && !purifyHoldRoot.activeSelf)
-            purifyHoldRoot.SetActive(true);
-
         isCharging = true;
         currentCharge = 0f;
+
+        if (purifyHoldRoot != null)
+            purifyHoldRoot.SetActive(true);
+
+        if (pentagramDrawer != null)
+        {
+            pentagramDrawer.gameObject.SetActive(true);
+            pentagramDrawer.SetProgress(0f);
+        }
     }
 
     public void CancelCharging()
@@ -61,6 +67,12 @@ public class PurifyChargeController : MonoBehaviour
         Debug.Log("[PURIFY][HOLD] CancelCharging");
 
         isCharging = false;
+
+        if (pentagramDrawer != null)
+            pentagramDrawer.SetProgress(0f);
+
+        if (magicCircle != null)
+            magicCircle.Hide();
 
         if (purifyHoldRoot != null && purifyHoldRoot.activeSelf)
             purifyHoldRoot.SetActive(false);
@@ -77,21 +89,13 @@ public class PurifyChargeController : MonoBehaviour
 
     private void Update()
     {
-        if (!isCharging || hasSucceeded)
-            return;
-
-        bool isPurifyingState =
-            stateController != null &&
-            stateController.CurrentState == YokaiState.Purifying;
-
-        // Purifying 以外では進行しない
-        if (!isPurifyingState)
+        if (!isCharging)
             return;
 
         currentCharge += Time.deltaTime;
         float progress = Mathf.Clamp01(currentCharge / chargeDuration);
 
-        Debug.Log($"[PURIFY][HOLD] Progress={progress:0.00}");
+        Debug.Log("[PURIFY HOLD] Progress=" + progress);
 
         if (pentagramDrawer != null)
             pentagramDrawer.SetProgress(progress);
