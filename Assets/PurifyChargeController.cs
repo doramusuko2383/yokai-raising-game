@@ -5,13 +5,13 @@ using Yokai;
 public class PurifyChargeController : MonoBehaviour
 {
     [Header("Settings")]
-    public float chargeDuration = 2.0f;
+    [SerializeField] private float chargeDuration = 2.0f;
 
     [Header("Refs")]
-    public UIPentagramDrawer pentagramDrawer;
-    public YokaiStateController stateController;
-    [SerializeField] MagicCircleSwipeController magicCircle;
-    [SerializeField] GameObject purifyHoldRoot;
+    [SerializeField] private UIPentagramDrawer pentagramDrawer;
+    [SerializeField] private YokaiStateController stateController;
+    [SerializeField] private MagicCircleSwipeController magicCircle;
+    [SerializeField] private GameObject purifyHoldRoot;
 
     private bool isCharging = false;
     private bool hasSucceeded = false;
@@ -129,7 +129,7 @@ public class PurifyChargeController : MonoBehaviour
     }
 
     // 外部からのリセット用（次回おきよめ用）
-    public void ResetPurify()
+    private void ResetPurify()
     {
         isCharging = false;
         hasSucceeded = false;
