@@ -402,21 +402,10 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginPurifying(string reason = "BeginPurify")
     {
-        if (currentState != YokaiState.Normal)
-        {
-            Debug.Log($"[PURIFY HOLD] blocked: state={currentState}");
-            return;
-        }
-
-        if (isPurifying)
-            return;
-
         isPurifying = true;
         IsPurifyTriggeredByUser = true;
         HasUserInteracted = false;
-        // NOTE:
-        // 通常おきよめ中は State を変更しない
-        // 成功 or キャンセル時にのみ State を変える
+        Debug.Log("[PURIFY HOLD] BeginPurifying started (UI will handle charge)");
     }
 
     public void StopPurifying()
