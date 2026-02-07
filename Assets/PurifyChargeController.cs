@@ -41,7 +41,10 @@ public class PurifyChargeController : MonoBehaviour
 
     private void Update()
     {
-        if (!isCharging || hasSucceeded)
+        if (hasSucceeded)
+            return;
+
+        if (!isCharging)
             return;
 
 #if UNITY_EDITOR || UNITY_STANDALONE
