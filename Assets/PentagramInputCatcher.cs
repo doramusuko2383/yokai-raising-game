@@ -9,6 +9,7 @@ public class PentagramInputCatcher : MonoBehaviour,
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        Debug.Log("[INPUT] Pentagram PointerDown HIT");
         if (!CanHandleInput())
             return;
 
@@ -17,6 +18,7 @@ public class PentagramInputCatcher : MonoBehaviour,
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        Debug.Log("[INPUT] Pentagram PointerUp HIT");
         if (!CanHandleInput())
             return;
 
