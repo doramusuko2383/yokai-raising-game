@@ -73,10 +73,7 @@ public class MagicCircleActivator : MonoBehaviour
 
     public void Activate()
     {
-        if (isActive)
-            return;
-
-        SetActive(true);
+        LogLegacyUnexpected(nameof(Activate));
     }
 
     public void RequestSuccess()
