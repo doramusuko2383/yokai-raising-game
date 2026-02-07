@@ -12,6 +12,9 @@ public class YokaiStatePresentationController : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
+    [SerializeField]
+    PurifyChargeController purifyChargeController;
+
     [Header("UI")]
     [SerializeField]
     GameObject actionPanel;
@@ -341,6 +344,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         // UI updates are centralized here
         ApplyActionUIForState(state);
+        ResetPurifyChargeIfNeeded(state);
 
         lastAppliedState = state;
     }
@@ -417,6 +421,15 @@ public class YokaiStatePresentationController : MonoBehaviour
         }
 
         hasPlayedPurifyStartSE = false;
+    }
+
+    void ResetPurifyChargeIfNeeded(YokaiState state)
+    {
+        if (state == YokaiState.Purifying)
+            return;
+
+        if (purifyChargeController != null)
+            purifyChargeController.ResetCharge();
     }
 
     void RefreshPresentation()
@@ -1032,6 +1045,9 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (magicCircleActivator == null)
             magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
+
+        if (purifyChargeController == null)
+            purifyChargeController = FindObjectOfType<PurifyChargeController>(true);
 
         if (dangerOverlay == null)
         {
