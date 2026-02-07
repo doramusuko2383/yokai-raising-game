@@ -178,6 +178,7 @@ GameObject:
   m_Component:
   - component: {fileID: 233153451}
   - component: {fileID: 233153452}
+  - component: {fileID: 233153453}
   m_Layer: 5
   m_Name: PurifyChargeController
   m_TagString: Untagged
@@ -221,6 +222,19 @@ MonoBehaviour:
   stateController: {fileID: 1786705811}
   magicCircle: {fileID: 1763312157}
   purifyHoldRoot: {fileID: 1288041693}
+--- !u!114 &233153453
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 233153450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 984f94c9715ce884ebe6418840ab6797, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chargeController: {fileID: 233153452}
 --- !u!114 &252916619 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1773064882957594954, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
@@ -1569,8 +1583,8 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 233153452}
-          m_TargetAssemblyTypeName: PurifyChargeController, Assembly-CSharp
+        - m_Target: {fileID: 233153453}
+          m_TargetAssemblyTypeName: PentagramInputCatcher, Assembly-CSharp
           m_MethodName: OnPointerDown
           m_Mode: 0
           m_Arguments:
@@ -1585,9 +1599,25 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 233153452}
-          m_TargetAssemblyTypeName: PurifyChargeController, Assembly-CSharp
+        - m_Target: {fileID: 233153453}
+          m_TargetAssemblyTypeName: PentagramInputCatcher, Assembly-CSharp
           m_MethodName: OnPointerUp
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+        m_CallState: 2
+  - eventID: 4
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 233153453}
+          m_TargetAssemblyTypeName: PentagramInputCatcher, Assembly-CSharp
+          m_MethodName: OnPointerExit
           m_Mode: 0
           m_Arguments:
             m_ObjectArgument: {fileID: 0}

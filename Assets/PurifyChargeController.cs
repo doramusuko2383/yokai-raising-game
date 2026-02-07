@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using Yokai;
 
 public class PurifyChargeController : MonoBehaviour
@@ -38,37 +37,7 @@ public class PurifyChargeController : MonoBehaviour
             pentagramDrawer.SetProgress(0f);
     }
 
-    public void OnPointerDown()
-    {
-        HandlePointerDown();
-    }
-
-    public void OnPointerDown(BaseEventData e)
-    {
-        HandlePointerDown();
-    }
-
-    public void OnPointerUp()
-    {
-        HandlePointerUp();
-    }
-
-    public void OnPointerUp(BaseEventData e)
-    {
-        HandlePointerUp();
-    }
-
-    private void HandlePointerDown()
-    {
-        StartChargingInternal();
-    }
-
-    private void HandlePointerUp()
-    {
-        CancelChargingInternal();
-    }
-
-    private void StartChargingInternal()
+    public void StartCharging()
     {
         if (hasSucceeded)
             return;
@@ -78,14 +47,11 @@ public class PurifyChargeController : MonoBehaviour
         if (purifyHoldRoot != null && !purifyHoldRoot.activeSelf)
             purifyHoldRoot.SetActive(true);
 
-        if (magicCircle != null)
-            magicCircle.Show();
-
         isCharging = true;
         currentCharge = 0f;
     }
 
-    private void CancelChargingInternal()
+    public void CancelCharging()
     {
         // 成功後は一切キャンセルさせない
         if (hasSucceeded)
@@ -97,9 +63,6 @@ public class PurifyChargeController : MonoBehaviour
 
         if (purifyHoldRoot != null && purifyHoldRoot.activeSelf)
             purifyHoldRoot.SetActive(false);
-
-        if (magicCircle != null)
-            magicCircle.Hide();
 
         float currentProgress = Mathf.Clamp01(currentCharge / chargeDuration);
 
@@ -160,9 +123,6 @@ public class PurifyChargeController : MonoBehaviour
         {
             controller.StopPurifyingForSuccess();
         }
-
-        if (magicCircle != null)
-            magicCircle.Hide();
 
         if (purifyHoldRoot != null)
             purifyHoldRoot.SetActive(false);
