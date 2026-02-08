@@ -30,6 +30,9 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     MagicCircleActivator magicCircleActivator;
 
+    [SerializeField]
+    PurifyChargeController purifyChargeController;
+
     [FormerlySerializedAs("kegareManager")]
     [SerializeField]
     PurityController purityController;
@@ -250,6 +253,8 @@ public class YokaiStateController : MonoBehaviour
     void OnDisable()
     {
         ResetPurifyingState();
+        UnregisterPurifyChargeEvents();
+        UnregisterMagicCircleEvents();
         UnregisterPurityEvents();
         UnregisterSpiritEvents();
 
@@ -275,6 +280,18 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
+    void RegisterPurifyChargeEvents()
+    {
+        if (purifyChargeController != null)
+            purifyChargeController.OnPurifyHoldCompleted += OnPurifyHoldCompleted;
+    }
+
+    void RegisterMagicCircleEvents()
+    {
+        if (magicCircleActivator != null)
+            magicCircleActivator.SuccessRequested += HandleMagicCircleSuccessRequested;
+    }
+
     void UnregisterPurityEvents()
     {
         if (purityController != null)
@@ -291,6 +308,18 @@ public class YokaiStateController : MonoBehaviour
             spiritController.OnSpiritEmpty -= OnSpiritEmpty;
             spiritController.OnSpiritRecovered -= OnSpiritRecovered;
         }
+    }
+
+    void UnregisterPurifyChargeEvents()
+    {
+        if (purifyChargeController != null)
+            purifyChargeController.OnPurifyHoldCompleted -= OnPurifyHoldCompleted;
+    }
+
+    void UnregisterMagicCircleEvents()
+    {
+        if (magicCircleActivator != null)
+            magicCircleActivator.SuccessRequested -= HandleMagicCircleSuccessRequested;
     }
 
     void SyncManagerState()
@@ -406,6 +435,7 @@ public class YokaiStateController : MonoBehaviour
         IsPurifyTriggeredByUser = true;
         HasUserInteracted = false;
         Debug.Log("[PURIFY HOLD] BeginPurifying started (UI will handle charge)");
+        EvaluateState(reason: reason, forcePresentation: false);
     }
 
     public void StopPurifying()
@@ -415,7 +445,7 @@ public class YokaiStateController : MonoBehaviour
 
     public void StopPurifyingForSuccess()
     {
-        NotifyPurifySucceeded();
+        CompletePurifySuccess("PurifySuccess");
     }
 
     public void CancelPurifying(string reason = "Cancelled")
@@ -504,6 +534,18 @@ public class YokaiStateController : MonoBehaviour
             spiritController = FindObjectOfType<SpiritController>(true);
         }
 
+        if (purifyChargeController == null)
+        {
+            purifyChargeController = FindObjectOfType<PurifyChargeController>(true);
+        }
+
+        if (magicCircleActivator == null)
+        {
+            magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
+        }
+
+        RegisterPurifyChargeEvents();
+        RegisterMagicCircleEvents();
         RegisterPurityEvents();
         RegisterSpiritEvents();
         isReady = true;
@@ -659,8 +701,6 @@ public class YokaiStateController : MonoBehaviour
 
         isPurifying = false;
         IsPurifyTriggeredByUser = false;
-        SetState(YokaiState.Normal, "PurifyFinished");
-        ResolvePresentationController()?.ApplyActionUIForState(YokaiState.Normal);
         SyncManagerState();
         EvaluateState(reason: "PurifyFinished", forcePresentation: false);
     }
@@ -782,7 +822,26 @@ public class YokaiStateController : MonoBehaviour
         purifyFallbackRoutine = null;
 
         if (isPurifying)
-            NotifyPurifySucceeded();
+            CompletePurifySuccess("PurifyFallback");
+    }
+
+    public void OnPurifyHoldCompleted()
+    {
+        CompletePurifySuccess("PurifyHold");
+    }
+
+    void HandleMagicCircleSuccessRequested()
+    {
+        CompletePurifySuccess("MagicCircle");
+    }
+
+    void CompletePurifySuccess(string reason)
+    {
+        if (CurrentState != YokaiState.Purifying)
+            return;
+
+        SetState(YokaiState.Normal, reason);
+        NotifyPurifySucceeded();
     }
 
     void ApplyEmptyStateEffects()
