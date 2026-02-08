@@ -5,11 +5,23 @@ public class MagicCircleActivator : MonoBehaviour
 {
     [SerializeField]
     GameObject magicCircleRoot;
+    [SerializeField]
+    CanvasGroup canvasGroup;
 
     YokaiStateController stateController;
     bool isBound;
 
     public bool HasMagicCircleRoot => magicCircleRoot != null;
+
+    void Awake()
+    {
+        ResolveCanvasGroup();
+    }
+
+    void OnValidate()
+    {
+        ResolveCanvasGroup();
+    }
 
     void OnEnable()
     {
@@ -58,6 +70,12 @@ public class MagicCircleActivator : MonoBehaviour
         ApplyState(next);
     }
 
+    void ResolveCanvasGroup()
+    {
+        if (canvasGroup == null && magicCircleRoot != null)
+            canvasGroup = magicCircleRoot.GetComponent<CanvasGroup>();
+    }
+
     public void ApplyState(YokaiState state)
     {
         if (state == YokaiState.Purifying)
@@ -68,20 +86,21 @@ public class MagicCircleActivator : MonoBehaviour
 
     private void Show()
     {
-        if (magicCircleRoot != null)
-        {
-            magicCircleRoot.SetActive(true);
+        if (canvasGroup == null)
+            return;
 
-            foreach (var line in magicCircleRoot.GetComponentsInChildren<UnityEngine.UI.Extensions.UILineRenderer>(true))
-            {
-                line.SetAllDirty();
-            }
-        }
+        canvasGroup.alpha = 1f;
+        canvasGroup.blocksRaycasts = true;
+        canvasGroup.interactable = true;
     }
 
     private void Hide()
     {
-        if (magicCircleRoot != null)
-            magicCircleRoot.SetActive(false);
+        if (canvasGroup == null)
+            return;
+
+        canvasGroup.alpha = 0f;
+        canvasGroup.blocksRaycasts = false;
+        canvasGroup.interactable = false;
     }
 }
