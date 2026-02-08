@@ -219,6 +219,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chargeDuration: 1
   stateController: {fileID: 1786705811}
+  uiPentagramDrawer: {fileID: 549859993}
+  linePentagramDrawer: {fileID: 0}
 --- !u!114 &252916619 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1773064882957594954, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
@@ -2202,6 +2204,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   magicCircleRoot: {fileID: 935124024}
+  canvasGroup: {fileID: 935124026}
 --- !u!1 &2028275031
 GameObject:
   m_ObjectHideFlags: 0
