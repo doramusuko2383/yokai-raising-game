@@ -28,9 +28,6 @@ public class MagicCircleActivator : MonoBehaviour
 
     void OnEnable()
     {
-        if (LogLegacyBlocked(nameof(OnEnable)))
-            return;
-
         EnsureStateController(warnIfMissing: false);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         LogResolutionOnce();
@@ -134,20 +131,14 @@ public class MagicCircleActivator : MonoBehaviour
 
     void HandleStateChanged(YokaiState previousState, YokaiState newState)
     {
-        if (LogLegacyBlocked(nameof(HandleStateChanged)))
-            return;
-
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log($"[MAGIC_CIRCLE] HandleStateChanged: {previousState} -> {newState}");
 #endif
-        Hide();
+        ApplyState(newState);
     }
 
     void SyncFromStateController(bool warnIfMissing)
     {
-        if (LogLegacyBlocked(nameof(SyncFromStateController)))
-            return;
-
         if (stateController == null)
         {
             EnsureStateController(warnIfMissing);
@@ -167,23 +158,33 @@ public class MagicCircleActivator : MonoBehaviour
 
     void Awake()
     {
-        LogLegacyBlocked(nameof(Awake));
     }
 
     void Start()
     {
-        LogLegacyBlocked(nameof(Start));
     }
 
     void ApplyState(YokaiState newState)
     {
-        if (LogLegacyBlocked(nameof(ApplyState)))
-            return;
-
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log($"[MAGIC_CIRCLE] ApplyState direct: {newState}");
 #endif
-        Hide();
+        SetVisible(newState == YokaiState.Purifying);
+    }
+
+    void SetVisible(bool shouldShow)
+    {
+        if (magicCircleRoot == null)
+        {
+            WarnMissingRoot();
+            return;
+        }
+
+        if (isVisible == shouldShow && magicCircleRoot.activeSelf == shouldShow)
+            return;
+
+        magicCircleRoot.SetActive(shouldShow);
+        isVisible = shouldShow;
     }
 
     bool LogLegacyBlocked(string methodName)

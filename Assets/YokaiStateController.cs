@@ -676,7 +676,6 @@ public class YokaiStateController : MonoBehaviour
 
         isPurifying = false;
         IsPurifyTriggeredByUser = false;
-        ResolveMagicCircleActivator()?.Hide();
 
         if (purityController != null)
             purityController.RecoverPurityByRatio(0.5f);
