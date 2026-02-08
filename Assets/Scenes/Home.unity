@@ -741,7 +741,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stateController: {fileID: 1786705811}
-  purifyChargeController: {fileID: 0}
+  purifyChargeController: {fileID: 233153452}
   actionPanel: {fileID: 667190786}
   purifyButton: {fileID: 2094418307}
   dangoButton: {fileID: 1355842313}
@@ -2009,6 +2009,7 @@ MonoBehaviour:
   growthController: {fileID: 0}
   presentationController: {fileID: 641838150}
   magicCircleActivator: {fileID: 1905322487}
+  purifyChargeController: {fileID: 233153452}
   purityController: {fileID: 604884281}
   spiritController: {fileID: 515532832}
   dangoAmount: 30
