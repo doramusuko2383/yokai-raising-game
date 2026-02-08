@@ -421,7 +421,17 @@ public class YokaiStateController : MonoBehaviour
 
     public void StopPurifyingForSuccess()
     {
-        CompletePurifySuccess("PurifySuccess");
+        if (currentState != YokaiState.Purifying)
+        {
+            Debug.LogWarning($"[PURIFY] StopPurifyingForSuccess ignored. currentState={currentState}");
+            return;
+        }
+
+        Debug.Log("[PURIFY] StopPurifyingForSuccess -> SetState Normal (PurifySuccess)");
+
+        NotifyPurifySucceeded();
+        SetState(YokaiState.Normal, reason: "PurifySuccess");
+        ApplyEmptyStateEffects();
     }
 
     public void CancelPurifying(string reason = "Cancelled")
@@ -666,7 +676,6 @@ public class YokaiStateController : MonoBehaviour
         IsPurifyTriggeredByUser = false;
         SyncManagerState();
         OnPurifySucceeded?.Invoke();
-        EvaluateState(reason: "PurifyFinished", forcePresentation: false);
     }
 
     public void NotifyPurifyCancelled()
@@ -851,7 +860,7 @@ public class YokaiStateController : MonoBehaviour
         if (CurrentState != YokaiState.Purifying)
             return;
 
-        NotifyPurifySucceeded();
+        StopPurifyingForSuccess();
     }
 
     void ApplyEmptyStateEffects()

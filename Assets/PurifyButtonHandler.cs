@@ -1,8 +1,12 @@
 using System;
 using UnityEngine;
+using Yokai;
 
 public class PurifyButtonHandler : MonoBehaviour
 {
+    [SerializeField]
+    YokaiStateController stateController;
+
     public event Action PurifyRequested;
     public event Action EmergencyPurifyRequested;
     public event Action StopPurifyRequested;
@@ -19,6 +23,9 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickPurify()
     {
+        if (ResolveStateController() == null)
+            return;
+
         Debug.Log("[PURIFY] OnClickPurify");
         PurifyRequested?.Invoke();
     }
@@ -30,6 +37,9 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickEmergencyPurify()
     {
+        if (ResolveStateController() == null)
+            return;
+
         Debug.Log("[EMERGENCY PURIFY] Button clicked");
         EmergencyPurifyRequested?.Invoke();
         TutorialManager.NotifyPurifyUsed();
@@ -37,7 +47,23 @@ public class PurifyButtonHandler : MonoBehaviour
 
     public void OnClickStopPurify()
     {
+        if (ResolveStateController() == null)
+            return;
+
         StopPurifyRequested?.Invoke();
+    }
+
+    YokaiStateController ResolveStateController()
+    {
+        stateController =
+            CurrentYokaiContext.ResolveStateController()
+            ?? stateController
+            ?? FindObjectOfType<YokaiStateController>(true);
+
+        if (stateController == null)
+            Debug.LogError("[PURIFY] StateController could not be resolved.");
+
+        return stateController;
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

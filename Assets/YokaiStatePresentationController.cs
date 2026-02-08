@@ -297,6 +297,17 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (TryResolveStateController() == null)
             return;
 
+        if (previousState == YokaiState.Purifying && newState == YokaiState.Normal)
+        {
+            Debug.Log("[PRESENTATION] Purifying finished -> reset visuals");
+
+            if (magicCircleActivator != null)
+                magicCircleActivator.ApplyState(newState);
+
+            if (purifyChargeController != null)
+                purifyChargeController.ResetCharge();
+        }
+
         ApplyState(newState, force: false, previousStateOverride: previousState);
     }
 
@@ -331,7 +342,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         // UI updates are centralized here
         ApplyActionUIForState(state);
-        ResetPurifyChargeIfNeeded(previousState, state);
 
         lastAppliedState = state;
     }
@@ -407,26 +417,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (magicCircleActivator == null)
             return;
 
-        if (state == YokaiState.Purifying)
-        {
-            magicCircleActivator.Show();
-            return;
-        }
-
-        if (state == YokaiState.Normal)
-            magicCircleActivator.Hide();
-    }
-
-    void ResetPurifyChargeIfNeeded(YokaiState? previousState, YokaiState state)
-    {
-        if (!previousState.HasValue)
-            return;
-
-        if (previousState.Value != YokaiState.Purifying || state != YokaiState.Normal)
-            return;
-
-        magicCircleActivator?.Hide();
-        purifyChargeController?.ResetCharge();
+        magicCircleActivator.ApplyState(state);
     }
 
     void RefreshPresentation()
