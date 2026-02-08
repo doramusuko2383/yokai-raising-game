@@ -192,7 +192,22 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (purifyChargeController == controller)
             return;
 
+        if (purifyChargeController != null)
+            purifyChargeController.OnPurifyHoldCompleted -= HandlePurifyHoldCompleted;
+
         purifyChargeController = controller;
+
+        if (purifyChargeController != null)
+            purifyChargeController.OnPurifyHoldCompleted += HandlePurifyHoldCompleted;
+    }
+
+    void HandlePurifyHoldCompleted()
+    {
+        var controller = TryResolveStateController();
+        if (controller == null)
+            return;
+
+        controller.StopPurifyingForSuccess();
     }
 
     void StartBindRetryIfNeeded()
@@ -422,10 +437,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ResetPurifyChargeIfNeeded(YokaiState? previousState, YokaiState state)
     {
-        if (!previousState.HasValue)
-            return;
-
-        if (previousState.Value != YokaiState.Purifying || state != YokaiState.Normal)
+        if (state != YokaiState.Normal)
             return;
 
         purifyChargeController?.ResetCharge();
