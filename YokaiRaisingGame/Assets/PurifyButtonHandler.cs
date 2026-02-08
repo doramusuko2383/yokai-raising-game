@@ -1,32 +1,9 @@
 using UnityEngine;
-using UnityEngine.UI;
 using Yokai;
 
 public class PurifyButtonHandler : MonoBehaviour
 {
-    [SerializeField]
     YokaiStateController stateController;
-
-    [Header("UI References")]
-    [SerializeField]
-    GameObject purifyRoot;
-
-    [SerializeField]
-    Button purifyButton;
-
-    [SerializeField]
-    GameObject emergencyPurifyRoot;
-
-    [SerializeField]
-    Button emergencyPurifyButton;
-
-    [SerializeField]
-    GameObject stopPurifyRoot;
-
-    [SerializeField]
-    Button stopPurifyButton;
-
-    bool hasWarnedMissingStateController;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     bool hasLoggedAudioResolution;
 #endif
@@ -36,14 +13,10 @@ public class PurifyButtonHandler : MonoBehaviour
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         LogAudioResolutionOnce();
 #endif
-        RefreshUI();
     }
 
     public void BindStateController(YokaiStateController controller)
     {
-        if (controller == null)
-            return;
-
         stateController = controller;
     }
 
@@ -58,15 +31,11 @@ public class PurifyButtonHandler : MonoBehaviour
         ShowAd(() =>
         {
             var resolvedController = ResolveStateController();
-            if (resolvedController != null)
-            {
-                resolvedController.TryDo(YokaiAction.EmergencyPurifyAd, "UI:EmergencyPurify");
-                TutorialManager.NotifyPurifyUsed();
-            }
-            else
-            {
-                WarnMissingStateController();
-            }
+            if (resolvedController == null)
+                return;
+
+            resolvedController.TryDo(YokaiAction.EmergencyPurifyAd, "UI:EmergencyPurify");
+            TutorialManager.NotifyPurifyUsed();
         });
     }
 
@@ -84,45 +53,11 @@ public class PurifyButtonHandler : MonoBehaviour
         onCompleted?.Invoke();
     }
 
-    public void RefreshUI()
-    {
-        var controller = ResolveStateController();
-        bool canPurify = controller != null && controller.CanDo(YokaiAction.PurifyStart);
-        bool canEmergency = controller != null && controller.CanDo(YokaiAction.EmergencyPurifyAd);
-        bool canStop = controller != null && controller.CanDo(YokaiAction.PurifyCancel);
-
-        if (purifyRoot != null)
-            purifyRoot.SetActive(canPurify);
-        if (purifyButton != null)
-            purifyButton.interactable = canPurify;
-
-        if (emergencyPurifyRoot != null)
-            emergencyPurifyRoot.SetActive(canEmergency);
-        if (emergencyPurifyButton != null)
-            emergencyPurifyButton.interactable = canEmergency;
-
-        if (stopPurifyRoot != null)
-            stopPurifyRoot.SetActive(canStop);
-        if (stopPurifyButton != null)
-            stopPurifyButton.interactable = canStop;
-    }
-
     YokaiStateController ResolveStateController()
     {
-        stateController = CurrentYokaiContext.ResolveStateController();
-        if (stateController == null)
-            WarnMissingStateController();
-
+        stateController = CurrentYokaiContext.ResolveStateController()
+            ?? FindObjectOfType<YokaiStateController>(true);
         return stateController;
-    }
-
-    void WarnMissingStateController()
-    {
-        if (hasWarnedMissingStateController)
-            return;
-
-        Debug.LogWarning("[PURIFY] StateController not set in Inspector");
-        hasWarnedMissingStateController = true;
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

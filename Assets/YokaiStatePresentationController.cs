@@ -297,7 +297,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (TryResolveStateController() == null)
             return;
 
-        ApplyState(newState, force: false);
+        ApplyState(newState, force: false, previousStateOverride: previousState);
     }
 
     public void SyncFromStateController()
@@ -308,14 +308,14 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyState(stateController.currentState, force: false);
     }
 
-    public void ApplyState(YokaiState state, bool force = false)
+    public void ApplyState(YokaiState state, bool force = false, YokaiState? previousStateOverride = null)
     {
         if (!AreDependenciesResolved())
             return;
 
         Debug.Log($"[PRESENTATION] ApplyState: {state}");
 
-        YokaiState? previousState = lastAppliedState;
+        YokaiState? previousState = previousStateOverride ?? lastAppliedState;
         bool shouldForceEnter = state == YokaiState.Purifying;
         bool isSameState = previousState.HasValue && previousState.Value == state;
         bool shouldSkipTransition = !force && !shouldForceEnter && isSameState;
@@ -419,9 +419,13 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ResetPurifyChargeIfNeeded(YokaiState? previousState, YokaiState state)
     {
-        if (state == YokaiState.Purifying)
+        if (!previousState.HasValue)
             return;
 
+        if (previousState.Value != YokaiState.Purifying || state != YokaiState.Normal)
+            return;
+
+        magicCircleActivator?.Hide();
         purifyChargeController?.ResetCharge();
     }
 
