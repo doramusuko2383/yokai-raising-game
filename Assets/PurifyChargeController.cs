@@ -82,6 +82,15 @@ public class PurifyChargeController : MonoBehaviour
 
         Debug.Log("[PURIFY HOLD] Complete");
 
+        var stateController = CurrentYokaiContext.ResolveStateController();
+        if (stateController == null)
+        {
+            Debug.LogWarning("[PURIFY HOLD] StateController missing on Complete");
+            return;
+        }
+
+        stateController.StopPurifyingForSuccess();
+
         OnPurifyHoldCompleted?.Invoke();
     }
 
