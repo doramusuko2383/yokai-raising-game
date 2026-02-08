@@ -4,6 +4,8 @@ public class MagicCircleActivator : MonoBehaviour
 {
     [SerializeField]
     GameObject magicCircleRoot;
+    [SerializeField]
+    CanvasGroup canvasGroup;
 
     bool hasWarnedMissingRoot;
     bool isVisible;
@@ -12,6 +14,16 @@ public class MagicCircleActivator : MonoBehaviour
     public event System.Action SuccessEffectRequested;
 
     public bool HasMagicCircleRoot => magicCircleRoot != null;
+
+    void Awake()
+    {
+        ResolveCanvasGroup();
+    }
+
+    void OnValidate()
+    {
+        ResolveCanvasGroup();
+    }
 
     void OnEnable()
     {
@@ -38,18 +50,26 @@ public class MagicCircleActivator : MonoBehaviour
         SuccessEffectRequested?.Invoke();
     }
 
+    void ResolveCanvasGroup()
+    {
+        if (canvasGroup == null && magicCircleRoot != null)
+            canvasGroup = magicCircleRoot.GetComponent<CanvasGroup>();
+    }
+
     void SetVisible(bool shouldShow)
     {
-        if (magicCircleRoot == null)
+        if (magicCircleRoot == null || canvasGroup == null)
         {
             WarnMissingRoot();
             return;
         }
 
-        if (isVisible == shouldShow && magicCircleRoot.activeSelf == shouldShow)
+        if (isVisible == shouldShow)
             return;
 
-        magicCircleRoot.SetActive(shouldShow);
+        canvasGroup.alpha = shouldShow ? 1f : 0f;
+        canvasGroup.blocksRaycasts = shouldShow;
+        canvasGroup.interactable = shouldShow;
         isVisible = shouldShow;
     }
 
