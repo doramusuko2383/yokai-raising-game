@@ -30,6 +30,9 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     MagicCircleActivator magicCircleActivator;
 
+    [SerializeField]
+    PurifyChargeController purifyChargeController;
+
     [FormerlySerializedAs("kegareManager")]
     [SerializeField]
     PurityController purityController;
@@ -232,6 +235,7 @@ public class YokaiStateController : MonoBehaviour
         CurrentYokaiContext.RegisterStateController(this);
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         isReady = false;
+        BindPurifyChargeController(ResolvePurifyChargeController());
     }
 
     void Awake()
@@ -252,6 +256,7 @@ public class YokaiStateController : MonoBehaviour
         ResetPurifyingState();
         UnregisterPurityEvents();
         UnregisterSpiritEvents();
+        BindPurifyChargeController(null);
 
         CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
         CurrentYokaiContext.UnregisterStateController(this);
@@ -510,6 +515,12 @@ public class YokaiStateController : MonoBehaviour
             magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
         }
 
+        if (purifyChargeController == null)
+        {
+            purifyChargeController = FindObjectOfType<PurifyChargeController>(true);
+        }
+        BindPurifyChargeController(purifyChargeController);
+
         RegisterPurityEvents();
         RegisterSpiritEvents();
         isReady = true;
@@ -716,6 +727,33 @@ public class YokaiStateController : MonoBehaviour
             return presentationController;
 
         return YokaiStatePresentationController.Instance;
+    }
+
+    void BindPurifyChargeController(PurifyChargeController controller)
+    {
+        if (purifyChargeController == controller)
+            return;
+
+        if (purifyChargeController != null)
+            purifyChargeController.OnPurifyHoldCompleted -= HandlePurifyHoldCompleted;
+
+        purifyChargeController = controller;
+
+        if (purifyChargeController != null)
+            purifyChargeController.OnPurifyHoldCompleted += HandlePurifyHoldCompleted;
+    }
+
+    PurifyChargeController ResolvePurifyChargeController()
+    {
+        if (purifyChargeController != null)
+            return purifyChargeController;
+
+        return FindObjectOfType<PurifyChargeController>(true);
+    }
+
+    void HandlePurifyHoldCompleted()
+    {
+        CompletePurifySuccess("PurifyHold");
     }
 
     void ForceSyncPresentation(YokaiState state)

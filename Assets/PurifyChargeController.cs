@@ -52,13 +52,10 @@ public class PurifyChargeController : MonoBehaviour
 
     private void Update()
     {
+        if (!isCharging || hasSucceeded)
+            return;
+
         Debug.Log("[PURIFY HOLD] Update tick");
-
-        if (!isCharging)
-            return;
-
-        if (hasSucceeded)
-            return;
 
         currentCharge += Time.deltaTime;
         float progress = currentCharge / chargeDuration;
