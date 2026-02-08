@@ -36,10 +36,6 @@ public class YokaiEvolutionController : MonoBehaviour
     [SerializeField]
     string yokaiAdultName = "YokaiAdult";
 
-    [Header("UI References")]
-    [SerializeField]
-    PurifyButtonHandler[] purifyButtonHandlers;
-
     bool isEvolving;
     const float ChargeScaleMultiplier = 0.95f;
     const float FlashScaleMultiplier = 1.12f;
@@ -305,17 +301,6 @@ public class YokaiEvolutionController : MonoBehaviour
         else
         {
             stateController.BindCurrentYokai(activeYokai);
-        }
-
-        if (purifyButtonHandlers != null && purifyButtonHandlers.Length > 0)
-        {
-            foreach (var handler in purifyButtonHandlers)
-            {
-                if (handler == null)
-                    continue;
-
-                handler.BindStateController(stateController);
-            }
         }
 
         foreach (var effect in activeYokai.GetComponentsInChildren<YokaiDangerEffect>(true))
