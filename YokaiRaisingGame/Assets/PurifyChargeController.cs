@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Yokai;
@@ -14,6 +15,8 @@ public class PurifyChargeController : MonoBehaviour
     private bool isCharging = false;
     private bool hasSucceeded = false;
     private float currentCharge = 0f;
+
+    public event Action OnPurifyHoldCompleted;
 
     // =====================
     // EventTrigger
@@ -103,10 +106,7 @@ public class PurifyChargeController : MonoBehaviour
         }
 
         // ★ 状態遷移確定
-        if (stateController != null)
-        {
-            stateController.NotifyPurifySucceeded();
-        }
+        OnPurifyHoldCompleted?.Invoke();
     }
 
     // =====================
