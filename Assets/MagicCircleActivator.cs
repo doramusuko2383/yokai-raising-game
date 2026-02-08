@@ -1,16 +1,13 @@
 using UnityEngine;
 using Yokai;
+
 public class MagicCircleActivator : MonoBehaviour
 {
     [SerializeField]
     GameObject magicCircleRoot;
 
-    bool hasWarnedMissingRoot;
-    bool isVisible;
     YokaiStateController stateController;
-
-    public event System.Action SuccessRequested;
-    public event System.Action SuccessEffectRequested;
+    bool isBound;
 
     public bool HasMagicCircleRoot => magicCircleRoot != null;
 
@@ -39,14 +36,21 @@ public class MagicCircleActivator : MonoBehaviour
         }
 
         stateController.OnStateChanged += HandleStateChanged;
+        isBound = true;
 
+        // ★ 初期状態を必ず反映
         ApplyState(stateController.CurrentState);
     }
 
     void Unbind()
     {
-        if (stateController != null)
+        if (isBound && stateController != null)
+        {
             stateController.OnStateChanged -= HandleStateChanged;
+        }
+
+        isBound = false;
+        stateController = null;
     }
 
     void HandleStateChanged(YokaiState previous, YokaiState next)
@@ -62,56 +66,15 @@ public class MagicCircleActivator : MonoBehaviour
             Hide();
     }
 
-    public void Show()
+    void Show()
     {
-        SetVisible(true);
+        if (magicCircleRoot != null)
+            magicCircleRoot.SetActive(true);
     }
 
-    public void Hide()
+    void Hide()
     {
-        SetVisible(false);
+        if (magicCircleRoot != null)
+            magicCircleRoot.SetActive(false);
     }
-
-    public void RequestSuccess()
-    {
-        SuccessRequested?.Invoke();
-    }
-
-    public void RequestSuccessEffect()
-    {
-        SuccessEffectRequested?.Invoke();
-    }
-
-    void Awake()
-    {
-    }
-
-    void Start()
-    {
-    }
-
-    void SetVisible(bool shouldShow)
-    {
-        if (magicCircleRoot == null)
-        {
-            WarnMissingRoot();
-            return;
-        }
-
-        if (isVisible == shouldShow && magicCircleRoot.activeSelf == shouldShow)
-            return;
-
-        magicCircleRoot.SetActive(shouldShow);
-        isVisible = shouldShow;
-    }
-
-    void WarnMissingRoot()
-    {
-        if (hasWarnedMissingRoot)
-            return;
-
-        Debug.LogWarning("[MAGIC_CIRCLE] Missing MagicCircleRoot reference.");
-        hasWarnedMissingRoot = true;
-    }
-
 }
