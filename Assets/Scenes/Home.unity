@@ -750,7 +750,7 @@ MonoBehaviour:
   purityRecoverAdButton: {fileID: 1855358516}
   purifyStopButton: {fileID: 2094418307}
   purifyHoldButton: {fileID: 1288041693}
-  magicCircleActivator: {fileID: 0}
+  magicCircleActivator: {fileID: 1905322489}
   pentagramUI: {fileID: 1295331842}
   dangerOverlay: {fileID: 1590625619}
   dangerEffects: []
@@ -2044,7 +2044,7 @@ MonoBehaviour:
   isPurifying: 0
   growthController: {fileID: 0}
   presentationController: {fileID: 641838150}
-  magicCircleActivator: {fileID: 0}
+  magicCircleActivator: {fileID: 1905322489}
   purityController: {fileID: 604884281}
   spiritController: {fileID: 515532832}
   dangoAmount: 30
