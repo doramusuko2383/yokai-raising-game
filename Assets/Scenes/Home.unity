@@ -218,6 +218,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chargeDuration: 1
+  stateController: {fileID: 1786705811}
 --- !u!114 &252916619 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1773064882957594954, guid: cc0893359f3fd6f4aa43d39accd71255, type: 3}
@@ -509,6 +510,7 @@ RectTransform:
   - {fileID: 817104849}
   - {fileID: 1288041694}
   - {fileID: 1295331843}
+  - {fileID: 935124025}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -748,7 +750,7 @@ MonoBehaviour:
   purityRecoverAdButton: {fileID: 1855358516}
   purifyStopButton: {fileID: 2094418307}
   purifyHoldButton: {fileID: 1288041693}
-  magicCircleActivator: {fileID: 1905322487}
+  magicCircleActivator: {fileID: 0}
   pentagramUI: {fileID: 1295331842}
   dangerOverlay: {fileID: 1590625619}
   dangerEffects: []
@@ -790,12 +792,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 668579069}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1295331843}
+  m_Father: {fileID: 935124025}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -880,12 +882,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 696279005}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1295331843}
+  m_Father: {fileID: 935124025}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -972,7 +974,6 @@ MonoBehaviour:
   fireBallName: FireBall
   yokaiChildName: YokaiChild
   yokaiAdultName: YokaiAdult
-  purifyButtonHandlers: []
 --- !u!4 &724772127
 Transform:
   m_ObjectHideFlags: 0
@@ -1114,6 +1115,46 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterRoot: {fileID: 992496716}
+--- !u!1 &935124024
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 935124025}
+  m_Layer: 5
+  m_Name: PentagramRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &935124025
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 935124024}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1444808632}
+  - {fileID: 1015689864}
+  - {fileID: 987558282}
+  - {fileID: 696279006}
+  - {fileID: 668579070}
+  m_Father: {fileID: 543276398}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1000, y: 1000}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &935181998
 GameObject:
   m_ObjectHideFlags: 0
@@ -1214,12 +1255,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 987558281}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1295331843}
+  m_Father: {fileID: 935124025}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1345,12 +1386,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1015689863}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1295331843}
+  m_Father: {fileID: 935124025}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1545,11 +1586,6 @@ RectTransform:
   m_Children:
   - {fileID: 1856318337}
   - {fileID: 549859992}
-  - {fileID: 1444808632}
-  - {fileID: 1015689864}
-  - {fileID: 987558282}
-  - {fileID: 696279006}
-  - {fileID: 668579070}
   m_Father: {fileID: 543276398}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -1725,12 +1761,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1444808631}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1295331843}
+  m_Father: {fileID: 935124025}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -2008,8 +2044,7 @@ MonoBehaviour:
   isPurifying: 0
   growthController: {fileID: 0}
   presentationController: {fileID: 641838150}
-  magicCircleActivator: {fileID: 1905322487}
-  purifyChargeController: {fileID: 233153452}
+  magicCircleActivator: {fileID: 0}
   purityController: {fileID: 604884281}
   spiritController: {fileID: 515532832}
   dangoAmount: 30
@@ -2118,7 +2153,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1905322488}
-  - component: {fileID: 1905322487}
+  - component: {fileID: 1905322489}
   m_Layer: 0
   m_Name: MagicCircleActivator
   m_TagString: Untagged
@@ -2126,7 +2161,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1905322487
+--- !u!4 &1905322488
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1905322486}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1905322489
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2138,24 +2188,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f4b40857ddc4d45b86ef2f1e845b6da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  magicCircleRoot: {fileID: 549859991}
-  stateController: {fileID: 1786705811}
-  isLegacyDisabled: 1
---- !u!4 &1905322488
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1905322486}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 84, y: 217, z: 0.4623633}
-  m_LocalScale: {x: 187.39217, y: 127.33127, z: 89.66991}
-  m_ConstrainProportionsScale: 1
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  magicCircleRoot: {fileID: 935124024}
 --- !u!1 &2028275031
 GameObject:
   m_ObjectHideFlags: 0
@@ -2888,7 +2921,7 @@ PrefabInstance:
     - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: magicCircleActivator
       value: 
-      objectReference: {fileID: 1905322487}
+      objectReference: {fileID: 0}
     - target: {fileID: 8349528510299463072, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_Name
       value: Panel_Action
