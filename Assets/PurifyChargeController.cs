@@ -22,10 +22,10 @@ public class PurifyChargeController : MonoBehaviour
 
     private void OnEnable()
     {
-        ResolveStateController(warn: false);
+        ResolveStateController();
     }
 
-    YokaiStateController ResolveStateController(bool warn)
+    YokaiStateController ResolveStateController()
     {
         var resolved =
             CurrentYokaiContext.ResolveStateController()
@@ -34,7 +34,7 @@ public class PurifyChargeController : MonoBehaviour
 
         stateController = resolved;
 
-        if (warn && resolved == null)
+        if (resolved == null)
             Debug.LogError("[PURIFY HOLD] StateController could not be resolved.");
 
         return resolved;
@@ -45,7 +45,9 @@ public class PurifyChargeController : MonoBehaviour
     /// </summary>
     public void StartCharging()
     {
-        ResolveStateController(warn: true);
+        if (ResolveStateController() == null)
+            return;
+
         if (hasSucceeded)
             return;
 
@@ -102,7 +104,7 @@ public class PurifyChargeController : MonoBehaviour
         isCharging = false;
 
         Debug.Log("[PURIFY HOLD] Complete");
-        var sc = ResolveStateController(warn: true);
+        var sc = ResolveStateController();
         if (sc == null)
             return;
 

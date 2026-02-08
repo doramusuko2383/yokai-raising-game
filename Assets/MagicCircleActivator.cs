@@ -21,6 +21,14 @@ public class MagicCircleActivator : MonoBehaviour
     {
     }
 
+    public void ApplyState(YokaiState state)
+    {
+        if (state == YokaiState.Purifying)
+            Show();
+        else
+            Hide();
+    }
+
     public void Show()
     {
         SetVisible(true);
