@@ -225,11 +225,6 @@ public class YokaiStateController : MonoBehaviour
         return true;
     }
 
-        public void ConsumePurifyTrigger()
-    {
-        IsPurifyTriggeredByUser = false;
-    }
-
     void OnEnable()
     {
         CurrentYokaiContext.RegisterStateController(this);
@@ -430,8 +425,7 @@ public class YokaiStateController : MonoBehaviour
         Debug.Log("[PURIFY] StopPurifyingForSuccess -> SetState Normal (PurifySuccess)");
 
         NotifyPurifySucceeded();
-        SetState(YokaiState.Normal, reason: "PurifySuccess");
-        ApplyEmptyStateEffects();
+        EvaluateState(reason: "PurifySuccess", forcePresentation: true);
     }
 
     public void CancelPurifying(string reason = "Cancelled")
@@ -440,6 +434,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         NotifyPurifyCancelled();
+        EvaluateState(reason: reason, forcePresentation: true);
     }
 
     public void BeginEvolution()
