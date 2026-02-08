@@ -22,22 +22,27 @@ public class PurifyChargeController : MonoBehaviour
 
     private void OnEnable()
     {
-        ResolveStateController();
+        stateController =
+            CurrentYokaiContext.ResolveStateController()
+            ?? FindObjectOfType<YokaiStateController>(true);
+
+        if (stateController == null)
+            Debug.LogError("[PURIFY HOLD] StateController could not be resolved.");
     }
 
     YokaiStateController ResolveStateController()
     {
-        var resolved =
+        if (stateController != null)
+            return stateController;
+
+        stateController =
             CurrentYokaiContext.ResolveStateController()
-            ?? stateController
             ?? FindObjectOfType<YokaiStateController>(true);
 
-        stateController = resolved;
-
-        if (resolved == null)
+        if (stateController == null)
             Debug.LogError("[PURIFY HOLD] StateController could not be resolved.");
 
-        return resolved;
+        return stateController;
     }
 
     /// <summary>

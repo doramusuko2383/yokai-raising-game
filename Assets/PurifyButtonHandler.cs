@@ -16,6 +16,7 @@ public class PurifyButtonHandler : MonoBehaviour
 
     void OnEnable()
     {
+        ResolveStateController();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         LogAudioResolutionOnce();
 #endif
@@ -55,10 +56,12 @@ public class PurifyButtonHandler : MonoBehaviour
 
     YokaiStateController ResolveStateController()
     {
-        stateController =
-            CurrentYokaiContext.ResolveStateController()
-            ?? stateController
-            ?? FindObjectOfType<YokaiStateController>(true);
+        if (stateController == null)
+        {
+            stateController =
+                CurrentYokaiContext.ResolveStateController()
+                ?? FindObjectOfType<YokaiStateController>(true);
+        }
 
         if (stateController == null)
             Debug.LogError("[PURIFY] StateController could not be resolved.");
