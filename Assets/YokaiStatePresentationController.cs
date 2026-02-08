@@ -192,13 +192,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (purifyChargeController == controller)
             return;
 
-        if (purifyChargeController != null)
-            purifyChargeController.OnPurifyHoldCompleted -= HandlePurifyHoldCompleted;
-
         purifyChargeController = controller;
-
-        if (purifyChargeController != null)
-            purifyChargeController.OnPurifyHoldCompleted += HandlePurifyHoldCompleted;
     }
 
     void StartBindRetryIfNeeded()
@@ -316,14 +310,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyState(newState, force: false);
     }
 
-    void HandlePurifyHoldCompleted()
-    {
-        if (TryResolveStateController() == null)
-            return;
-
-        stateController.StopPurifyingForSuccess();
-    }
-
     public void SyncFromStateController()
     {
         if (TryResolveStateController() == null)
@@ -355,7 +341,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         // UI updates are centralized here
         ApplyActionUIForState(state);
-        ResetPurifyChargeIfNeeded(state);
+        ResetPurifyChargeIfNeeded(previousState, state);
 
         lastAppliedState = state;
     }
@@ -434,15 +420,15 @@ public class YokaiStatePresentationController : MonoBehaviour
         hasPlayedPurifyStartSE = false;
     }
 
-    void ResetPurifyChargeIfNeeded(YokaiState state)
+    void ResetPurifyChargeIfNeeded(YokaiState? previousState, YokaiState state)
     {
-        if (state != YokaiState.Normal
-            && state != YokaiState.PurityEmpty
-            && state != YokaiState.EnergyEmpty)
+        if (!previousState.HasValue)
             return;
 
-        if (purifyChargeController != null)
-            purifyChargeController.ResetCharge();
+        if (previousState.Value != YokaiState.Purifying || state != YokaiState.Normal)
+            return;
+
+        purifyChargeController?.ResetCharge();
     }
 
     void RefreshPresentation()

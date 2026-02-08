@@ -1,10 +1,14 @@
 using System;
 using UnityEngine;
+using Yokai;
 
 public class PurifyChargeController : MonoBehaviour
 {
     [Header("Charge Settings")]
     [SerializeField] private float chargeDuration = 2.0f;
+
+    [Header("Dependencies")]
+    [SerializeField] YokaiStateController stateController;
 
     private bool isCharging = false;
     private bool hasSucceeded = false;
@@ -82,6 +86,9 @@ public class PurifyChargeController : MonoBehaviour
 
         Debug.Log("[PURIFY HOLD] Complete");
 
+        EnsureStateController();
+        stateController?.StopPurifyingForSuccess();
+
         OnPurifyHoldCompleted?.Invoke();
     }
 
@@ -95,5 +102,14 @@ public class PurifyChargeController : MonoBehaviour
         currentCharge = 0f;
 
         Debug.Log("[PURIFY HOLD] ResetCharge");
+    }
+
+    void EnsureStateController()
+    {
+        if (stateController != null)
+            return;
+
+        stateController = CurrentYokaiContext.ResolveStateController()
+            ?? FindObjectOfType<YokaiStateController>(true);
     }
 }
