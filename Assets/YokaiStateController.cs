@@ -10,6 +10,8 @@ public class YokaiStateController : MonoBehaviour
     public YokaiState currentState = YokaiState.Normal;
     public bool isPurifying;
     public event System.Action<YokaiState, YokaiState> OnStateChanged;
+    public event System.Action OnPurifySucceeded;
+    public event System.Action OnPurifyCancelled;
     public YokaiState CurrentState => currentState;
 
     bool isSpiritEmpty;
@@ -30,9 +32,6 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     MagicCircleActivator magicCircleActivator;
 
-    [SerializeField]
-    PurifyChargeController purifyChargeController;
-
     [FormerlySerializedAs("kegareManager")]
     [SerializeField]
     PurityController purityController;
@@ -52,6 +51,7 @@ public class YokaiStateController : MonoBehaviour
     bool hasWarnedMissingPurifyControllers;
     bool hasWarnedMissingMagicCircle;
     Coroutine purifyFallbackRoutine;
+    PurifyButtonHandler purifyButtonHandler;
     string lastStateChangeReason;
     string lastPurityRecoveredReason;
     int lastPurityRecoveredFrame = -1;
@@ -235,7 +235,7 @@ public class YokaiStateController : MonoBehaviour
         CurrentYokaiContext.RegisterStateController(this);
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         isReady = false;
-        BindPurifyChargeController(ResolvePurifyChargeController());
+        BindPurifyButtonHandler(ResolvePurifyButtonHandler());
     }
 
     void Awake()
@@ -256,7 +256,7 @@ public class YokaiStateController : MonoBehaviour
         ResetPurifyingState();
         UnregisterPurityEvents();
         UnregisterSpiritEvents();
-        BindPurifyChargeController(null);
+        BindPurifyButtonHandler(null);
 
         CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
         CurrentYokaiContext.UnregisterStateController(this);
@@ -429,11 +429,7 @@ public class YokaiStateController : MonoBehaviour
         if (!isPurifying)
             return;
 
-        isPurifying = false;
-        IsPurifyTriggeredByUser = false;
-        StopPurifyFallback();
-        SetState(YokaiState.Normal, reason);
-        EvaluateState(reason: reason, forcePresentation: false);
+        NotifyPurifyCancelled();
     }
 
     public void BeginEvolution()
@@ -514,12 +510,6 @@ public class YokaiStateController : MonoBehaviour
         {
             magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
         }
-
-        if (purifyChargeController == null)
-        {
-            purifyChargeController = FindObjectOfType<PurifyChargeController>(true);
-        }
-        BindPurifyChargeController(purifyChargeController);
 
         RegisterPurityEvents();
         RegisterSpiritEvents();
@@ -672,12 +662,24 @@ public class YokaiStateController : MonoBehaviour
             hasWarnedMissingPurifyControllers = true;
         }
 
-        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
-
         isPurifying = false;
         IsPurifyTriggeredByUser = false;
         SyncManagerState();
+        OnPurifySucceeded?.Invoke();
         EvaluateState(reason: "PurifyFinished", forcePresentation: false);
+    }
+
+    public void NotifyPurifyCancelled()
+    {
+        if (!isPurifying)
+            return;
+
+        StopPurifyFallback();
+        isPurifying = false;
+        IsPurifyTriggeredByUser = false;
+        SyncManagerState();
+        OnPurifyCancelled?.Invoke();
+        EvaluateState(reason: "PurifyCancelled", forcePresentation: false);
     }
 
     public void ExecuteEmergencyPurify(string reason)
@@ -729,31 +731,49 @@ public class YokaiStateController : MonoBehaviour
         return YokaiStatePresentationController.Instance;
     }
 
-    void BindPurifyChargeController(PurifyChargeController controller)
+    void BindPurifyButtonHandler(PurifyButtonHandler handler)
     {
-        if (purifyChargeController == controller)
+        if (purifyButtonHandler == handler)
             return;
 
-        if (purifyChargeController != null)
-            purifyChargeController.OnPurifyHoldCompleted -= HandlePurifyHoldCompleted;
+        if (purifyButtonHandler != null)
+        {
+            purifyButtonHandler.PurifyRequested -= HandlePurifyRequested;
+            purifyButtonHandler.EmergencyPurifyRequested -= HandleEmergencyPurifyRequested;
+            purifyButtonHandler.StopPurifyRequested -= HandleStopPurifyRequested;
+        }
 
-        purifyChargeController = controller;
+        purifyButtonHandler = handler;
 
-        if (purifyChargeController != null)
-            purifyChargeController.OnPurifyHoldCompleted += HandlePurifyHoldCompleted;
+        if (purifyButtonHandler != null)
+        {
+            purifyButtonHandler.PurifyRequested += HandlePurifyRequested;
+            purifyButtonHandler.EmergencyPurifyRequested += HandleEmergencyPurifyRequested;
+            purifyButtonHandler.StopPurifyRequested += HandleStopPurifyRequested;
+        }
     }
 
-    PurifyChargeController ResolvePurifyChargeController()
+    PurifyButtonHandler ResolvePurifyButtonHandler()
     {
-        if (purifyChargeController != null)
-            return purifyChargeController;
+        if (purifyButtonHandler != null)
+            return purifyButtonHandler;
 
-        return FindObjectOfType<PurifyChargeController>(true);
+        return FindObjectOfType<PurifyButtonHandler>(true);
     }
 
-    void HandlePurifyHoldCompleted()
+    void HandlePurifyRequested()
     {
-        CompletePurifySuccess("PurifyHold");
+        TryDo(YokaiAction.PurifyStart, "UI:PurifyClick");
+    }
+
+    void HandleEmergencyPurifyRequested()
+    {
+        TryDo(YokaiAction.EmergencyPurifyAd, "EmergencyPurify");
+    }
+
+    void HandleStopPurifyRequested()
+    {
+        TryDo(YokaiAction.PurifyCancel, "UI:StopPurify");
     }
 
     void ForceSyncPresentation(YokaiState state)
@@ -831,7 +851,6 @@ public class YokaiStateController : MonoBehaviour
         if (CurrentState != YokaiState.Purifying)
             return;
 
-        SetState(YokaiState.Normal, reason);
         NotifyPurifySucceeded();
     }
 

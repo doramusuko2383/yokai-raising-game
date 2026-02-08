@@ -93,7 +93,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool hasWarnedMissingOptionalDependencies;
     static YokaiStatePresentationController instance;
     Coroutine bindRetryRoutine;
-    bool isMagicCircleBound;
     readonly Dictionary<SpriteRenderer, Color> energyEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
     readonly Dictionary<Image, Color> energyEmptyImageColors = new Dictionary<Image, Color>();
     bool isEnergyEmptyVisualsActive;
@@ -177,14 +176,22 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         if (stateController != null)
+        {
             stateController.OnStateChanged -= OnStateChanged;
+            stateController.OnPurifySucceeded -= HandlePurifySucceeded;
+            stateController.OnPurifyCancelled -= HandlePurifyCancelled;
+        }
 
         stateController = controller;
 
         if (stateController != null)
+        {
             stateController.OnStateChanged += OnStateChanged;
+            stateController.OnPurifySucceeded += HandlePurifySucceeded;
+            stateController.OnPurifyCancelled += HandlePurifyCancelled;
+        }
 
-        BindMagicCircleToStateController();
+        purifyChargeController?.BindStateController(stateController);
     }
 
     void BindPurifyChargeController(PurifyChargeController controller)
@@ -193,6 +200,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         purifyChargeController = controller;
+        purifyChargeController?.BindStateController(stateController);
     }
 
     void StartBindRetryIfNeeded()
@@ -278,28 +286,10 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (magicCircleActivator == null)
             magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
-
-        if (isMagicCircleBound || magicCircleActivator == null)
-            return;
-
-        BindMagicCircleToStateController();
-        isMagicCircleBound = true;
-    }
-
-    void BindMagicCircleToStateController()
-    {
-        if (magicCircleActivator == null || stateController == null)
-            return;
-
-        magicCircleActivator.BindToStateController(stateController);
     }
 
     void UnbindMagicCircleActivator()
     {
-        if (!isMagicCircleBound || magicCircleActivator == null)
-            return;
-
-        isMagicCircleBound = false;
     }
 
     public void OnStateChanged(YokaiState previousState, YokaiState newState)
@@ -411,13 +401,20 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void SyncMagicCircleForState(YokaiState state)
     {
+        if (state != YokaiState.Purifying)
+            hasPlayedPurifyStartSE = false;
+
+        if (magicCircleActivator == null)
+            return;
+
         if (state == YokaiState.Purifying)
         {
-            hasPlayedPurifyStartSE = false;
+            magicCircleActivator.Show();
             return;
         }
 
-        hasPlayedPurifyStartSE = false;
+        if (state == YokaiState.Normal)
+            magicCircleActivator.Hide();
     }
 
     void ResetPurifyChargeIfNeeded(YokaiState? previousState, YokaiState state)
@@ -1004,6 +1001,11 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (newState == YokaiState.Purifying && previousState != YokaiState.Purifying)
         {
             MentorMessageService.ShowHint(OnmyojiHintType.OkIYomeGuide);
+            if (!ShouldSuppressPresentationEffects(newState) && !hasPlayedPurifyStartSE)
+            {
+                AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
+                hasPlayedPurifyStartSE = true;
+            }
         }
 
         if (newState == YokaiState.EvolutionReady && previousState != YokaiState.EvolutionReady)
@@ -1021,6 +1023,16 @@ public class YokaiStatePresentationController : MonoBehaviour
                     MentorMessageService.ShowHint(OnmyojiHintType.EvolutionCompleteAdult);
             }
         }
+    }
+
+    void HandlePurifySucceeded()
+    {
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
+    }
+
+    void HandlePurifyCancelled()
+    {
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_CANCEL);
     }
 
     void EnsureDangerOverlayLayout()
