@@ -4,11 +4,11 @@ public class PurifyChargeController : MonoBehaviour
 {
     [Header("Charge Settings")]
     [SerializeField] private float chargeDuration = 2.0f;
+    [SerializeField] YokaiStateController stateController;
 
     private bool isCharging = false;
     private bool hasSucceeded = false;
     private float currentCharge = 0f;
-    YokaiStateController stateController;
 
     public void BindStateController(YokaiStateController controller)
     {
@@ -20,11 +20,32 @@ public class PurifyChargeController : MonoBehaviour
 
     }
 
+    private void OnEnable()
+    {
+        ResolveStateController(warn: false);
+    }
+
+    YokaiStateController ResolveStateController(bool warn)
+    {
+        var resolved =
+            CurrentYokaiContext.ResolveStateController()
+            ?? stateController
+            ?? FindObjectOfType<YokaiStateController>(true);
+
+        stateController = resolved;
+
+        if (warn && resolved == null)
+            Debug.LogError("[PURIFY HOLD] StateController could not be resolved.");
+
+        return resolved;
+    }
+
     /// <summary>
     /// 五芒星の PointerDown から呼ばれる
     /// </summary>
     public void StartCharging()
     {
+        ResolveStateController(warn: true);
         if (hasSucceeded)
             return;
 
@@ -81,7 +102,12 @@ public class PurifyChargeController : MonoBehaviour
         isCharging = false;
 
         Debug.Log("[PURIFY HOLD] Complete");
-        stateController?.StopPurifyingForSuccess();
+        var sc = ResolveStateController(warn: true);
+        if (sc == null)
+            return;
+
+        sc.StopPurifyingForSuccess();
+        Debug.Log($"[PURIFY HOLD] StopPurifyingForSuccess called sc={(sc != null)}");
     }
 
     /// <summary>
