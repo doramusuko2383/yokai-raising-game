@@ -379,9 +379,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             ResetPurityEmptyMotion();
         }
 
-        if (state == YokaiState.Purifying && stateController != null)
-            stateController.ConsumePurifyTrigger();
-
         HandleStateMessages(previousState, state);
     }
 

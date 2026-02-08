@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler
+public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
 {
     [SerializeField] private PurifyChargeController chargeController;
 
@@ -9,6 +9,21 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler
     {
         Debug.Log("[INPUT] Pentagram PointerDown HIT");
         eventData.Use();
-        chargeController.StartCharging();
+        if (chargeController != null)
+            chargeController.StartCharging();
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        Debug.Log("[INPUT] Pentagram PointerUp HIT");
+        eventData.Use();
+        chargeController.CancelCharging();
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        Debug.Log("[INPUT] Pentagram PointerExit HIT");
+        eventData.Use();
+        chargeController.CancelCharging();
     }
 }

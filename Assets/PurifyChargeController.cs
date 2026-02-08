@@ -5,6 +5,8 @@ public class PurifyChargeController : MonoBehaviour
     [Header("Charge Settings")]
     [SerializeField] private float chargeDuration = 2.0f;
     [SerializeField] YokaiStateController stateController;
+    [SerializeField] private UIPentagramDrawer uiPentagramDrawer;
+    [SerializeField] private PentagramDrawer linePentagramDrawer;
 
     private bool isCharging = false;
     private bool hasSucceeded = false;
@@ -93,6 +95,7 @@ public class PurifyChargeController : MonoBehaviour
         float progress = currentCharge / chargeDuration;
 
         Debug.Log($"[PURIFY HOLD] Progress={progress:F2}");
+        UpdateVisual(progress);
 
         if (currentCharge >= chargeDuration)
         {
@@ -115,6 +118,7 @@ public class PurifyChargeController : MonoBehaviour
 
         sc.StopPurifyingForSuccess();
         Debug.Log($"[PURIFY HOLD] StopPurifyingForSuccess called sc={(sc != null)}");
+        UpdateVisual(1f);
     }
 
     /// <summary>
@@ -127,6 +131,15 @@ public class PurifyChargeController : MonoBehaviour
         currentCharge = 0f;
 
         Debug.Log("[PURIFY HOLD] ResetCharge");
+    }
+
+    void UpdateVisual(float progress)
+    {
+        if (uiPentagramDrawer != null)
+            uiPentagramDrawer.SetProgress(progress);
+
+        if (linePentagramDrawer != null)
+            linePentagramDrawer.SetProgress(progress);
     }
 
 }
