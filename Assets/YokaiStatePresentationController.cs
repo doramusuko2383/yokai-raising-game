@@ -436,7 +436,9 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ResetPurifyChargeIfNeeded(YokaiState state)
     {
-        if (state != YokaiState.Normal)
+        if (state != YokaiState.Normal
+            && state != YokaiState.PurityEmpty
+            && state != YokaiState.EnergyEmpty)
             return;
 
         if (purifyChargeController != null)
@@ -566,6 +568,9 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (purifyHoldButton != null)
             purifyHoldButton.SetActive(isPurifying);
+
+        if (pentagramUI != null)
+            pentagramUI.SetActive(isPurifying);
 
         if (actionPanel == null)
             return;
