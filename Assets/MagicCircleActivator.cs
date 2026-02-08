@@ -1,4 +1,5 @@
 using UnityEngine;
+using Yokai;
 public class MagicCircleActivator : MonoBehaviour
 {
     [SerializeField]
@@ -6,6 +7,7 @@ public class MagicCircleActivator : MonoBehaviour
 
     bool hasWarnedMissingRoot;
     bool isVisible;
+    YokaiStateController stateController;
 
     public event System.Action SuccessRequested;
     public event System.Action SuccessEffectRequested;
@@ -14,11 +16,42 @@ public class MagicCircleActivator : MonoBehaviour
 
     void OnEnable()
     {
-        SetVisible(false);
+        ResolveAndBind();
     }
 
     void OnDisable()
     {
+        Unbind();
+    }
+
+    void ResolveAndBind()
+    {
+        Unbind();
+
+        stateController =
+            CurrentYokaiContext.ResolveStateController()
+            ?? FindObjectOfType<YokaiStateController>(true);
+
+        if (stateController == null)
+        {
+            Debug.LogError("[MAGIC_CIRCLE] StateController not resolved");
+            return;
+        }
+
+        stateController.OnStateChanged += HandleStateChanged;
+
+        ApplyState(stateController.CurrentState);
+    }
+
+    void Unbind()
+    {
+        if (stateController != null)
+            stateController.OnStateChanged -= HandleStateChanged;
+    }
+
+    void HandleStateChanged(YokaiState previous, YokaiState next)
+    {
+        ApplyState(next);
     }
 
     public void ApplyState(YokaiState state)
