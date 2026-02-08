@@ -250,7 +250,6 @@ public class YokaiStateController : MonoBehaviour
     void OnDisable()
     {
         ResetPurifyingState();
-        UnregisterMagicCircleEvents();
         UnregisterPurityEvents();
         UnregisterSpiritEvents();
 
@@ -276,12 +275,6 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
-    void RegisterMagicCircleEvents()
-    {
-        if (magicCircleActivator != null)
-            magicCircleActivator.SuccessRequested += HandleMagicCircleSuccessRequested;
-    }
-
     void UnregisterPurityEvents()
     {
         if (purityController != null)
@@ -298,12 +291,6 @@ public class YokaiStateController : MonoBehaviour
             spiritController.OnSpiritEmpty -= OnSpiritEmpty;
             spiritController.OnSpiritRecovered -= OnSpiritRecovered;
         }
-    }
-
-    void UnregisterMagicCircleEvents()
-    {
-        if (magicCircleActivator != null)
-            magicCircleActivator.SuccessRequested -= HandleMagicCircleSuccessRequested;
     }
 
     void SyncManagerState()
@@ -523,7 +510,6 @@ public class YokaiStateController : MonoBehaviour
             magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
         }
 
-        RegisterMagicCircleEvents();
         RegisterPurityEvents();
         RegisterSpiritEvents();
         isReady = true;
@@ -801,11 +787,6 @@ public class YokaiStateController : MonoBehaviour
 
         if (isPurifying)
             CompletePurifySuccess("PurifyFallback");
-    }
-
-    void HandleMagicCircleSuccessRequested()
-    {
-        CompletePurifySuccess("MagicCircle");
     }
 
     void CompletePurifySuccess(string reason)

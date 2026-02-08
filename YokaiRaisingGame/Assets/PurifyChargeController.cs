@@ -105,6 +105,9 @@ public class PurifyChargeController : MonoBehaviour
             pentagramDrawer.PlayCompleteFlash();
         }
 
+        EnsureStateController();
+        stateController?.StopPurifyingForSuccess();
+
         // ★ 状態遷移確定
         OnPurifyHoldCompleted?.Invoke();
     }
@@ -123,5 +126,19 @@ public class PurifyChargeController : MonoBehaviour
         {
             pentagramDrawer.SetProgress(0f);
         }
+    }
+
+    public void ResetCharge()
+    {
+        ResetPurify();
+    }
+
+    void EnsureStateController()
+    {
+        if (stateController != null)
+            return;
+
+        stateController = CurrentYokaiContext.ResolveStateController()
+            ?? FindObjectOfType<YokaiStateController>(true);
     }
 }
