@@ -30,9 +30,6 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     MagicCircleActivator magicCircleActivator;
 
-    [SerializeField]
-    PurifyChargeController purifyChargeController;
-
     [FormerlySerializedAs("kegareManager")]
     [SerializeField]
     PurityController purityController;
@@ -253,7 +250,6 @@ public class YokaiStateController : MonoBehaviour
     void OnDisable()
     {
         ResetPurifyingState();
-        UnregisterPurifyChargeEvents();
         UnregisterMagicCircleEvents();
         UnregisterPurityEvents();
         UnregisterSpiritEvents();
@@ -280,12 +276,6 @@ public class YokaiStateController : MonoBehaviour
         }
     }
 
-    void RegisterPurifyChargeEvents()
-    {
-        if (purifyChargeController != null)
-            purifyChargeController.OnPurifyHoldCompleted += OnPurifyHoldCompleted;
-    }
-
     void RegisterMagicCircleEvents()
     {
         if (magicCircleActivator != null)
@@ -308,12 +298,6 @@ public class YokaiStateController : MonoBehaviour
             spiritController.OnSpiritEmpty -= OnSpiritEmpty;
             spiritController.OnSpiritRecovered -= OnSpiritRecovered;
         }
-    }
-
-    void UnregisterPurifyChargeEvents()
-    {
-        if (purifyChargeController != null)
-            purifyChargeController.OnPurifyHoldCompleted -= OnPurifyHoldCompleted;
     }
 
     void UnregisterMagicCircleEvents()
@@ -534,17 +518,11 @@ public class YokaiStateController : MonoBehaviour
             spiritController = FindObjectOfType<SpiritController>(true);
         }
 
-        if (purifyChargeController == null)
-        {
-            purifyChargeController = FindObjectOfType<PurifyChargeController>(true);
-        }
-
         if (magicCircleActivator == null)
         {
             magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
         }
 
-        RegisterPurifyChargeEvents();
         RegisterMagicCircleEvents();
         RegisterPurityEvents();
         RegisterSpiritEvents();
@@ -823,11 +801,6 @@ public class YokaiStateController : MonoBehaviour
 
         if (isPurifying)
             CompletePurifySuccess("PurifyFallback");
-    }
-
-    public void OnPurifyHoldCompleted()
-    {
-        CompletePurifySuccess("PurifyHold");
     }
 
     void HandleMagicCircleSuccessRequested()

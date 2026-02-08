@@ -134,6 +134,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         BindStateController(ResolveStateController());
         ResolveOptionalDependencies();
+        BindPurifyChargeController(purifyChargeController);
         CachePurityEmptyTargets(CurrentYokaiContext.Current);
         CacheEnergyEmptyTargets(CurrentYokaiContext.Current);
         RefreshDangerEffectOriginalColors();
@@ -155,6 +156,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
         StopBindRetry();
         UnbindMagicCircleActivator();
+        BindPurifyChargeController(null);
         BindStateController(null);
     }
 
@@ -185,6 +187,20 @@ public class YokaiStatePresentationController : MonoBehaviour
         BindMagicCircleToStateController();
     }
 
+    void BindPurifyChargeController(PurifyChargeController controller)
+    {
+        if (purifyChargeController == controller)
+            return;
+
+        if (purifyChargeController != null)
+            purifyChargeController.OnPurifyHoldCompleted -= HandlePurifyHoldCompleted;
+
+        purifyChargeController = controller;
+
+        if (purifyChargeController != null)
+            purifyChargeController.OnPurifyHoldCompleted += HandlePurifyHoldCompleted;
+    }
+
     void StartBindRetryIfNeeded()
     {
         if (stateController != null)
@@ -209,6 +225,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         BindStateController(ResolveStateController());
         ResolveOptionalDependencies();
+        BindPurifyChargeController(purifyChargeController);
         CachePurityEmptyTargets(activeYokai);
         CacheEnergyEmptyTargets(activeYokai);
         RefreshDangerEffectOriginalColors();
@@ -297,6 +314,14 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         ApplyState(newState, force: false);
+    }
+
+    void HandlePurifyHoldCompleted()
+    {
+        if (TryResolveStateController() == null)
+            return;
+
+        stateController.StopPurifyingForSuccess();
     }
 
     public void SyncFromStateController()
@@ -411,7 +436,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ResetPurifyChargeIfNeeded(YokaiState state)
     {
-        if (state == YokaiState.Purifying)
+        if (state != YokaiState.Normal)
             return;
 
         if (purifyChargeController != null)
