@@ -66,13 +66,13 @@ public class MagicCircleActivator : MonoBehaviour
             Hide();
     }
 
-    void Show()
+    private void Show()
     {
         if (magicCircleRoot != null)
             magicCircleRoot.SetActive(true);
     }
 
-    void Hide()
+    private void Hide()
     {
         if (magicCircleRoot != null)
             magicCircleRoot.SetActive(false);
