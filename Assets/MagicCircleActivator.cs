@@ -69,7 +69,14 @@ public class MagicCircleActivator : MonoBehaviour
     private void Show()
     {
         if (magicCircleRoot != null)
+        {
             magicCircleRoot.SetActive(true);
+
+            foreach (var line in magicCircleRoot.GetComponentsInChildren<UnityEngine.UI.Extensions.UILineRenderer>(true))
+            {
+                line.SetAllDirty();
+            }
+        }
     }
 
     private void Hide()
