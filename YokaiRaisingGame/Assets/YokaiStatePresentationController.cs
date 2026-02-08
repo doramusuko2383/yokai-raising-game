@@ -93,7 +93,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool hasWarnedMissingOptionalDependencies;
     static YokaiStatePresentationController instance;
     Coroutine bindRetryRoutine;
-    bool isMagicCircleBound;
     readonly Dictionary<SpriteRenderer, Color> energyEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
     readonly Dictionary<Image, Color> energyEmptyImageColors = new Dictionary<Image, Color>();
     bool isEnergyEmptyVisualsActive;
@@ -184,7 +183,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (stateController != null)
             stateController.OnStateChanged += OnStateChanged;
 
-        BindMagicCircleToStateController();
+        purifyChargeController?.BindStateController(stateController);
     }
 
     void BindPurifyChargeController(PurifyChargeController controller)
@@ -193,6 +192,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             return;
 
         purifyChargeController = controller;
+        purifyChargeController?.BindStateController(stateController);
     }
 
     void StartBindRetryIfNeeded()
@@ -278,28 +278,10 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (magicCircleActivator == null)
             magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
-
-        if (isMagicCircleBound || magicCircleActivator == null)
-            return;
-
-        BindMagicCircleToStateController();
-        isMagicCircleBound = true;
-    }
-
-    void BindMagicCircleToStateController()
-    {
-        if (magicCircleActivator == null || stateController == null)
-            return;
-
-        magicCircleActivator.BindToStateController(stateController);
     }
 
     void UnbindMagicCircleActivator()
     {
-        if (!isMagicCircleBound || magicCircleActivator == null)
-            return;
-
-        isMagicCircleBound = false;
     }
 
     public void OnStateChanged(YokaiState previousState, YokaiState newState)
@@ -307,7 +289,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (TryResolveStateController() == null)
             return;
 
-        ApplyState(newState, force: false);
+        ApplyState(newState, force: false, previousStateOverride: previousState);
     }
 
     public void SyncFromStateController()
@@ -318,14 +300,14 @@ public class YokaiStatePresentationController : MonoBehaviour
         ApplyState(stateController.currentState, force: false);
     }
 
-    public void ApplyState(YokaiState state, bool force = false)
+    public void ApplyState(YokaiState state, bool force = false, YokaiState? previousStateOverride = null)
     {
         if (!AreDependenciesResolved())
             return;
 
         Debug.Log($"[PRESENTATION] ApplyState: {state}");
 
-        YokaiState? previousState = lastAppliedState;
+        YokaiState? previousState = previousStateOverride ?? lastAppliedState;
         bool shouldForceEnter = state == YokaiState.Purifying;
         bool isSameState = previousState.HasValue && previousState.Value == state;
         bool shouldSkipTransition = !force && !shouldForceEnter && isSameState;
@@ -413,21 +395,16 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (state == YokaiState.Purifying)
         {
-            Debug.Log("[PRESENTATION] Sync MagicCircle Hide (Purifying)");
-            if (magicCircleActivator != null)
-                magicCircleActivator.Hide();
-            if (pentagramUI != null)
-                pentagramUI.SetActive(true);
+            Debug.Log("[PRESENTATION] Sync MagicCircle Show (Purifying)");
+            magicCircleActivator?.Show();
+            pentagramUI?.SetActive(true);
             hasPlayedPurifyStartSE = false;
             return;
         }
 
-        // Purifying以外では必ず非表示にする（forceの有無で最終状態が変わらないように統一）
         Debug.Log("[PRESENTATION] Sync MagicCircle Hide (Non-Purifying)");
-        if (magicCircleActivator != null)
-            magicCircleActivator.Hide();
-        if (pentagramUI != null)
-            pentagramUI.SetActive(false);
+        magicCircleActivator?.Hide();
+        pentagramUI?.SetActive(false);
         hasPlayedPurifyStartSE = false; // Purifying解除時にリセット
     }
 
@@ -439,6 +416,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (previousState.Value != YokaiState.Purifying || state != YokaiState.Normal)
             return;
 
+        magicCircleActivator?.Hide();
         purifyChargeController?.ResetCharge();
     }
 
@@ -605,8 +583,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             case YokaiState.Purifying:
                 actionPanel.SetActive(false);
                 purifyHoldButton?.SetActive(true);
-                if (magicCircleActivator != null)
-                    magicCircleActivator.Hide();
                 break;
 
             case YokaiState.EvolutionReady:
