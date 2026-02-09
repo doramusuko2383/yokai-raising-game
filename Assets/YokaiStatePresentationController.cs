@@ -389,7 +389,10 @@ public class YokaiStatePresentationController : MonoBehaviour
             ResetEnergyEmptyVisuals();
 
             if (nextState == YokaiState.Normal)
+            {
                 hasPlayedEnergyEmptyEnter = false;
+                AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
+            }
 
             PlayEnergyEmptyExitEffects();
             return;
@@ -401,9 +404,15 @@ public class YokaiStatePresentationController : MonoBehaviour
             ResetPurityEmptyMotion();
 
             if (nextState == YokaiState.Normal)
+            {
                 hasPlayedPurityEmptyEnter = false;
+                AudioHook.RequestPlay(YokaiSE.SE_PURITY_EMPTY_RELEASE);
+            }
             return;
         }
+
+        if (state == YokaiState.Purifying)
+            hasPlayedPurifyStartSE = false;
     }
 
     void SyncMagicCircleForState(YokaiState state)
