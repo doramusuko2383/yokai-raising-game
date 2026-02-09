@@ -1,5 +1,6 @@
 using UnityEngine;
 using Yokai;
+using System.Collections;
 public class PurifyChargeController : MonoBehaviour
 {
     [Header("Charge Settings")]
@@ -7,11 +8,16 @@ public class PurifyChargeController : MonoBehaviour
     [SerializeField] YokaiStateController stateController;
     [SerializeField] private UIPentagramDrawer uiPentagramDrawer;
     [SerializeField] private PentagramDrawer linePentagramDrawer;
+    [SerializeField] private RectTransform pentagramRoot;
     [SerializeField] private YokaiSE chargeSE = YokaiSE.SE_PURIFY_CHARGE;
 
     private bool isCharging = false;
     private bool hasSucceeded = false;
     private float currentCharge = 0f;
+    private float currentVisualProgress = 0f;
+    private Vector3 basePentagramScale = Vector3.one;
+    private Coroutine reverseEraseRoutine;
+    private Coroutine finishEffectRoutine;
 
     public void BindStateController(YokaiStateController controller)
     {
@@ -20,11 +26,12 @@ public class PurifyChargeController : MonoBehaviour
 
     private void Awake()
     {
-
+        CachePentagramRoot();
     }
 
     private void OnEnable()
     {
+        CachePentagramRoot();
         stateController =
             CurrentYokaiContext.ResolveStateController()
             ?? FindObjectOfType<YokaiStateController>(true);
@@ -63,6 +70,18 @@ public class PurifyChargeController : MonoBehaviour
             isCharging = false;
         }
 
+        if (reverseEraseRoutine != null)
+        {
+            StopCoroutine(reverseEraseRoutine);
+            reverseEraseRoutine = null;
+        }
+
+        if (finishEffectRoutine != null)
+        {
+            StopCoroutine(finishEffectRoutine);
+            finishEffectRoutine = null;
+        }
+
         ResetVisual();
 
         if (isCharging)
@@ -88,7 +107,7 @@ public class PurifyChargeController : MonoBehaviour
 
         isCharging = false;
         currentCharge = 0f;
-        ResetVisual();
+        StartReverseErase();
     }
 
     private void Update()
@@ -127,8 +146,7 @@ public class PurifyChargeController : MonoBehaviour
         sc.StopPurifyingForSuccess();
         Debug.Log($"[PURIFY HOLD] StopPurifyingForSuccess called sc={(sc != null)}");
         UpdateVisual(1f);
-        ResetVisual();
-        ResetCharge();
+        StartFinishEffect();
     }
 
     /// <summary>
@@ -145,20 +163,104 @@ public class PurifyChargeController : MonoBehaviour
 
     void UpdateVisual(float progress)
     {
+        currentVisualProgress = Mathf.Clamp01(progress);
         if (uiPentagramDrawer != null)
-            uiPentagramDrawer.SetProgress(progress);
+            uiPentagramDrawer.SetProgress(currentVisualProgress);
 
         if (linePentagramDrawer != null)
-            linePentagramDrawer.SetProgress(progress);
+            linePentagramDrawer.SetProgress(currentVisualProgress);
     }
 
     void ResetVisual()
     {
+        currentVisualProgress = 0f;
         if (uiPentagramDrawer != null)
             uiPentagramDrawer.SetProgress(0f);
 
         if (linePentagramDrawer != null)
             linePentagramDrawer.SetProgress(0f);
+
+        if (pentagramRoot != null)
+            pentagramRoot.localScale = basePentagramScale;
+    }
+
+    void CachePentagramRoot()
+    {
+        if (pentagramRoot == null && uiPentagramDrawer != null)
+            pentagramRoot = uiPentagramDrawer.transform.parent as RectTransform;
+
+        if (pentagramRoot != null)
+            basePentagramScale = pentagramRoot.localScale;
+    }
+
+    void StartReverseErase()
+    {
+        if (finishEffectRoutine != null)
+        {
+            StopCoroutine(finishEffectRoutine);
+            finishEffectRoutine = null;
+        }
+
+        if (reverseEraseRoutine != null)
+            StopCoroutine(reverseEraseRoutine);
+
+        reverseEraseRoutine = StartCoroutine(ReverseErase());
+    }
+
+    void StartFinishEffect()
+    {
+        if (reverseEraseRoutine != null)
+        {
+            StopCoroutine(reverseEraseRoutine);
+            reverseEraseRoutine = null;
+        }
+
+        if (finishEffectRoutine != null)
+            StopCoroutine(finishEffectRoutine);
+
+        finishEffectRoutine = StartCoroutine(FinishEffect());
+    }
+
+    IEnumerator ReverseErase()
+    {
+        float start = currentVisualProgress;
+        float t = 0f;
+        float duration = 0.3f;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float p = Mathf.Lerp(start, 0f, t / duration);
+            UpdateVisual(p);
+            yield return null;
+        }
+
+        UpdateVisual(0f);
+        reverseEraseRoutine = null;
+    }
+
+    IEnumerator FinishEffect()
+    {
+        if (pentagramRoot != null)
+            pentagramRoot.localScale = basePentagramScale * 1.05f;
+
+        yield return new WaitForSeconds(0.3f);
+
+        float t = 0f;
+        float duration = 0.4f;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float scale = Mathf.Lerp(1.05f, 0f, t / duration);
+            if (pentagramRoot != null)
+                pentagramRoot.localScale = basePentagramScale * scale;
+            yield return null;
+        }
+
+        ResetVisual();
+        ResetCharge();
+        finishEffectRoutine = null;
     }
 
 }
