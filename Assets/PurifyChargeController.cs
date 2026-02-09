@@ -55,10 +55,14 @@ public class PurifyChargeController : MonoBehaviour
         if (ResolveStateController() == null)
             return;
 
-        ResetVisual();
-
         if (hasSucceeded)
-            return;
+        {
+            hasSucceeded = false;
+            currentCharge = 0f;
+            isCharging = false;
+        }
+
+        ResetVisual();
 
         if (isCharging)
             return;
@@ -75,9 +79,6 @@ public class PurifyChargeController : MonoBehaviour
     public void CancelCharging()
     {
         if (!isCharging)
-            return;
-
-        if (hasSucceeded)
             return;
 
         Debug.Log("[PURIFY HOLD] CancelCharging");
@@ -123,6 +124,7 @@ public class PurifyChargeController : MonoBehaviour
         Debug.Log($"[PURIFY HOLD] StopPurifyingForSuccess called sc={(sc != null)}");
         UpdateVisual(1f);
         ResetVisual();
+        ResetCharge();
     }
 
     /// <summary>
