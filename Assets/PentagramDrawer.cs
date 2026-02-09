@@ -15,8 +15,13 @@ public class PentagramDrawer : MonoBehaviour
     [SerializeField]
     float flashIntensity = 2f;
 
+    static readonly Color GlowGold = new Color(1.0f, 0.84f, 0.0f, 1.0f);
+    const float SizeMultiplier = 2.0f;
+    const float ThicknessMultiplier = 3.0f;
+
     Vector3[] cachedStarts;
     Vector3[] cachedEnds;
+    float[] cachedWidths;
     float currentProgress;
     bool isCached;
 
@@ -39,6 +44,7 @@ public class PentagramDrawer : MonoBehaviour
 
         cachedStarts = new Vector3[lines.Length];
         cachedEnds = new Vector3[lines.Length];
+        cachedWidths = new float[lines.Length];
 
         for (int i = 0; i < lines.Length; i++)
         {
@@ -51,6 +57,7 @@ public class PentagramDrawer : MonoBehaviour
 
             cachedStarts[i] = line.GetPosition(0);
             cachedEnds[i] = line.GetPosition(1);
+            cachedWidths[i] = line.widthMultiplier;
         }
 
         isCached = true;
@@ -63,6 +70,8 @@ public class PentagramDrawer : MonoBehaviour
 
         if (!isCached)
             CacheLinePositions();
+
+        EnsureLineSettings();
 
         currentProgress = Mathf.Clamp01(progress);
         float segmentProgress = currentProgress * lines.Length;
@@ -89,10 +98,12 @@ public class PentagramDrawer : MonoBehaviour
         Vector3 end = cachedEnds != null && cachedEnds.Length > index
             ? cachedEnds[index]
             : line.GetPosition(1);
-        Vector3 current = Vector3.Lerp(start, end, t);
+        Vector3 scaledStart = start * SizeMultiplier;
+        Vector3 scaledEnd = end * SizeMultiplier;
+        Vector3 current = Vector3.Lerp(scaledStart, scaledEnd, t);
 
         line.positionCount = 2;
-        line.SetPosition(0, start);
+        line.SetPosition(0, scaledStart);
         line.SetPosition(1, current);
         line.enabled = t > 0f;
     }
@@ -176,6 +187,8 @@ public class PentagramDrawer : MonoBehaviour
         if (!isCached)
             CacheLinePositions();
 
+        EnsureLineSettings();
+
         for (int i = 0; i < lines.Length; i++)
         {
             var line = lines[i];
@@ -185,10 +198,37 @@ public class PentagramDrawer : MonoBehaviour
             Vector3 start = cachedStarts != null && cachedStarts.Length > i
                 ? cachedStarts[i]
                 : line.GetPosition(0);
+            Vector3 scaledStart = start * SizeMultiplier;
             line.positionCount = 2;
-            line.SetPosition(0, start);
-            line.SetPosition(1, start);
+            line.SetPosition(0, scaledStart);
+            line.SetPosition(1, scaledStart);
             line.enabled = false;
+        }
+    }
+
+    void EnsureLineSettings()
+    {
+        if (lines == null)
+            return;
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i];
+            if (line == null)
+                continue;
+
+            float baseWidth = cachedWidths != null && cachedWidths.Length > i && cachedWidths[i] > 0f
+                ? cachedWidths[i]
+                : line.widthMultiplier;
+            line.widthMultiplier = baseWidth * ThicknessMultiplier;
+            line.startColor = GlowGold;
+            line.endColor = GlowGold;
+
+            if (line.material != null && line.material.HasProperty("_EmissionColor"))
+            {
+                line.material.EnableKeyword("_EMISSION");
+                line.material.SetColor("_EmissionColor", GlowGold);
+            }
         }
     }
 }

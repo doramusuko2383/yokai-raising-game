@@ -85,6 +85,7 @@ public static class SEHub
                     priority = SEPriority.Low
                 };
             case YokaiSE.SE_PURIFY_START:
+            case YokaiSE.SE_PURIFY_CHARGE:
             case YokaiSE.SE_PURIFY_SUCCESS:
             case YokaiSE.SE_PURIFY_CANCEL:
                 return new SEPlaybackPolicy
