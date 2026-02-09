@@ -93,7 +93,7 @@ public class UIPentagramDrawer : MonoBehaviour
                 if (line == null)
                     continue;
 
-                baseThickness[i] = line.lineThickness;
+                baseThickness[i] = line.LineThickness;
             }
         }
 
@@ -105,8 +105,8 @@ public class UIPentagramDrawer : MonoBehaviour
 
             float thickness = baseThickness.Length > i && baseThickness[i] > 0f
                 ? baseThickness[i]
-                : line.lineThickness;
-            line.lineThickness = thickness * ThicknessMultiplier;
+                : line.LineThickness;
+            line.LineThickness = thickness * ThicknessMultiplier;
             line.color = GlowGold;
 
             if (line.material != null && line.material.HasProperty("_EmissionColor"))
