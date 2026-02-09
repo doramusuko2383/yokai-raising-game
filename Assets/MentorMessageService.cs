@@ -16,6 +16,9 @@ public class MentorMessageService : MonoBehaviour
     float messageCooldownSeconds = 15f;
 
     [SerializeField]
+    float repeatableCooldownSeconds = 0.3f;
+
+    [SerializeField]
     float defaultDuration = 4f;
 
     MentorMessageUI messageUI;
@@ -158,9 +161,22 @@ public class MentorMessageService : MonoBehaviour
     bool CanShowMessage(OnmyojiHintType type)
     {
         float now = Time.unscaledTime;
+        float cooldown = messageCooldownSeconds;
+        switch (type)
+        {
+            case OnmyojiHintType.OkIYomeGuide:
+            case OnmyojiHintType.OkIYomeSuccess:
+            case OnmyojiHintType.EnergyZero:
+            case OnmyojiHintType.EnergyRecovered:
+            case OnmyojiHintType.PurityEmpty:
+            case OnmyojiHintType.PurityRecovered:
+                cooldown = repeatableCooldownSeconds;
+                break;
+        }
+
         if (lastShownTimes.TryGetValue(type, out float lastTime))
         {
-            if (now - lastTime < messageCooldownSeconds)
+            if (now - lastTime < cooldown)
                 return false;
         }
 

@@ -1007,6 +1007,9 @@ public class YokaiStatePresentationController : MonoBehaviour
                 AudioHook.RequestPlay(YokaiSE.SE_PURIFY_START);
                 hasPlayedPurifyStartSE = true;
             }
+
+            if (stateController != null)
+                stateController.ConsumePurifyTrigger();
         }
 
         if (newState == YokaiState.EvolutionReady && previousState != YokaiState.EvolutionReady)
@@ -1028,6 +1031,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void HandlePurifySucceeded()
     {
+        MentorMessageService.ShowHint(OnmyojiHintType.OkIYomeSuccess);
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
     }
 

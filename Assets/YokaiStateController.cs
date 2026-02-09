@@ -409,6 +409,11 @@ public class YokaiStateController : MonoBehaviour
         EvaluateState(reason: reason, forcePresentation: false);
     }
 
+    public void ConsumePurifyTrigger()
+    {
+        IsPurifyTriggeredByUser = false;
+    }
+
     public void StopPurifying()
     {
         CancelPurifying("StopPurify");
