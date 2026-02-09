@@ -7,10 +7,12 @@ public class PurifyChargeController : MonoBehaviour
     [SerializeField] YokaiStateController stateController;
     [SerializeField] private UIPentagramDrawer uiPentagramDrawer;
     [SerializeField] private PentagramDrawer linePentagramDrawer;
+    [SerializeField] private YokaiSE chargeSE = YokaiSE.SE_PURIFY_CHARGE;
 
     private bool isCharging = false;
     private bool hasSucceeded = false;
     private float currentCharge = 0f;
+    private bool isChargeSEPlaying = false;
 
     public void BindStateController(YokaiStateController controller)
     {
@@ -71,6 +73,12 @@ public class PurifyChargeController : MonoBehaviour
 
         isCharging = true;
         currentCharge = 0f;
+
+        if (!isChargeSEPlaying)
+        {
+            AudioHook.RequestPlay(chargeSE, loop: true);
+            isChargeSEPlaying = true;
+        }
     }
 
     /// <summary>
@@ -86,6 +94,7 @@ public class PurifyChargeController : MonoBehaviour
         isCharging = false;
         currentCharge = 0f;
         ResetVisual();
+        StopChargeSE();
     }
 
     private void Update()
@@ -116,6 +125,8 @@ public class PurifyChargeController : MonoBehaviour
         isCharging = false;
 
         Debug.Log("[PURIFY HOLD] Complete");
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
+        StopChargeSE();
         var sc = ResolveStateController();
         if (sc == null)
             return;
@@ -155,6 +166,15 @@ public class PurifyChargeController : MonoBehaviour
 
         if (linePentagramDrawer != null)
             linePentagramDrawer.SetProgress(0f);
+    }
+
+    void StopChargeSE()
+    {
+        if (!isChargeSEPlaying)
+            return;
+
+        AudioHook.RequestStop(chargeSE);
+        isChargeSEPlaying = false;
     }
 
 }
