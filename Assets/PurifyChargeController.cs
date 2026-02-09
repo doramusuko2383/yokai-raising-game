@@ -241,24 +241,27 @@ public class PurifyChargeController : MonoBehaviour
 
     IEnumerator FinishEffect()
     {
-        if (pentagramRoot != null)
-            pentagramRoot.localScale = basePentagramScale * 1.05f;
-
-        yield return new WaitForSeconds(0.3f);
+        UpdateVisual(1f);
+        yield return new WaitForSeconds(0.5f);
 
         float t = 0f;
-        float duration = 0.4f;
-
+        float duration = 0.25f;
         while (t < duration)
         {
             t += Time.deltaTime;
-            float scale = Mathf.Lerp(1.05f, 0f, t / duration);
+            float scale = Mathf.Lerp(1.0f, 1.08f, t / duration);
             if (pentagramRoot != null)
                 pentagramRoot.localScale = basePentagramScale * scale;
             yield return null;
         }
 
-        ResetVisual();
+        if (pentagramRoot != null)
+            pentagramRoot.localScale = basePentagramScale;
+
+        StartReverseErase();
+
+        yield return new WaitForSeconds(0.3f);
+
         ResetCharge();
         finishEffectRoutine = null;
     }
