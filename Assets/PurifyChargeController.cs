@@ -55,6 +55,8 @@ public class PurifyChargeController : MonoBehaviour
         if (ResolveStateController() == null)
             return;
 
+        ResetVisual();
+
         if (hasSucceeded)
             return;
 
@@ -82,6 +84,7 @@ public class PurifyChargeController : MonoBehaviour
 
         isCharging = false;
         currentCharge = 0f;
+        ResetVisual();
     }
 
     private void Update()
@@ -119,6 +122,7 @@ public class PurifyChargeController : MonoBehaviour
         sc.StopPurifyingForSuccess();
         Debug.Log($"[PURIFY HOLD] StopPurifyingForSuccess called sc={(sc != null)}");
         UpdateVisual(1f);
+        ResetVisual();
     }
 
     /// <summary>
@@ -140,6 +144,15 @@ public class PurifyChargeController : MonoBehaviour
 
         if (linePentagramDrawer != null)
             linePentagramDrawer.SetProgress(progress);
+    }
+
+    void ResetVisual()
+    {
+        if (uiPentagramDrawer != null)
+            uiPentagramDrawer.SetProgress(0f);
+
+        if (linePentagramDrawer != null)
+            linePentagramDrawer.SetProgress(0f);
     }
 
 }
