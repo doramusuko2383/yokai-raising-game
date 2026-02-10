@@ -4,6 +4,8 @@ using Yokai;
 using System.Collections;
 public class PurifyChargeController : MonoBehaviour
 {
+    const float VisibleProgressEpsilon = 0.001f;
+
     [Header("Charge Settings")]
     [SerializeField] private float chargeDuration = 2.0f;
     [SerializeField] YokaiStateController stateController;
@@ -90,6 +92,8 @@ public class PurifyChargeController : MonoBehaviour
     /// </summary>
     public void StartCharging()
     {
+        ResetVisual();
+
         if (ResolveStateController() == null)
             return;
 
@@ -112,7 +116,6 @@ public class PurifyChargeController : MonoBehaviour
             finishEffectRoutine = null;
         }
 
-        ResetVisual();
         SetPentagramVisible(true);
 
         if (isCharging)
@@ -274,8 +277,14 @@ public class PurifyChargeController : MonoBehaviour
 
     void SetPentagramVisible(bool visible)
     {
-        if (pentagramUI != null)
-            pentagramUI.SetActive(visible);
+        if (visible)
+        {
+            float visibleProgress = Mathf.Max(currentVisualProgress, VisibleProgressEpsilon);
+            UpdateVisual(visibleProgress);
+            return;
+        }
+
+        UpdateVisual(0f);
     }
 
     void StartReverseErase()
