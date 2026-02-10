@@ -43,6 +43,9 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     float dangoAmount = 30f;
 
+    [SerializeField]
+    float minimumRecoverValue = 10f;
+
     bool evolutionResultPending;
     YokaiEvolutionStage evolutionResultStage;
     const float EvolutionReadyScale = 2.0f;
@@ -704,11 +707,19 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.PurityEmpty)
             return;
 
+        Debug.Log("[EMERGENCY] EmergencyPurify requested");
+
         isPurifying = false;
         IsPurifyTriggeredByUser = false;
 
         if (purityController != null)
-            purityController.RecoverPurityByRatio(0.5f);
+        {
+            float recoveredPurity = Mathf.Max(purityController.purity, minimumRecoverValue);
+            purityController.SetPurity(recoveredPurity, reason ?? "EmergencyPurify");
+        }
+
+        SetState(YokaiState.Normal, "EmergencyPurify");
+        RequestEvaluateState("EmergencyPurify");
     }
 
     void ResetPurifyingState()
@@ -780,12 +791,25 @@ public class YokaiStateController : MonoBehaviour
 
     void HandlePurifyRequested()
     {
-        TryDo(YokaiAction.PurifyStart, "UI:PurifyClick");
+        HandlePurifyRequested(YokaiAction.PurifyStart);
     }
 
     void HandleEmergencyPurifyRequested()
     {
-        TryDo(YokaiAction.EmergencyPurifyAd, "EmergencyPurify");
+        HandlePurifyRequested(YokaiAction.EmergencyPurifyAd);
+    }
+
+    void HandlePurifyRequested(YokaiAction action)
+    {
+        switch (action)
+        {
+            case YokaiAction.EmergencyPurifyAd:
+                TryDo(YokaiAction.EmergencyPurifyAd, "EmergencyPurify");
+                return;
+            default:
+                TryDo(YokaiAction.PurifyStart, "UI:PurifyClick");
+                return;
+        }
     }
 
     void HandleStopPurifyRequested()
