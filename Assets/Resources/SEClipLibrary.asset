@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiClick: {fileID: 8300000, guid: a5304ea261a9a1449934308230158ad5, type: 3}
   purifyStart: {fileID: 8300000, guid: fdb610981c20d434d819e9d89cdd083f, type: 3}
+  purifyCharge: {fileID: 8300000, guid: 1003d963edd76fa4da51e4abbf548472, type: 3}
   purifySuccess: {fileID: 8300000, guid: b5b6b73cfe07f18478131c6bf7733b02, type: 3}
   evolutionStart: {fileID: 8300000, guid: 548c3b33720d8ef4088d99e108c7cc17, type: 3}
   purityEmptyEnter: {fileID: 8300000, guid: e1773e348ff9c0b40af6e132be563c26, type: 3}
