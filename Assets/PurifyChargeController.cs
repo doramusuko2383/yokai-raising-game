@@ -91,7 +91,11 @@ public class PurifyChargeController : MonoBehaviour
     /// </summary>
     public void StartCharging()
     {
-        if (ResolveStateController() == null)
+        var sc = ResolveStateController();
+        if (sc == null)
+            return;
+
+        if (sc.CurrentState != YokaiState.Purifying)
             return;
 
         if (hasSucceeded)
@@ -173,13 +177,6 @@ public class PurifyChargeController : MonoBehaviour
 
         Debug.Log("[PURIFY HOLD] Complete");
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
-
-        var sc = ResolveStateController();
-        if (sc != null)
-        {
-            sc.StopPurifyingForSuccess();
-            Debug.Log("[PURIFY HOLD] StopPurifyingForSuccess called");
-        }
 
         UpdateVisual(1f);
         StartFinishEffect();
@@ -339,6 +336,14 @@ public class PurifyChargeController : MonoBehaviour
 
         ResetVisual();
         StartReverseErase();
+
+        var sc = ResolveStateController();
+        if (sc != null)
+        {
+            sc.StopPurifyingForSuccess();
+            Debug.Log("[PURIFY HOLD] StopPurifyingForSuccess called");
+        }
+
         hasSucceeded = false;
         finishEffectRoutine = null;
     }
