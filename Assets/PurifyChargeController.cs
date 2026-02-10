@@ -49,7 +49,6 @@ public class PurifyChargeController : MonoBehaviour
     {
         CachePentagramRoot();
         EnsureIndependentEffectCanvas();
-        SetPentagramVisible(false);
     }
 
     private void OnEnable()
@@ -271,19 +270,10 @@ public class PurifyChargeController : MonoBehaviour
             scaler.matchWidthOrHeight = 0.5f;
         }
 
-        Transform targetParent = effectCanvas.transform;
-        if (pentagramRoot != null)
-            pentagramRoot.SetParent(targetParent, worldPositionStays: true);
-
-        if (pentagramUI != null)
-            pentagramUI.transform.SetParent(targetParent, worldPositionStays: true);
     }
 
     void SetPentagramVisible(bool visible)
     {
-        if (pentagramRoot != null)
-            pentagramRoot.gameObject.SetActive(visible);
-
         if (pentagramUI != null)
             pentagramUI.SetActive(visible);
     }
