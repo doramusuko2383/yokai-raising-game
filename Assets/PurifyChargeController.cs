@@ -102,6 +102,9 @@ public class PurifyChargeController : MonoBehaviour
     /// </summary>
     public void CancelCharging()
     {
+        if (hasSucceeded)
+            return;
+
         if (!isCharging)
             return;
 
