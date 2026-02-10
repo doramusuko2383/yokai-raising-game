@@ -4,7 +4,6 @@ using Yokai;
 using System.Collections;
 public class PurifyChargeController : MonoBehaviour
 {
-    const float VisibleProgressEpsilon = 0.001f;
 
     [Header("Charge Settings")]
     [SerializeField] private float chargeDuration = 2.0f;
@@ -92,8 +91,6 @@ public class PurifyChargeController : MonoBehaviour
     /// </summary>
     public void StartCharging()
     {
-        ResetVisual();
-
         if (ResolveStateController() == null)
             return;
 
@@ -115,8 +112,6 @@ public class PurifyChargeController : MonoBehaviour
             StopCoroutine(finishEffectRoutine);
             finishEffectRoutine = null;
         }
-
-        SetPentagramVisible(true);
 
         if (isCharging)
             return;
@@ -142,6 +137,7 @@ public class PurifyChargeController : MonoBehaviour
 
         Debug.Log("[PURIFY HOLD] CancelCharging");
 
+        ResetVisual();
         isCharging = false;
         currentCharge = 0f;
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_CANCEL);
@@ -275,18 +271,6 @@ public class PurifyChargeController : MonoBehaviour
 
     }
 
-    void SetPentagramVisible(bool visible)
-    {
-        if (visible)
-        {
-            float visibleProgress = Mathf.Max(currentVisualProgress, VisibleProgressEpsilon);
-            UpdateVisual(visibleProgress);
-            return;
-        }
-
-        UpdateVisual(0f);
-    }
-
     void StartReverseErase()
     {
         if (finishEffectRoutine != null)
@@ -298,7 +282,7 @@ public class PurifyChargeController : MonoBehaviour
         if (reverseEraseRoutine != null)
             StopCoroutine(reverseEraseRoutine);
 
-        reverseEraseRoutine = StartCoroutine(ReverseErase(hideAfter: true));
+        reverseEraseRoutine = StartCoroutine(ReverseErase());
     }
 
     void StartFinishEffect()
@@ -315,7 +299,7 @@ public class PurifyChargeController : MonoBehaviour
         finishEffectRoutine = StartCoroutine(FinishEffect());
     }
 
-    IEnumerator ReverseErase(bool hideAfter)
+    IEnumerator ReverseErase()
     {
         float start = currentVisualProgress;
         float t = 0f;
@@ -330,8 +314,6 @@ public class PurifyChargeController : MonoBehaviour
         }
 
         UpdateVisual(0f);
-        if (hideAfter)
-            SetPentagramVisible(false);
 
         reverseEraseRoutine = null;
     }
@@ -355,6 +337,7 @@ public class PurifyChargeController : MonoBehaviour
         if (pentagramRoot != null)
             pentagramRoot.localScale = basePentagramScale;
 
+        ResetVisual();
         StartReverseErase();
         hasSucceeded = false;
         finishEffectRoutine = null;
