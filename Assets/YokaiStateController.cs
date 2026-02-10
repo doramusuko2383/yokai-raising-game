@@ -178,6 +178,10 @@ public class YokaiStateController : MonoBehaviour
                 // おきよめ中のキャンセル
                 return state == YokaiState.Purifying;
 
+            case YokaiAction.PurifyHold:
+                // おきよめ長押しはおきよめ中のみ
+                return state == YokaiState.Purifying;
+
             case YokaiAction.EatDango:
                 // [State Rule] State のみで決まるルール
                 // 通常だんご（通常状態のみ）
@@ -213,6 +217,10 @@ public class YokaiStateController : MonoBehaviour
             case YokaiAction.PurifyCancel:
                 // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
                 // おきよめ中のキャンセル
+                return currentState == YokaiState.Purifying && isPurifying;
+
+            case YokaiAction.PurifyHold:
+                // [Action Condition] おきよめ長押しはおきよめ中のみ
                 return currentState == YokaiState.Purifying && isPurifying;
 
             case YokaiAction.EmergencyPurifyAd:
