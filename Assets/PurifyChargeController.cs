@@ -13,7 +13,6 @@ public class PurifyChargeController : MonoBehaviour
 
     private bool isCharging = false;
     private bool hasSucceeded = false;
-    private bool successApplied = false;
     private float currentCharge = 0f;
     private float currentVisualProgress = 0f;
     private Vector3 basePentagramScale = Vector3.one;
@@ -69,7 +68,6 @@ public class PurifyChargeController : MonoBehaviour
             hasSucceeded = false;
             currentCharge = 0f;
             isCharging = false;
-            successApplied = false;
         }
 
         if (reverseEraseRoutine != null)
@@ -140,11 +138,18 @@ public class PurifyChargeController : MonoBehaviour
             return;
 
         hasSucceeded = true;
-        successApplied = false;
         isCharging = false;
 
         Debug.Log("[PURIFY HOLD] Complete");
         AudioHook.RequestPlay(YokaiSE.SE_PURIFY_SUCCESS);
+
+        var sc = ResolveStateController();
+        if (sc != null)
+        {
+            sc.StopPurifyingForSuccess();
+            Debug.Log("[PURIFY HOLD] StopPurifyingForSuccess called");
+        }
+
         UpdateVisual(1f);
         StartFinishEffect();
     }
@@ -156,7 +161,6 @@ public class PurifyChargeController : MonoBehaviour
     {
         isCharging = false;
         hasSucceeded = false;
-        successApplied = false;
         currentCharge = 0f;
 
         Debug.Log("[PURIFY HOLD] ResetCharge");
@@ -260,21 +264,6 @@ public class PurifyChargeController : MonoBehaviour
             pentagramRoot.localScale = basePentagramScale;
 
         StartReverseErase();
-
-        yield return new WaitForSeconds(0.3f);
-
-        if (!successApplied)
-        {
-            successApplied = true;
-            var sc = ResolveStateController();
-            if (sc != null)
-            {
-                sc.StopPurifyingForSuccess();
-                Debug.Log("[PURIFY HOLD] StopPurifyingForSuccess called");
-            }
-        }
-
-        ResetCharge();
         finishEffectRoutine = null;
     }
 
