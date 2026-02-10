@@ -37,8 +37,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     [SerializeField]
     MagicCircleActivator magicCircleActivator;
 
-    [SerializeField]
-    GameObject pentagramUI;
 
     [SerializeField]
     GameObject dangerOverlay;
@@ -297,17 +295,6 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (TryResolveStateController() == null)
             return;
 
-        if (previousState == YokaiState.Purifying && newState == YokaiState.Normal)
-        {
-            Debug.Log("[PRESENTATION] Purifying finished -> reset visuals");
-
-            if (magicCircleActivator != null)
-                magicCircleActivator.ApplyState(newState);
-
-            if (purifyChargeController != null)
-                purifyChargeController.ResetCharge();
-        }
-
         ApplyState(newState, force: false, previousStateOverride: previousState);
     }
 
@@ -549,9 +536,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (purifyHoldButton != null)
             purifyHoldButton.SetActive(isPurifying);
-
-        if (pentagramUI != null)
-            pentagramUI.SetActive(isPurifying);
 
         if (actionPanel == null)
             return;

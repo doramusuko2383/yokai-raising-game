@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using Yokai;
 using System.Collections;
 public class PurifyChargeController : MonoBehaviour
@@ -9,6 +10,9 @@ public class PurifyChargeController : MonoBehaviour
     [SerializeField] private UIPentagramDrawer uiPentagramDrawer;
     [SerializeField] private PentagramDrawer linePentagramDrawer;
     [SerializeField] private RectTransform pentagramRoot;
+    [SerializeField] private GameObject pentagramUI;
+    [SerializeField] private string effectCanvasName = "PurifyEffectCanvas";
+    [SerializeField] private int effectCanvasSortingOrder = 50;
     [SerializeField] private YokaiSE chargeSE = YokaiSE.SE_PURIFY_CHARGE;
 
     private bool isCharging = false;
@@ -18,26 +22,53 @@ public class PurifyChargeController : MonoBehaviour
     private Vector3 basePentagramScale = Vector3.one;
     private Coroutine reverseEraseRoutine;
     private Coroutine finishEffectRoutine;
+    private Canvas effectCanvas;
+    private YokaiStateController subscribedStateController;
 
     public void BindStateController(YokaiStateController controller)
     {
+        if (subscribedStateController == controller)
+            return;
+
+        if (subscribedStateController != null)
+        {
+            subscribedStateController.OnPurifyCancelled -= HandlePurifyCancelledByState;
+        }
+
+        subscribedStateController = controller;
+
+        if (subscribedStateController != null)
+        {
+            subscribedStateController.OnPurifyCancelled += HandlePurifyCancelledByState;
+        }
+
         stateController = controller;
     }
 
     private void Awake()
     {
         CachePentagramRoot();
+        EnsureIndependentEffectCanvas();
+        SetPentagramVisible(false);
     }
 
     private void OnEnable()
     {
         CachePentagramRoot();
+        EnsureIndependentEffectCanvas();
         stateController =
             CurrentYokaiContext.ResolveStateController()
             ?? FindObjectOfType<YokaiStateController>(true);
 
+        BindStateController(stateController);
+
         if (stateController == null)
             Debug.LogError("[PURIFY HOLD] StateController could not be resolved.");
+    }
+
+    private void OnDisable()
+    {
+        BindStateController(null);
     }
 
     YokaiStateController ResolveStateController()
@@ -83,6 +114,7 @@ public class PurifyChargeController : MonoBehaviour
         }
 
         ResetVisual();
+        SetPentagramVisible(true);
 
         if (isCharging)
             return;
@@ -110,6 +142,7 @@ public class PurifyChargeController : MonoBehaviour
 
         isCharging = false;
         currentCharge = 0f;
+        AudioHook.RequestPlay(YokaiSE.SE_PURIFY_CANCEL);
         StartReverseErase();
     }
 
@@ -164,6 +197,14 @@ public class PurifyChargeController : MonoBehaviour
         currentCharge = 0f;
 
         Debug.Log("[PURIFY HOLD] ResetCharge");
+
+        if (finishEffectRoutine != null)
+        {
+            StopCoroutine(finishEffectRoutine);
+            finishEffectRoutine = null;
+        }
+
+        StartReverseErase();
     }
 
     void UpdateVisual(float progress)
@@ -194,8 +235,57 @@ public class PurifyChargeController : MonoBehaviour
         if (pentagramRoot == null && uiPentagramDrawer != null)
             pentagramRoot = uiPentagramDrawer.transform.parent as RectTransform;
 
+        if (pentagramUI == null && uiPentagramDrawer != null)
+            pentagramUI = uiPentagramDrawer.transform.root.gameObject;
+
         if (pentagramRoot != null)
             basePentagramScale = pentagramRoot.localScale;
+    }
+
+    void EnsureIndependentEffectCanvas()
+    {
+        if (effectCanvas == null)
+        {
+            var existing = GameObject.Find(effectCanvasName);
+            if (existing != null)
+                effectCanvas = existing.GetComponent<Canvas>();
+        }
+
+        if (effectCanvas == null)
+        {
+            var canvasObject = new GameObject(
+                effectCanvasName,
+                typeof(RectTransform),
+                typeof(Canvas),
+                typeof(CanvasScaler),
+                typeof(GraphicRaycaster));
+
+            effectCanvas = canvasObject.GetComponent<Canvas>();
+            effectCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            effectCanvas.overrideSorting = true;
+            effectCanvas.sortingOrder = effectCanvasSortingOrder;
+
+            var scaler = canvasObject.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080f, 1920f);
+            scaler.matchWidthOrHeight = 0.5f;
+        }
+
+        Transform targetParent = effectCanvas.transform;
+        if (pentagramRoot != null)
+            pentagramRoot.SetParent(targetParent, worldPositionStays: true);
+
+        if (pentagramUI != null)
+            pentagramUI.transform.SetParent(targetParent, worldPositionStays: true);
+    }
+
+    void SetPentagramVisible(bool visible)
+    {
+        if (pentagramRoot != null)
+            pentagramRoot.gameObject.SetActive(visible);
+
+        if (pentagramUI != null)
+            pentagramUI.SetActive(visible);
     }
 
     void StartReverseErase()
@@ -209,7 +299,7 @@ public class PurifyChargeController : MonoBehaviour
         if (reverseEraseRoutine != null)
             StopCoroutine(reverseEraseRoutine);
 
-        reverseEraseRoutine = StartCoroutine(ReverseErase());
+        reverseEraseRoutine = StartCoroutine(ReverseErase(hideAfter: true));
     }
 
     void StartFinishEffect()
@@ -226,7 +316,7 @@ public class PurifyChargeController : MonoBehaviour
         finishEffectRoutine = StartCoroutine(FinishEffect());
     }
 
-    IEnumerator ReverseErase()
+    IEnumerator ReverseErase(bool hideAfter)
     {
         float start = currentVisualProgress;
         float t = 0f;
@@ -241,6 +331,9 @@ public class PurifyChargeController : MonoBehaviour
         }
 
         UpdateVisual(0f);
+        if (hideAfter)
+            SetPentagramVisible(false);
+
         reverseEraseRoutine = null;
     }
 
@@ -264,7 +357,16 @@ public class PurifyChargeController : MonoBehaviour
             pentagramRoot.localScale = basePentagramScale;
 
         StartReverseErase();
+        hasSucceeded = false;
         finishEffectRoutine = null;
+    }
+
+    void HandlePurifyCancelledByState()
+    {
+        if (hasSucceeded)
+            return;
+
+        ResetCharge();
     }
 
 }
