@@ -38,6 +38,9 @@ public class YokaiStatePresentationController : MonoBehaviour
     MagicCircleActivator magicCircleActivator;
 
     [SerializeField]
+    PentagramInputCatcher pentagramInputCatcher;
+
+    [SerializeField]
     GameObject pentagramUI;
 
     [SerializeField]
@@ -319,6 +322,7 @@ public class YokaiStatePresentationController : MonoBehaviour
             HandleStateEnter(state, previousState);
 
         SyncMagicCircleForState(state);
+        ApplyPentagramInputForState(state);
         ApplyDangerEffectsForState(state);
 
         // UI updates are centralized here
@@ -1018,6 +1022,9 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (magicCircleActivator == null)
             magicCircleActivator = FindObjectOfType<MagicCircleActivator>(true);
 
+        if (pentagramInputCatcher == null)
+            pentagramInputCatcher = FindObjectOfType<PentagramInputCatcher>(true);
+
         if (purifyChargeController == null)
             purifyChargeController = FindObjectOfType<PurifyChargeController>(true);
 
@@ -1040,6 +1047,14 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (dangerEffects == null || dangerEffects.Length == 0)
             dangerEffects = FindObjectsOfType<YokaiDangerEffect>(true);
+    }
+
+    void ApplyPentagramInputForState(YokaiState state)
+    {
+        if (pentagramInputCatcher == null)
+            return;
+
+        pentagramInputCatcher.enabled = state != YokaiState.PurityEmpty;
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
