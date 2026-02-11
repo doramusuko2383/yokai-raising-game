@@ -54,7 +54,6 @@ public class YokaiStateController : MonoBehaviour
     bool hasWarnedMissingPurifyControllers;
     bool hasWarnedMissingMagicCircle;
     Coroutine purifyFallbackRoutine;
-    PurifyButtonHandler purifyButtonHandler;
     string lastStateChangeReason;
     string lastPurityRecoveredReason;
     int lastPurityRecoveredFrame = -1;
@@ -129,6 +128,14 @@ public class YokaiStateController : MonoBehaviour
                     CancelPurifying(reason);
                 break;
 
+            case YokaiAction.PurifyHoldStart:
+                BeginPurifying(reason ?? "PurifyHoldStart");
+                break;
+
+            case YokaiAction.PurifyHoldCancel:
+                CancelPurifying(reason ?? "PurifyHoldCancel");
+                break;
+
             case YokaiAction.EmergencyPurifyAd:
                 ExecuteEmergencyPurify(reason ?? "EmergencyPurify");
                 break;
@@ -182,6 +189,8 @@ public class YokaiStateController : MonoBehaviour
                 return state == YokaiState.Purifying;
 
             case YokaiAction.PurifyHold:
+            case YokaiAction.PurifyHoldStart:
+            case YokaiAction.PurifyHoldCancel:
                 // おきよめ長押しはおきよめ中のみ
                 return state == YokaiState.Purifying;
 
@@ -223,6 +232,8 @@ public class YokaiStateController : MonoBehaviour
                 return currentState == YokaiState.Purifying && isPurifying;
 
             case YokaiAction.PurifyHold:
+            case YokaiAction.PurifyHoldStart:
+            case YokaiAction.PurifyHoldCancel:
                 // [Action Condition] おきよめ長押しはおきよめ中のみ
                 return currentState == YokaiState.Purifying && isPurifying;
 
@@ -241,7 +252,6 @@ public class YokaiStateController : MonoBehaviour
         CurrentYokaiContext.RegisterStateController(this);
         CurrentYokaiContext.OnCurrentYokaiConfirmed += HandleCurrentYokaiConfirmed;
         isReady = false;
-        BindPurifyButtonHandler(ResolvePurifyButtonHandler());
     }
 
     void Awake()
@@ -262,7 +272,6 @@ public class YokaiStateController : MonoBehaviour
         ResetPurifyingState();
         UnregisterPurityEvents();
         UnregisterSpiritEvents();
-        BindPurifyButtonHandler(null);
 
         CurrentYokaiContext.OnCurrentYokaiConfirmed -= HandleCurrentYokaiConfirmed;
         CurrentYokaiContext.UnregisterStateController(this);
@@ -757,64 +766,6 @@ public class YokaiStateController : MonoBehaviour
             return presentationController;
 
         return YokaiStatePresentationController.Instance;
-    }
-
-    void BindPurifyButtonHandler(PurifyButtonHandler handler)
-    {
-        if (purifyButtonHandler == handler)
-            return;
-
-        if (purifyButtonHandler != null)
-        {
-            purifyButtonHandler.PurifyRequested -= HandlePurifyRequested;
-            purifyButtonHandler.EmergencyPurifyRequested -= HandleEmergencyPurifyRequested;
-            purifyButtonHandler.StopPurifyRequested -= HandleStopPurifyRequested;
-        }
-
-        purifyButtonHandler = handler;
-
-        if (purifyButtonHandler != null)
-        {
-            purifyButtonHandler.PurifyRequested += HandlePurifyRequested;
-            purifyButtonHandler.EmergencyPurifyRequested += HandleEmergencyPurifyRequested;
-            purifyButtonHandler.StopPurifyRequested += HandleStopPurifyRequested;
-        }
-    }
-
-    PurifyButtonHandler ResolvePurifyButtonHandler()
-    {
-        if (purifyButtonHandler != null)
-            return purifyButtonHandler;
-
-        return FindObjectOfType<PurifyButtonHandler>(true);
-    }
-
-    void HandlePurifyRequested()
-    {
-        HandlePurifyRequested(YokaiAction.PurifyStart);
-    }
-
-    void HandleEmergencyPurifyRequested()
-    {
-        HandlePurifyRequested(YokaiAction.EmergencyPurifyAd);
-    }
-
-    void HandlePurifyRequested(YokaiAction action)
-    {
-        switch (action)
-        {
-            case YokaiAction.EmergencyPurifyAd:
-                TryDo(YokaiAction.EmergencyPurifyAd, "EmergencyPurify");
-                return;
-            default:
-                TryDo(YokaiAction.PurifyStart, "UI:PurifyClick");
-                return;
-        }
-    }
-
-    void HandleStopPurifyRequested()
-    {
-        TryDo(YokaiAction.PurifyCancel, "UI:StopPurify");
     }
 
     void ForceSyncPresentation(YokaiState state)

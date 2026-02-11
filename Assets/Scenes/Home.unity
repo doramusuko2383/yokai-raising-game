@@ -3010,43 +3010,19 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 2094418308}
     - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: OnClickPurify
-      objectReference: {fileID: 0}
-    - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
-      value: BeginPurifying
       objectReference: {fileID: 0}
     - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: PurifyButtonHandler, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
-      value: Yokai.YokaiStateController, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
-      objectReference: {fileID: 0}
-    - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}

@@ -2,6 +2,8 @@ public enum YokaiAction
 {
     PurifyStart,
     PurifyCancel,
+    PurifyHoldStart,
+    PurifyHoldCancel,
     PurifyHold,
 
     EatDango,
