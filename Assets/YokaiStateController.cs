@@ -110,11 +110,19 @@ public class YokaiStateController : MonoBehaviour
 
     void ExecuteActionInternal(YokaiAction action, string reason)
     {
+        if (!HandleStateTransition(action, reason))
+            return;
+
+        ApplySideEffects(action, reason);
+    }
+
+    bool HandleStateTransition(YokaiAction action, string reason)
+    {
         switch (action)
         {
             case YokaiAction.Purify:
                 Debug.Log("[LEGACY] Purify action disabled");
-                return;
+                return false;
 
             case YokaiAction.PurifyStart:
                 if (reason == null)
@@ -133,16 +141,11 @@ public class YokaiStateController : MonoBehaviour
                 break;
 
             case YokaiAction.PurifyHoldStart:
-                // Begin charge phase
-                isPurifyCharging = true;
-                HasUserInteracted = true;
                 break;
 
             case YokaiAction.PurifyHoldCancel:
-                // Cancel entire purify if user releases mid-charge
                 if (isPurifying)
                     CancelPurifying(reason ?? "HoldReleasedEarly");
-                isPurifyCharging = false;
                 break;
 
             case YokaiAction.EmergencyPurifyAd:
@@ -154,15 +157,40 @@ public class YokaiStateController : MonoBehaviour
                 break;
 
             case YokaiAction.EmergencySpiritRecover:
+                break;
+
+            case YokaiAction.EatDango:
+                break;
+            default:
+                Debug.LogError($"Unhandled YokaiAction in ExecuteAction: {action}");
+                break;
+        }
+
+        return true;
+    }
+
+    void ApplySideEffects(YokaiAction action, string reason)
+    {
+        switch (action)
+        {
+            case YokaiAction.PurifyHoldStart:
+                // Begin charge phase
+                isPurifyCharging = true;
+                HasUserInteracted = true;
+                break;
+
+            case YokaiAction.PurifyHoldCancel:
+                // Cancel entire purify if user releases mid-charge
+                isPurifyCharging = false;
+                break;
+
+            case YokaiAction.EmergencySpiritRecover:
                 Debug.Log("[YokaiStateController] ExecuteAction EmergencySpiritRecover reached");
                 RecoverSpirit();
                 break;
 
             case YokaiAction.EatDango:
                 RecoverSpirit();
-                break;
-            default:
-                Debug.LogError($"Unhandled YokaiAction in ExecuteAction: {action}");
                 break;
         }
     }
