@@ -133,13 +133,15 @@ public class YokaiStateController : MonoBehaviour
                 break;
 
             case YokaiAction.PurifyHoldStart:
+                // Begin charge phase
                 isPurifyCharging = true;
                 HasUserInteracted = true;
                 break;
 
             case YokaiAction.PurifyHoldCancel:
-                // if user releases before completion -> cancel entire purify
-                CancelPurifying(reason ?? "HoldReleasedEarly");
+                // Cancel entire purify if user releases mid-charge
+                if (isPurifying)
+                    CancelPurifying(reason ?? "HoldReleasedEarly");
                 isPurifyCharging = false;
                 break;
 
@@ -196,9 +198,11 @@ public class YokaiStateController : MonoBehaviour
                 return state == YokaiState.Purifying;
 
             case YokaiAction.PurifyHold:
+                // おきよめ長押しはおきよめ中のみ
+                return state == YokaiState.Purifying;
+
             case YokaiAction.PurifyHoldStart:
             case YokaiAction.PurifyHoldCancel:
-                // おきよめ長押しはおきよめ中のみ
                 return state == YokaiState.Purifying;
 
             case YokaiAction.EatDango:
@@ -239,10 +243,14 @@ public class YokaiStateController : MonoBehaviour
                 return currentState == YokaiState.Purifying && isPurifying;
 
             case YokaiAction.PurifyHold:
-            case YokaiAction.PurifyHoldStart:
-            case YokaiAction.PurifyHoldCancel:
                 // [Action Condition] おきよめ長押しはおきよめ中のみ
                 return currentState == YokaiState.Purifying && isPurifying;
+
+            case YokaiAction.PurifyHoldStart:
+                return currentState == YokaiState.Purifying && isPurifying && !isPurifyCharging;
+
+            case YokaiAction.PurifyHoldCancel:
+                return currentState == YokaiState.Purifying && isPurifying && isPurifyCharging;
 
             case YokaiAction.EmergencyPurifyAd:
                 // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
