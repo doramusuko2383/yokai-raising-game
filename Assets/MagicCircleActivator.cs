@@ -78,29 +78,12 @@ public class MagicCircleActivator : MonoBehaviour
 
     public void ApplyState(YokaiState state)
     {
-        if (state == YokaiState.Purifying)
-            Show();
-        else
-            Hide();
-    }
-
-    private void Show()
-    {
-        if (canvasGroup == null)
+        if (magicCircleRoot == null || canvasGroup == null)
             return;
 
-        canvasGroup.alpha = 1f;
-        canvasGroup.blocksRaycasts = true;
-        canvasGroup.interactable = true;
-    }
-
-    private void Hide()
-    {
-        if (canvasGroup == null)
-            return;
-
-        canvasGroup.alpha = 0f;
-        canvasGroup.blocksRaycasts = false;
-        canvasGroup.interactable = false;
+        bool show = state == YokaiState.Purifying;
+        canvasGroup.alpha = show ? 1f : 0f;
+        canvasGroup.interactable = show;
+        canvasGroup.blocksRaycasts = show;
     }
 }

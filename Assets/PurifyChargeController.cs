@@ -28,7 +28,6 @@ public class PurifyChargeController : MonoBehaviour
     private Coroutine finishEffectRoutine;
     private Canvas effectCanvas;
     private YokaiStateController subscribedStateController;
-    private bool isStateBound = false;
 
     public void BindStateController(YokaiStateController controller)
     {
@@ -38,6 +37,7 @@ public class PurifyChargeController : MonoBehaviour
         if (subscribedStateController != null)
         {
             subscribedStateController.OnPurifyCancelled -= HandlePurifyCancelledByState;
+            subscribedStateController.OnStateChanged -= HandleStateChanged;
         }
 
         subscribedStateController = controller;
@@ -45,6 +45,8 @@ public class PurifyChargeController : MonoBehaviour
         if (subscribedStateController != null)
         {
             subscribedStateController.OnPurifyCancelled += HandlePurifyCancelledByState;
+            subscribedStateController.OnStateChanged += HandleStateChanged;
+            UpdatePentagramInteractivity(subscribedStateController.CurrentState);
         }
 
         stateController = controller;
@@ -72,10 +74,6 @@ public class PurifyChargeController : MonoBehaviour
 
     private void OnDisable()
     {
-        if (isStateBound && stateController != null)
-            stateController.OnStateChanged -= HandleStateChanged;
-        isStateBound = false;
-
         BindStateController(null);
     }
 
@@ -94,24 +92,10 @@ public class PurifyChargeController : MonoBehaviour
         return stateController;
     }
 
-    /// <summary>
-    /// 五芒星の PointerDown から呼ばれる
-    /// </summary>
-    public void StartCharging()
+    void BeginChargingVisual()
     {
-        var sc = ResolveStateController();
-        if (sc == null)
+        if (hasSucceeded || isCharging)
             return;
-
-        if (sc.CurrentState != YokaiState.Purifying)
-            return;
-
-        if (hasSucceeded)
-        {
-            hasSucceeded = false;
-            currentCharge = 0f;
-            isCharging = false;
-        }
 
         if (reverseEraseRoutine != null)
         {
@@ -125,26 +109,16 @@ public class PurifyChargeController : MonoBehaviour
             finishEffectRoutine = null;
         }
 
-        if (isCharging)
-            return;
-
         Debug.Log("[PURIFY HOLD] StartCharging CALLED");
 
         isCharging = true;
         currentCharge = 0f;
-
         AudioHook.RequestPlay(chargeSE);
     }
 
-    /// <summary>
-    /// PointerUp / Exit から呼ばれる
-    /// </summary>
-    public void CancelCharging()
+    void CancelChargingVisual()
     {
-        if (hasSucceeded)
-            return;
-
-        if (!isCharging)
+        if (hasSucceeded || !isCharging)
             return;
 
         Debug.Log("[PURIFY HOLD] CancelCharging");
@@ -156,23 +130,61 @@ public class PurifyChargeController : MonoBehaviour
         StartReverseErase();
     }
 
+
+    // Backward-compatible entry points (if wired in existing scenes)
+    public void StartCharging()
+    {
+        var sc = ResolveStateController();
+        if (sc == null)
+            return;
+
+        sc.TryDo(YokaiAction.PurifyHoldStart, "LegacyChargeStart");
+    }
+
+    public void CancelCharging()
+    {
+        var sc = ResolveStateController();
+        if (sc == null)
+            return;
+
+        sc.TryDo(YokaiAction.PurifyHoldCancel, "LegacyChargeCancel");
+    }
+
     private void Update()
     {
+        var sc = ResolveStateController();
+        if (sc == null)
+            return;
+
+        if (sc.CurrentState != YokaiState.Purifying)
+        {
+            if (isCharging)
+                CancelChargingVisual();
+            return;
+        }
+
+        if (!sc.IsPurifyCharging)
+        {
+            if (isCharging && !hasSucceeded)
+            {
+                CancelChargingVisual();
+                sc.TryDo(YokaiAction.PurifyHoldCancel, "ChargeReleased");
+            }
+            return;
+        }
+
+        if (!isCharging)
+            BeginChargingVisual();
+
         if (!isCharging || hasSucceeded)
             return;
 
-        Debug.Log("[PURIFY HOLD] Update tick");
-
         currentCharge += Time.deltaTime;
         float progress = currentCharge / chargeDuration;
-
-        Debug.Log($"[PURIFY HOLD] Progress={progress:F2}");
         UpdateVisual(progress);
 
         if (currentCharge >= chargeDuration)
-        {
             Complete();
-        }
     }
 
     private void Complete()
@@ -266,7 +278,7 @@ public class PurifyChargeController : MonoBehaviour
         UpdatePentagramInteractivity(next);
     }
 
-void CachePentagramRoot()
+    void CachePentagramRoot()
     {
         if (pentagramRoot == null && uiPentagramDrawer != null)
             pentagramRoot = uiPentagramDrawer.transform.parent as RectTransform;
@@ -381,8 +393,8 @@ void CachePentagramRoot()
         var sc = ResolveStateController();
         if (sc != null)
         {
-            sc.StopPurifyingForSuccess();
-            Debug.Log("[PURIFY HOLD] StopPurifyingForSuccess called");
+            sc.TryDo(YokaiAction.PurifyCancel, "ChargeComplete");
+            Debug.Log("[PURIFY HOLD] Purify complete action requested");
         }
 
         hasSucceeded = false;

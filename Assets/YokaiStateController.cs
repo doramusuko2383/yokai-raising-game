@@ -124,7 +124,9 @@ public class YokaiStateController : MonoBehaviour
                 break;
 
             case YokaiAction.PurifyCancel:
-                if (reason == null)
+                if (reason == "ChargeComplete")
+                    StopPurifyingForSuccess();
+                else if (reason == null)
                     CancelPurifying();
                 else
                     CancelPurifying(reason);
@@ -136,6 +138,8 @@ public class YokaiStateController : MonoBehaviour
                 break;
 
             case YokaiAction.PurifyHoldCancel:
+                // if user releases before completion -> cancel entire purify
+                CancelPurifying(reason ?? "HoldReleasedEarly");
                 isPurifyCharging = false;
                 break;
 
