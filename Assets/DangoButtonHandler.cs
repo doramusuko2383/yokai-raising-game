@@ -8,6 +8,9 @@ public class DangoButtonHandler : MonoBehaviour
     [SerializeField]
     YokaiStateController stateController;
 
+    [SerializeField]
+    UIActionController actionController;
+
     [FormerlySerializedAs("energyManager")]
     [SerializeField]
     SpiritController spiritController;
@@ -39,26 +42,13 @@ public class DangoButtonHandler : MonoBehaviour
         ResolveDependencies(logIfMissingOnce: true);
         TryPlayDangoSE();
 
-        if (stateController == null)
+        if (actionController == null)
         {
-            WarnMissingStateController();
+            Debug.LogWarning("[DANGO] UIActionController not set in Inspector");
             return;
         }
 
-        if (!stateController.CanDo(YokaiAction.EatDango))
-        {
-            return;
-        }
-
-        stateController.NotifyUserInteraction();
-
-        if (spiritController == null)
-        {
-            WarnMissingSpiritController();
-            return;
-        }
-
-        stateController.TryDo(YokaiAction.EatDango, "UI:Dango");
+        actionController.Execute(YokaiAction.EatDango);
     }
 
     public void RefreshUI()

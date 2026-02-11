@@ -1,6 +1,21 @@
 using UnityEngine;
+using Yokai;
 
 public class UIActionController : MonoBehaviour
 {
-    // 一時的に全停止（build安定化のため）
+    [SerializeField]
+    private YokaiStateController stateController;
+
+    public void Execute(YokaiAction action)
+    {
+        Debug.Log($"[UIAction] Execute {action}");
+
+        if (stateController == null)
+        {
+            Debug.LogError("StateController not assigned.");
+            return;
+        }
+
+        stateController.TryDo(action, "UIActionController");
+    }
 }
