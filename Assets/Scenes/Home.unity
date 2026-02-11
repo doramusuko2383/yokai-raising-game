@@ -518,6 +518,7 @@ RectTransform:
   - {fileID: 817104849}
   - {fileID: 1288041694}
   - {fileID: 2100000001}
+  - {fileID: 754336212}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -997,6 +998,55 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &754336211
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 754336212}
+  - component: {fileID: 754336213}
+  m_Layer: 5
+  m_Name: UIActionController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &754336212
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 754336211}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 543276398}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &754336213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 754336211}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72a4f0356807424a825be4bd5ffb300a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stateController: {fileID: 1786705811}
 --- !u!1 &775327144
 GameObject:
   m_ObjectHideFlags: 0
@@ -2720,6 +2770,10 @@ PrefabInstance:
       propertyPath: stateController
       value: 
       objectReference: {fileID: 1786705811}
+    - target: {fileID: 9021745638291456789, guid: 366e9576cd92a104e916717384432116, type: 3}
+      propertyPath: actionController
+      value: 
+      objectReference: {fileID: 754336213}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2843,6 +2897,10 @@ PrefabInstance:
       propertyPath: stateController
       value: 
       objectReference: {fileID: 1786705811}
+    - target: {fileID: 6123456789012345678, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
+      propertyPath: actionController
+      value: 
+      objectReference: {fileID: 754336213}
     - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -2977,6 +3035,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1786705811}
     - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: actionController
+      value: 
+      objectReference: {fileID: 754336213}
+    - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: spiritController
       value: 
       objectReference: {fileID: 515532832}
@@ -3028,6 +3090,10 @@ PrefabInstance:
       propertyPath: stateController
       value: 
       objectReference: {fileID: 1786705811}
+    - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: actionController
+      value: 
+      objectReference: {fileID: 754336213}
     - target: {fileID: 7365530418425751317, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: purityController
       value: 
