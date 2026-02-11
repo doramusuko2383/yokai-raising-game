@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Serialization;
 using Yokai;
 
 public class DangoButtonHandler : MonoBehaviour
@@ -11,9 +10,6 @@ public class DangoButtonHandler : MonoBehaviour
     [SerializeField]
     UIActionController actionController;
 
-    [FormerlySerializedAs("energyManager")]
-    [SerializeField]
-    SpiritController spiritController;
 
     [SerializeField]
     float dangoAmount = 30f;
@@ -25,7 +21,6 @@ public class DangoButtonHandler : MonoBehaviour
     [SerializeField]
     Button dangoButton;
     bool hasWarnedMissingStateController;
-    bool hasWarnedMissingSpiritController;
     bool hasWarnedMissingAudioHook;
     bool hasWarnedMissingAudioClip;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -44,7 +39,7 @@ public class DangoButtonHandler : MonoBehaviour
 
         if (actionController == null)
         {
-            Debug.LogWarning("[DANGO] UIActionController not set in Inspector");
+            Debug.LogWarning("[DangoButtonHandler] UIActionController not set in Inspector.");
             return;
         }
 
@@ -80,9 +75,6 @@ public class DangoButtonHandler : MonoBehaviour
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>(true);
 
-        if (spiritController == null)
-            spiritController = FindObjectOfType<SpiritController>(true);
-
         bool hasAudioHook = EnsureAudioResolver(logIfMissingOnce);
 
         if (logIfMissingOnce)
@@ -90,8 +82,6 @@ public class DangoButtonHandler : MonoBehaviour
             if (stateController == null)
                 WarnMissingStateController();
 
-            if (spiritController == null)
-                WarnMissingSpiritController();
 
             if (!hasAudioHook)
                 WarnMissingAudioHook();
@@ -111,14 +101,6 @@ public class DangoButtonHandler : MonoBehaviour
         hasWarnedMissingStateController = true;
     }
 
-    void WarnMissingSpiritController()
-    {
-        if (hasWarnedMissingSpiritController)
-            return;
-
-        Debug.LogWarning("[SPIRIT] SpiritController が見つからないためだんごが使えません。");
-        hasWarnedMissingSpiritController = true;
-    }
 
     bool EnsureAudioResolver(bool logIfMissingOnce)
     {
@@ -180,8 +162,7 @@ public class DangoButtonHandler : MonoBehaviour
 
         string audioStatus = hasAudioHook ? "OK" : "Missing";
         string stateStatus = stateController != null ? "OK" : "Missing";
-        string spiritStatus = spiritController != null ? "OK" : "Missing";
-        Debug.Log($"[DANGO] deps: audioHook={audioStatus}, stateController={stateStatus}, spiritController={spiritStatus}");
+        Debug.Log($"[DANGO] deps: audioHook={audioStatus}, stateController={stateStatus}");
         hasLoggedDependencyResolution = true;
     }
 #endif

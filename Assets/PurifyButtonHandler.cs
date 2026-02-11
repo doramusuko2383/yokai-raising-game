@@ -4,32 +4,38 @@ using Yokai;
 public class PurifyButtonHandler : MonoBehaviour
 {
     [SerializeField]
-    YokaiStateController stateController;
-
-    void OnEnable()
-    {
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>(true);
-    }
+    UIActionController actionController;
 
     public void OnClickPurify()
     {
-        var controller = stateController ?? FindObjectOfType<YokaiStateController>(true);
-        if (controller != null)
-            controller.TryDo(YokaiAction.PurifyStart, "UI_PurifyButton");
+        if (actionController == null)
+        {
+            Debug.LogWarning("[PurifyButtonHandler] UIActionController not set in Inspector.");
+            return;
+        }
+
+        actionController.Execute(YokaiAction.PurifyStart);
     }
 
     public void OnClickEmergencyPurify()
     {
-        var controller = stateController ?? FindObjectOfType<YokaiStateController>(true);
-        if (controller != null)
-            controller.TryDo(YokaiAction.EmergencyPurifyAd, "UI_EmergencyButton");
+        if (actionController == null)
+        {
+            Debug.LogWarning("[PurifyButtonHandler] UIActionController not set in Inspector.");
+            return;
+        }
+
+        actionController.Execute(YokaiAction.EmergencyPurifyAd);
     }
 
     public void OnClickStopPurify()
     {
-        var controller = stateController ?? FindObjectOfType<YokaiStateController>(true);
-        if (controller != null)
-            controller.TryDo(YokaiAction.PurifyCancel, "UI_StopPurify");
+        if (actionController == null)
+        {
+            Debug.LogWarning("[PurifyButtonHandler] UIActionController not set in Inspector.");
+            return;
+        }
+
+        actionController.Execute(YokaiAction.PurifyCancel);
     }
 }
