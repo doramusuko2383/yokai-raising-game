@@ -30,6 +30,6 @@ public class PurifyButtonHandler : MonoBehaviour
     {
         var controller = stateController ?? FindObjectOfType<YokaiStateController>(true);
         if (controller != null)
-            controller.TryDo(YokaiAction.PurifyStop, "UI_StopPurify");
+            controller.TryDo(YokaiAction.PurifyCancel, "UI_StopPurify");
     }
 }
