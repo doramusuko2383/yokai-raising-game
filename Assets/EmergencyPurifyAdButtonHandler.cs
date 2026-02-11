@@ -4,12 +4,16 @@ using Yokai;
 public class EmergencyPurifyAdButtonHandler : MonoBehaviour
 {
     [SerializeField]
-    YokaiStateController stateController;
+    UIActionController actionController;
 
     public void OnClickEmergencyPurifyAd()
     {
-        var controller = stateController ?? FindObjectOfType<YokaiStateController>(true);
-        if (controller != null)
-            controller.TryDo(YokaiAction.EmergencyPurifyAd, "UI_EmergencyAd");
+        if (actionController == null)
+        {
+            Debug.LogWarning("[EmergencyPurifyAdButtonHandler] UIActionController not set in Inspector.");
+            return;
+        }
+
+        actionController.Execute(YokaiAction.EmergencyPurifyAd);
     }
 }

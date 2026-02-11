@@ -4,48 +4,16 @@ using Yokai;
 public class EnergyRecoverAdButtonHandler : MonoBehaviour
 {
     [SerializeField]
-    YokaiStateController stateController;
-    bool hasWarnedMissingStateController;
-
-    public void BindStateController(YokaiStateController controller)
-    {
-        if (controller == null)
-            return;
-
-        stateController = controller;
-    }
+    UIActionController actionController;
 
     public void OnClickEnergyRecoverAd()
     {
-        if (ResolveStateController() == null)
+        if (actionController == null)
         {
-            WarnMissingStateController();
+            Debug.LogWarning("[EnergyRecoverAdButtonHandler] UIActionController not set in Inspector.");
             return;
         }
 
-        if (!stateController.CanDo(YokaiAction.EmergencySpiritRecover))
-            return;
-
-        stateController.NotifyUserInteraction();
-        stateController.TryDo(YokaiAction.EmergencySpiritRecover, "UI:EmergencySpiritRecover");
+        actionController.Execute(YokaiAction.EmergencySpiritRecover);
     }
-
-    YokaiStateController ResolveStateController()
-    {
-        if (stateController != null)
-            return stateController;
-
-        stateController = FindObjectOfType<YokaiStateController>(true);
-        return stateController;
-    }
-
-    void WarnMissingStateController()
-    {
-        if (hasWarnedMissingStateController)
-            return;
-
-        Debug.LogWarning("[RECOVERY] StateController not set in Inspector");
-        hasWarnedMissingStateController = true;
-    }
-
 }

@@ -12,7 +12,7 @@ public class UIActionController : MonoBehaviour
 
         if (stateController == null)
         {
-            Debug.LogError("StateController not assigned.");
+            Debug.LogError("[UIActionController] StateController not assigned.");
             return;
         }
 

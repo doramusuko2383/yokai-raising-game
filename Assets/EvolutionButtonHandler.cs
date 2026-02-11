@@ -5,6 +5,9 @@ using Yokai;
 public class EvolutionButtonHandler : MonoBehaviour
 {
     [SerializeField]
+    UIActionController actionController;
+
+    [SerializeField]
     YokaiStateController stateController;
 
     [SerializeField]
@@ -30,11 +33,13 @@ public class EvolutionButtonHandler : MonoBehaviour
 
     public void OnClick()
     {
-        var controller = ResolveStateController();
-        if (controller == null)
+        if (actionController == null)
+        {
+            Debug.LogWarning("[EvolutionButtonHandler] UIActionController not set in Inspector.");
             return;
+        }
 
-        controller.TryDo(YokaiAction.StartEvolution, "UI:Evolution");
+        actionController.Execute(YokaiAction.StartEvolution);
     }
 
     public void RefreshUI()
