@@ -769,6 +769,7 @@ MonoBehaviour:
   purityEmptyJitterAmplitude: 0.015
   recoverAdButton: {fileID: 1451458901}
   legacyPurityRecoverAdButton: {fileID: 1855358516}
+  autoWireEmergencyPurifyButton: 1
 --- !u!1 &667190786 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8349528510299463072, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
@@ -1663,7 +1664,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 984f94c9715ce884ebe6418840ab6797, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chargeController: {fileID: 233153452}
   stateController: {fileID: 1786705811}
 --- !u!225 &1295331847
 CanvasGroup:
@@ -2165,7 +2165,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 984f94c9715ce884ebe6418840ab6797, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chargeController: {fileID: 233153452}
   stateController: {fileID: 1786705811}
 --- !u!1 &1905322486
 GameObject:
