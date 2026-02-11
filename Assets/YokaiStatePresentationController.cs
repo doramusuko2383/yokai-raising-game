@@ -254,6 +254,70 @@ public class YokaiStatePresentationController : MonoBehaviour
         return stateController;
     }
 
+    // ---- Input routing guard ----
+    [Header("Emergency Purify Wiring")]
+    [SerializeField] bool autoWireEmergencyPurifyButton = true;
+
+    Button cachedEmergencyButton;
+    void OnEmergencyPurifyClicked()
+    {
+        var sc = ResolveStateController();
+        if (sc == null)
+            return;
+
+        Debug.Log("[RECOVERY] PurityRecoverAd clicked (runtime wired)");
+        sc.ExecuteEmergencyPurify("PurityRecoverAd");
+    }
+
+    void EnsureEmergencyPurifyButtonWired(GameObject buttonGO)
+    {
+        if (!autoWireEmergencyPurifyButton || buttonGO == null)
+            return;
+
+        var btn = buttonGO.GetComponent<UnityEngine.UI.Button>();
+        if (btn == null)
+            return;
+
+        if (cachedEmergencyButton != btn)
+        {
+            // 別インスタンスに切り替わった時も確実に貼り直す
+            if (cachedEmergencyButton != null)
+                cachedEmergencyButton.onClick.RemoveListener(OnEmergencyPurifyClicked);
+
+            cachedEmergencyButton = btn;
+            cachedEmergencyButton.onClick.RemoveListener(OnEmergencyPurifyClicked);
+            cachedEmergencyButton.onClick.AddListener(OnEmergencyPurifyClicked);
+
+            Debug.Log("[RECOVERY] EmergencyPurify button wired at runtime");
+        }
+    }
+
+    void SetPentagramInputEnabled(bool enabled)
+    {
+        if (pentagramInputCatcher == null)
+            return;
+
+        // Pentagram 側が Raycast を奪って緊急おはらいボタンが押せなくなる事故を防ぐ
+        pentagramInputCatcher.enabled = enabled;
+
+        var canvas = pentagramInputCatcher.GetComponentInParent<Canvas>(true);
+        if (canvas == null)
+            return;
+
+        // 影響範囲を「Pentagram が乗ってる Canvas 配下」に限定して、強制的に Raycast をON/OFF
+        foreach (var gr in canvas.GetComponentsInChildren<GraphicRaycaster>(true))
+            gr.enabled = enabled;
+
+        foreach (var cg in canvas.GetComponentsInChildren<CanvasGroup>(true))
+        {
+            cg.interactable = enabled;
+            cg.blocksRaycasts = enabled;
+        }
+
+        foreach (var g in canvas.GetComponentsInChildren<UnityEngine.UI.Graphic>(true))
+            g.raycastTarget = enabled;
+    }
+
     IEnumerator CoBindRetry()
     {
         const int maxAttempts = 20;
@@ -587,6 +651,7 @@ public class YokaiStatePresentationController : MonoBehaviour
                         ? purityRecoverAdButton
                         : legacyPurityRecoverAdButton;
                 purityAd?.SetActive(true);
+                EnsureEmergencyPurifyButtonWired(purityAd);
                 break;
 
             case YokaiState.EnergyEmpty:
@@ -1079,10 +1144,9 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     void ApplyPentagramInputForState(YokaiState state)
     {
-        if (pentagramInputCatcher == null)
-            return;
-
-        pentagramInputCatcher.enabled = state == YokaiState.Purifying;
+        // Pentagram は「Purifying（長押しチャージ中）」の時だけ入力を受ける。
+        // それ以外の状態では、他UI（緊急おはらい等）への入力を絶対に奪わない。
+        SetPentagramInputEnabled(state == YokaiState.Purifying);
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

@@ -223,6 +223,7 @@ MonoBehaviour:
   linePentagramDrawer: {fileID: 0}
   pentagramRoot: {fileID: 935124025}
   pentagramUI: {fileID: 1295331842}
+  pentagramCanvasGroup: {fileID: 1295331847}
   effectCanvasName: PurifyEffectCanvas
   effectCanvasSortingOrder: 50
   chargeSE: 2
