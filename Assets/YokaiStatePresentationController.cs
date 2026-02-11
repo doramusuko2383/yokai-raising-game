@@ -296,26 +296,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     {
         if (pentagramInputCatcher == null)
             return;
-
-        // Pentagram 側が Raycast を奪って緊急おはらいボタンが押せなくなる事故を防ぐ
         pentagramInputCatcher.enabled = enabled;
-
-        var canvas = pentagramInputCatcher.GetComponentInParent<Canvas>(true);
-        if (canvas == null)
-            return;
-
-        // 影響範囲を「Pentagram が乗ってる Canvas 配下」に限定して、強制的に Raycast をON/OFF
-        foreach (var gr in canvas.GetComponentsInChildren<GraphicRaycaster>(true))
-            gr.enabled = enabled;
-
-        foreach (var cg in canvas.GetComponentsInChildren<CanvasGroup>(true))
-        {
-            cg.interactable = enabled;
-            cg.blocksRaycasts = enabled;
-        }
-
-        foreach (var g in canvas.GetComponentsInChildren<UnityEngine.UI.Graphic>(true))
-            g.raycastTarget = enabled;
     }
 
     IEnumerator CoBindRetry()
