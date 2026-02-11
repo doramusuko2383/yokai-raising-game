@@ -46,6 +46,11 @@ public class PurifyButtonHandler : MonoBehaviour
         TutorialManager.NotifyPurifyUsed();
     }
 
+    public void OnEmergencyPurifyButtonClicked()
+    {
+        EmergencyPurifyRequested?.Invoke();
+    }
+
     public void OnClickStopPurify()
     {
         if (ResolveStateController() == null)
