@@ -3,78 +3,33 @@ using Yokai;
 
 public class PurifyButtonHandler : MonoBehaviour
 {
+    [SerializeField]
     YokaiStateController stateController;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-    bool hasLoggedAudioResolution;
-#endif
 
     void OnEnable()
     {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        LogAudioResolutionOnce();
-#endif
-    }
-
-    public void BindStateController(YokaiStateController controller)
-    {
-        stateController = controller;
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>(true);
     }
 
     public void OnClickPurify()
     {
-        Debug.Log("[LEGACY] PurifyButtonHandler disabled");
-        return;
+        var controller = stateController ?? FindObjectOfType<YokaiStateController>(true);
+        if (controller != null)
+            controller.TryDo(YokaiAction.PurifyStart, "UI_PurifyButton");
     }
 
     public void OnClickEmergencyPurify()
     {
-        ShowAd(() =>
-        {
-            var resolvedController = ResolveStateController();
-            if (resolvedController == null)
-                return;
-
-            resolvedController.TryDo(YokaiAction.EmergencyPurifyAd, "UI:EmergencyPurify");
-            TutorialManager.NotifyPurifyUsed();
-        });
+        var controller = stateController ?? FindObjectOfType<YokaiStateController>(true);
+        if (controller != null)
+            controller.TryDo(YokaiAction.EmergencyPurifyAd, "UI_EmergencyButton");
     }
 
     public void OnClickStopPurify()
     {
-        var controller = ResolveStateController();
-        if (controller == null)
-            return;
-
-        controller.TryDo(YokaiAction.PurifyCancel, "UI:StopPurify");
+        var controller = stateController ?? FindObjectOfType<YokaiStateController>(true);
+        if (controller != null)
+            controller.TryDo(YokaiAction.PurifyStop, "UI_StopPurify");
     }
-
-    void ShowAd(System.Action onCompleted)
-    {
-        onCompleted?.Invoke();
-    }
-
-    YokaiStateController ResolveStateController()
-    {
-        stateController =
-            CurrentYokaiContext.ResolveStateController()
-            ?? stateController
-            ?? FindObjectOfType<YokaiStateController>(true);
-
-        if (stateController == null)
-            Debug.LogError("[PURIFY] StateController could not be resolved.");
-
-        return stateController;
-    }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-    void LogAudioResolutionOnce()
-    {
-        if (hasLoggedAudioResolution)
-            return;
-
-        bool hasResolver = AudioHook.ClipResolver != null;
-        Debug.Log($"[SE] Purify AudioHook resolver ready: {hasResolver}");
-        hasLoggedAudioResolution = true;
-    }
-#endif
 }
