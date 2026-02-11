@@ -17,6 +17,7 @@ public class YokaiStateController : MonoBehaviour
     bool isSpiritEmpty;
     bool isPurityEmpty;
     bool isEvolving;
+    bool isPurifyCharging;
     bool isPurifyTriggerReady;
     bool canUseSpecialDango;
     public bool HasUserInteracted { get; private set; } = false;
@@ -74,6 +75,7 @@ public class YokaiStateController : MonoBehaviour
     public bool IsSpiritEmpty => isSpiritEmpty;
     public bool IsPurityEmptyState => isPurityEmpty;
     public bool IsEvolving => isEvolving;
+    public bool IsPurifyCharging => isPurifyCharging;
     public bool IsPurifyTriggerReady => isPurifyTriggerReady;
     public bool CanUseSpecialDango => canUseSpecialDango;
     public SpiritController SpiritController => spiritController;
@@ -129,11 +131,12 @@ public class YokaiStateController : MonoBehaviour
                 break;
 
             case YokaiAction.PurifyHoldStart:
-                BeginPurifying(reason ?? "PurifyHoldStart");
+                isPurifyCharging = true;
+                HasUserInteracted = true;
                 break;
 
             case YokaiAction.PurifyHoldCancel:
-                CancelPurifying(reason ?? "PurifyHoldCancel");
+                isPurifyCharging = false;
                 break;
 
             case YokaiAction.EmergencyPurifyAd:
@@ -423,6 +426,7 @@ public class YokaiStateController : MonoBehaviour
     public void BeginPurifying(string reason = "BeginPurify")
     {
         isPurifying = true;
+        isPurifyCharging = false;
         IsPurifyTriggeredByUser = true;
         HasUserInteracted = false;
         Debug.Log("[PURIFY HOLD] BeginPurifying started (UI will handle charge)");
@@ -449,6 +453,7 @@ public class YokaiStateController : MonoBehaviour
 
         Debug.Log("[PURIFY] StopPurifyingForSuccess -> SetState Normal (PurifySuccess)");
 
+        isPurifyCharging = false;
         NotifyPurifySucceeded();
         EvaluateState(reason: "PurifySuccess", forcePresentation: true);
     }
@@ -458,6 +463,7 @@ public class YokaiStateController : MonoBehaviour
         if (!isPurifying)
             return;
 
+        isPurifyCharging = false;
         NotifyPurifyCancelled();
         EvaluateState(reason: reason, forcePresentation: true);
     }
@@ -693,6 +699,7 @@ public class YokaiStateController : MonoBehaviour
         }
 
         isPurifying = false;
+        isPurifyCharging = false;
         IsPurifyTriggeredByUser = false;
         SyncManagerState();
         OnPurifySucceeded?.Invoke();
@@ -705,6 +712,7 @@ public class YokaiStateController : MonoBehaviour
 
         StopPurifyFallback();
         isPurifying = false;
+        isPurifyCharging = false;
         IsPurifyTriggeredByUser = false;
         SyncManagerState();
         OnPurifyCancelled?.Invoke();
@@ -719,6 +727,7 @@ public class YokaiStateController : MonoBehaviour
         Debug.Log("[EMERGENCY] EmergencyPurify requested");
 
         isPurifying = false;
+        isPurifyCharging = false;
         IsPurifyTriggeredByUser = false;
 
         if (purityController != null)
@@ -734,6 +743,7 @@ public class YokaiStateController : MonoBehaviour
     void ResetPurifyingState()
     {
         isPurifying = false;
+        isPurifyCharging = false;
         IsPurifyTriggeredByUser = false;
         StopPurifyFallback();
     }
