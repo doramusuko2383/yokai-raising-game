@@ -104,11 +104,11 @@ public class YokaiStateController : MonoBehaviour
             return false;
         }
 
-        ExecuteAction(action, reason);
+        ExecuteActionInternal(action, reason);
         return true;
     }
 
-    void ExecuteAction(YokaiAction action, string reason)
+    void ExecuteActionInternal(YokaiAction action, string reason)
     {
         switch (action)
         {
