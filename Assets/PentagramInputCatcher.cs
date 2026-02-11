@@ -18,7 +18,7 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
         if (stateController == null)
             stateController = FindObjectOfType<YokaiStateController>(true);
 
-        return stateController != null && stateController.CanDo(YokaiAction.PurifyHold);
+        return stateController != null && stateController.CanDo(YokaiAction.PurifyHoldStart);
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -26,25 +26,22 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
         if (!CanHandleHold())
             return;
 
-        eventData.Use();
-        stateController.TryDo(YokaiAction.PurifyHoldStart, "PentagramStartHold");
+        stateController.TryDo(YokaiAction.PurifyHoldStart, "HoldStart");
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (!CanHandleHold())
-            return;
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>(true);
 
-        eventData.Use();
-        stateController.TryDo(YokaiAction.PurifyHoldCancel, "PentagramCancelHold");
+        stateController?.TryDo(YokaiAction.PurifyHoldCancel, "HoldCancel");
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (!CanHandleHold())
-            return;
+        if (stateController == null)
+            stateController = FindObjectOfType<YokaiStateController>(true);
 
-        eventData.Use();
-        stateController.TryDo(YokaiAction.PurifyHoldCancel, "PentagramCancelHold");
+        stateController?.TryDo(YokaiAction.PurifyHoldCancel, "HoldCancel");
     }
 }
