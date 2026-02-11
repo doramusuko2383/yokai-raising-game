@@ -16,7 +16,6 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
     public void OnPointerDown(PointerEventData eventData)
     {
         Debug.Log("[INPUT] Pentagram PointerDown HIT");
-        eventData.Use();
 
         if (chargeController == null)
             return;
@@ -27,12 +26,16 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
         if (stateController != null && !stateController.CanDo(YokaiAction.PurifyHold))
             return;
 
+        // Only consume the pointer when we actually intend to start charging.
+        eventData.Use();
         chargeController.StartCharging();
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
         Debug.Log("[INPUT] Pentagram PointerUp HIT");
+        if (chargeController == null || !chargeController.IsCharging)
+            return;
         eventData.Use();
         chargeController.CancelCharging();
     }
@@ -40,6 +43,8 @@ public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointe
     public void OnPointerExit(PointerEventData eventData)
     {
         Debug.Log("[INPUT] Pentagram PointerExit HIT");
+        if (chargeController == null || !chargeController.IsCharging)
+            return;
         eventData.Use();
         chargeController.CancelCharging();
     }

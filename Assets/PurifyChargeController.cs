@@ -12,11 +12,14 @@ public class PurifyChargeController : MonoBehaviour
     [SerializeField] private PentagramDrawer linePentagramDrawer;
     [SerializeField] private RectTransform pentagramRoot;
     [SerializeField] private GameObject pentagramUI;
+    [SerializeField] private CanvasGroup pentagramCanvasGroup;
     [SerializeField] private string effectCanvasName = "PurifyEffectCanvas";
     [SerializeField] private int effectCanvasSortingOrder = 50;
     [SerializeField] private YokaiSE chargeSE = YokaiSE.SE_PURIFY_CHARGE;
 
     private bool isCharging = false;
+    public bool IsCharging => isCharging;
+
     private bool hasSucceeded = false;
     private float currentCharge = 0f;
     private float currentVisualProgress = 0f;
@@ -25,6 +28,7 @@ public class PurifyChargeController : MonoBehaviour
     private Coroutine finishEffectRoutine;
     private Canvas effectCanvas;
     private YokaiStateController subscribedStateController;
+    private bool isStateBound = false;
 
     public void BindStateController(YokaiStateController controller)
     {
@@ -68,6 +72,10 @@ public class PurifyChargeController : MonoBehaviour
 
     private void OnDisable()
     {
+        if (isStateBound && stateController != null)
+            stateController.OnStateChanged -= HandleStateChanged;
+        isStateBound = false;
+
         BindStateController(null);
     }
 
@@ -225,7 +233,40 @@ public class PurifyChargeController : MonoBehaviour
             pentagramRoot.localScale = basePentagramScale;
     }
 
-    void CachePentagramRoot()
+    
+    void CachePentagramCanvasGroup()
+    {
+        if (pentagramCanvasGroup == null && pentagramRoot != null)
+            pentagramCanvasGroup = pentagramRoot.GetComponent<CanvasGroup>();
+    }
+
+    void UpdatePentagramInteractivity(YokaiState state)
+    {
+        CachePentagramCanvasGroup();
+        if (pentagramCanvasGroup == null)
+            return;
+
+        bool active = state == YokaiState.Purifying;
+
+        // When not purifying, never steal clicks from other UI (e.g. Emergency Purify Ad button)
+        pentagramCanvasGroup.blocksRaycasts = active;
+        pentagramCanvasGroup.interactable = active;
+        pentagramCanvasGroup.alpha = active ? 1f : 0f;
+
+        if (!active)
+        {
+            // Safety: if we left purifying state while charging, reset visuals.
+            if (isCharging)
+                ResetCharge();
+        }
+    }
+
+    void HandleStateChanged(YokaiState previous, YokaiState next)
+    {
+        UpdatePentagramInteractivity(next);
+    }
+
+void CachePentagramRoot()
     {
         if (pentagramRoot == null && uiPentagramDrawer != null)
             pentagramRoot = uiPentagramDrawer.transform.parent as RectTransform;

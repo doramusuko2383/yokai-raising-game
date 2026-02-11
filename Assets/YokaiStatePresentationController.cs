@@ -1082,7 +1082,7 @@ public class YokaiStatePresentationController : MonoBehaviour
         if (pentagramInputCatcher == null)
             return;
 
-        pentagramInputCatcher.enabled = state != YokaiState.PurityEmpty;
+        pentagramInputCatcher.enabled = state == YokaiState.Purifying;
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
