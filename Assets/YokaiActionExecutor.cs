@@ -22,21 +22,22 @@ namespace Yokai
                     break;
 
                 case YokaiAction.PurifyStart:
-                    controller.HandlePurifyStart(reason);
+                    controller.PurifyMachine.StartPurify(reason);
                     break;
 
                 case YokaiAction.PurifyCancel:
-                    controller.HandlePurifyCancel(reason);
+                    if (reason == "ChargeComplete")
+                        controller.PurifyMachine.CompleteCharging();
+                    else
+                        controller.PurifyMachine.CancelPurify(reason);
                     break;
 
                 case YokaiAction.PurifyHoldStart:
-                    controller.SetPurifyCharging(true);
-                    controller.MarkUserInteracted();
+                    controller.PurifyMachine.StartCharging();
                     break;
 
                 case YokaiAction.PurifyHoldCancel:
-                    controller.HandlePurifyHoldCancel(reason);
-                    controller.SetPurifyCharging(false);
+                    controller.PurifyMachine.CancelCharging(reason);
                     break;
 
                 case YokaiAction.EmergencySpiritRecover:

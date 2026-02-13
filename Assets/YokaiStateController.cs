@@ -7,6 +7,7 @@ namespace Yokai
 public class YokaiStateController : MonoBehaviour
 {
     private YokaiActionExecutor actionExecutor;
+    private PurifyStateMachine purifyMachine;
 
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
@@ -83,6 +84,7 @@ public class YokaiStateController : MonoBehaviour
     public SpiritController SpiritController => spiritController;
     public PurityController PurityController => purityController;
     public string LastStateChangeReason => lastStateChangeReason;
+    internal PurifyStateMachine PurifyMachine => purifyMachine ??= new PurifyStateMachine(this);
 
     public bool CanDo(YokaiAction action)
     {
@@ -123,31 +125,40 @@ public class YokaiStateController : MonoBehaviour
 
     internal void HandlePurifyStart(string reason)
     {
-        if (reason == null)
-            BeginPurifying();
-        else
-            BeginPurifying(reason);
+        PurifyMachine.StartPurify(reason);
     }
 
     internal void HandlePurifyCancel(string reason)
     {
         if (reason == "ChargeComplete")
-            StopPurifyingForSuccess();
-        else if (reason == null)
-            CancelPurifying();
+            PurifyMachine.CompleteCharging();
         else
-            CancelPurifying(reason);
+            PurifyMachine.CancelPurify(reason);
     }
 
     internal void HandlePurifyHoldCancel(string reason)
     {
-        if (isPurifying)
-            CancelPurifying(reason ?? "HoldReleasedEarly");
+        PurifyMachine.CancelCharging(reason);
+    }
+
+    internal void SetPurifying(bool value)
+    {
+        isPurifying = value;
     }
 
     internal void SetPurifyCharging(bool value)
     {
         isPurifyCharging = value;
+    }
+
+    internal void SetPurifyTriggeredByUser(bool value)
+    {
+        IsPurifyTriggeredByUser = value;
+    }
+
+    internal void SetHasUserInteracted(bool value)
+    {
+        HasUserInteracted = value;
     }
 
     internal void MarkUserInteracted()
@@ -340,6 +351,7 @@ public class YokaiStateController : MonoBehaviour
     void Awake()
     {
         actionExecutor = new YokaiActionExecutor(this);
+        purifyMachine = new PurifyStateMachine(this);
     }
 
     void Start()
@@ -529,12 +541,7 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginPurifying(string reason = "BeginPurify")
     {
-        isPurifying = true;
-        isPurifyCharging = false;
-        IsPurifyTriggeredByUser = true;
-        HasUserInteracted = false;
-        Debug.Log("[PURIFY HOLD] BeginPurifying started (UI will handle charge)");
-        RequestEvaluateState(reason, false);
+        PurifyMachine.StartPurify(reason);
     }
 
     public void ConsumePurifyTrigger()
