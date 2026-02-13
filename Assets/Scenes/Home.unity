@@ -1714,7 +1714,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 984f94c9715ce884ebe6418840ab6797, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stateController: {fileID: 1786705811}
+  actionController: {fileID: 754336213}
 --- !u!225 &1295331847
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -2215,7 +2215,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 984f94c9715ce884ebe6418840ab6797, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stateController: {fileID: 1786705811}
+  actionController: {fileID: 0}
 --- !u!1 &1905322486
 GameObject:
   m_ObjectHideFlags: 0
