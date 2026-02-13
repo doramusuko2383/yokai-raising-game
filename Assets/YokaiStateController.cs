@@ -299,9 +299,8 @@ public class YokaiStateController : MonoBehaviour
 
     private bool CanStartEvolutionByState()
     {
-        // [State Rule] State のみで決まるルール
-        // EvolutionReady 以外は上で弾いてるので一応 false
-        return false;
+        // [State Rule] EvolutionReady のときのみ進化開始できる
+        return currentState == YokaiState.EvolutionReady;
     }
 
     private bool CanPurifyStartCondition()
@@ -493,22 +492,17 @@ public class YokaiStateController : MonoBehaviour
 
     YokaiState DetermineRequestedState(YokaiState requestedState)
     {
-        _ = requestedState;
+        Debug.Log($"[EVOLUTION] DetermineRequestedState requested={requestedState} current={currentState}");
 
-        // requestedState 評価時も Empty は最優先
+        // Empty 系状態を優先
         if (isPurityEmpty)
             return YokaiState.PurityEmpty;
 
         if (isSpiritEmpty)
             return YokaiState.EnergyEmpty;
 
-        // requestedState がある場合のみ、遷移中/維持中の状態を保持
-        if ((currentState == YokaiState.Purifying && !isPurifying)
-            || currentState == YokaiState.Evolving
-            || currentState == YokaiState.EvolutionReady)
-            return currentState;
-
-        return YokaiState.Normal;
+        // requestedState を優先
+        return requestedState;
     }
 
     YokaiState DetermineDefaultState()

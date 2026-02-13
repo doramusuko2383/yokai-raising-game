@@ -62,6 +62,48 @@ public class YokaiStateControllerStateModelTests
         Assert.That(controller.isPurifying, Is.False);
     }
 
+    [Test]
+    public void CanDo_StartEvolution_IsAllowedOnlyInEvolutionReady()
+    {
+        var controller = CreateController();
+
+        controller.currentState = YokaiState.Normal;
+        Assert.That(controller.CanDo(YokaiAction.StartEvolution), Is.False);
+
+        controller.currentState = YokaiState.EvolutionReady;
+        Assert.That(controller.CanDo(YokaiAction.StartEvolution), Is.True);
+    }
+
+    [Test]
+    public void DetermineRequestedState_PrioritizesRequestedState_WhenNotEmpty()
+    {
+        var controller = CreateController();
+        controller.currentState = YokaiState.Normal;
+        controller.isPurifying = false;
+
+        SetPrivateBool(controller, "isPurityEmpty", false);
+        SetPrivateBool(controller, "isSpiritEmpty", false);
+
+        var requested = YokaiState.EvolutionReady;
+        var nextState = InvokeDetermineRequestedState(controller, requested);
+
+        Assert.That(nextState, Is.EqualTo(requested));
+    }
+
+    [Test]
+    public void DetermineRequestedState_PrioritizesEmptyStates_OverRequestedState()
+    {
+        var controller = CreateController();
+
+        SetPrivateBool(controller, "isPurityEmpty", true);
+        SetPrivateBool(controller, "isSpiritEmpty", false);
+        Assert.That(InvokeDetermineRequestedState(controller, YokaiState.EvolutionReady), Is.EqualTo(YokaiState.PurityEmpty));
+
+        SetPrivateBool(controller, "isPurityEmpty", false);
+        SetPrivateBool(controller, "isSpiritEmpty", true);
+        Assert.That(InvokeDetermineRequestedState(controller, YokaiState.EvolutionReady), Is.EqualTo(YokaiState.EnergyEmpty));
+    }
+
     static YokaiStateController CreateController()
     {
         var go = new GameObject("StateController-Test");
@@ -73,5 +115,12 @@ public class YokaiStateControllerStateModelTests
         FieldInfo field = typeof(YokaiStateController).GetField(fieldName, InstanceFlags);
         Assert.That(field, Is.Not.Null, $"Private field '{fieldName}' was not found.");
         field.SetValue(controller, value);
+    }
+
+    static YokaiState InvokeDetermineRequestedState(YokaiStateController controller, YokaiState requestedState)
+    {
+        MethodInfo method = typeof(YokaiStateController).GetMethod("DetermineRequestedState", InstanceFlags);
+        Assert.That(method, Is.Not.Null, "Private method 'DetermineRequestedState' was not found.");
+        return (YokaiState)method.Invoke(controller, new object[] { requestedState });
     }
 }
