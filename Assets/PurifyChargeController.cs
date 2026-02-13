@@ -8,6 +8,7 @@ public class PurifyChargeController : MonoBehaviour
     [Header("Charge Settings")]
     [SerializeField] private float chargeDuration = 2.0f;
     [SerializeField] YokaiStateController stateController;
+    [SerializeField] private UIActionController actionController;
     [SerializeField] private UIPentagramDrawer uiPentagramDrawer;
     [SerializeField] private PentagramDrawer linePentagramDrawer;
     [SerializeField] private RectTransform pentagramRoot;
@@ -67,6 +68,8 @@ public class PurifyChargeController : MonoBehaviour
             ?? FindObjectOfType<YokaiStateController>(true);
 
         BindStateController(stateController);
+        if (actionController == null)
+            actionController = FindObjectOfType<UIActionController>(true);
 
         if (stateController == null)
             Debug.LogError("[PURIFY HOLD] StateController could not be resolved.");
@@ -138,7 +141,13 @@ public class PurifyChargeController : MonoBehaviour
         if (sc == null)
             return;
 
-        sc.TryDo(YokaiAction.PurifyHoldStart, "LegacyChargeStart");
+        if (actionController == null)
+        {
+            Debug.LogError("[PURIFY HOLD] UIActionController not assigned.");
+            return;
+        }
+
+        actionController.Execute(YokaiAction.PurifyHoldStart, "LegacyChargeStart");
     }
 
     public void CancelCharging()
@@ -147,7 +156,13 @@ public class PurifyChargeController : MonoBehaviour
         if (sc == null)
             return;
 
-        sc.TryDo(YokaiAction.PurifyHoldCancel, "LegacyChargeCancel");
+        if (actionController == null)
+        {
+            Debug.LogError("[PURIFY HOLD] UIActionController not assigned.");
+            return;
+        }
+
+        actionController.Execute(YokaiAction.PurifyHoldCancel, "LegacyChargeCancel");
     }
 
     private void Update()
@@ -168,7 +183,14 @@ public class PurifyChargeController : MonoBehaviour
             if (isCharging && !hasSucceeded)
             {
                 CancelChargingVisual();
-                sc.TryDo(YokaiAction.PurifyHoldCancel, "ChargeReleased");
+                if (actionController != null)
+                {
+                    actionController.Execute(YokaiAction.PurifyHoldCancel, "ChargeReleased");
+                }
+                else
+                {
+                    Debug.LogError("[PURIFY HOLD] UIActionController not assigned.");
+                }
             }
             return;
         }
@@ -393,8 +415,15 @@ public class PurifyChargeController : MonoBehaviour
         var sc = ResolveStateController();
         if (sc != null)
         {
-            sc.TryDo(YokaiAction.PurifyCancel, "ChargeComplete");
-            Debug.Log("[PURIFY HOLD] Purify complete action requested");
+            if (actionController != null)
+            {
+                actionController.Execute(YokaiAction.PurifyCancel, "ChargeComplete");
+                Debug.Log("[PURIFY HOLD] Purify complete action requested");
+            }
+            else
+            {
+                Debug.LogError("[PURIFY HOLD] UIActionController not assigned.");
+            }
         }
 
         hasSucceeded = false;
