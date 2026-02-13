@@ -56,6 +56,23 @@ public class YokaiStateControllerStateModelTests
         Assert.That(controller.IsPurifyCharging, Is.False);
     }
 
+
+    [Test]
+    public void PurifyFallback_TransitionsToNormalAndTriggersSuccess()
+    {
+        var controller = CreateController();
+        controller.currentState = YokaiState.Purifying;
+
+        bool succeeded = false;
+        controller.OnPurifySucceeded += () => succeeded = true;
+
+        var machine = new PurifyStateMachine(controller);
+        machine.FallbackComplete("PurifyFallback");
+
+        Assert.That(controller.CurrentState, Is.EqualTo(YokaiState.Normal));
+        Assert.That(succeeded, Is.True);
+    }
+
     [Test]
     public void CanDo_StartEvolution_IsAllowedOnlyInEvolutionReady()
     {
