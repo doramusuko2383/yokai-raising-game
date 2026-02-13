@@ -358,36 +358,6 @@ public class YokaiStateController : MonoBehaviour
         IsPurifyTriggeredByUser = false;
     }
 
-    public void StopPurifying()
-    {
-        CancelPurifying("StopPurify");
-    }
-
-    public void StopPurifyingForSuccess()
-    {
-        if (currentState != YokaiState.Purifying)
-        {
-            Debug.LogWarning($"[PURIFY] StopPurifyingForSuccess ignored. currentState={currentState}");
-            return;
-        }
-
-        Debug.Log("[PURIFY] StopPurifyingForSuccess -> SetState Normal (PurifySuccess)");
-
-        isPurifyCharging = false;
-        NotifyPurifySucceeded();
-        RequestEvaluateState("PurifySuccess", true);
-    }
-
-    public void CancelPurifying(string reason = "Cancelled")
-    {
-        if (currentState != YokaiState.Purifying)
-            return;
-
-        isPurifyCharging = false;
-        NotifyPurifyCancelled();
-        RequestEvaluateState(reason, true);
-    }
-
     public void BeginEvolution()
     {
         EvolutionMachine.StartEvolution("BeginEvolution");
@@ -782,7 +752,8 @@ public class YokaiStateController : MonoBehaviour
         if (CurrentState != YokaiState.Purifying)
             return;
 
-        StopPurifyingForSuccess();
+        NotifyPurifySucceeded();
+        SetState(YokaiState.Normal, "PurifySuccess");
     }
 
     void ApplyEmptyStateEffects()
