@@ -191,7 +191,7 @@ public class YokaiStateController : MonoBehaviour
         ResolveSceneControllers();
         if (CurrentYokaiContext.Current != null)
         {
-            BindControllers(CurrentYokaiContext.Current, ShouldAllowRebindPresentationSync());
+            BindControllers(CurrentYokaiContext.Current);
         }
     }
 
@@ -270,10 +270,10 @@ public class YokaiStateController : MonoBehaviour
 
     public void ForceReevaluate(string reason)
     {
-        RequestEvaluateState(reason, ShouldAllowRebindPresentationSync());
+        RequestEvaluateState(reason);
     }
 
-    void EvaluateState(YokaiState? requestedState = null, string reason = "Auto", bool forcePresentation = false)
+    void EvaluateState(YokaiState? requestedState = null, string reason = "Auto")
     {
         if (!canEvaluateState)
         {
@@ -281,22 +281,7 @@ public class YokaiStateController : MonoBehaviour
         }
 
         YokaiState nextState = DetermineNextState(requestedState);
-        bool stateChanged = currentState != nextState;
-        if (stateChanged)
-        {
-            SetState(nextState, reason);
-            ApplyEmptyStateEffects();
-            SyncPresentation(nextState, force: false);
-            CheckForUnknownStateWarning();
-            return;
-        }
-
-        if (forcePresentation)
-        {
-            SyncPresentation(currentState, force: true);
-        }
-
-        ApplyEmptyStateEffects();
+        SetState(nextState, reason);
     }
 
     YokaiState DetermineNextState(YokaiState? requestedState = null)
@@ -346,6 +331,10 @@ public class YokaiStateController : MonoBehaviour
 
         Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
+
+        ApplyEmptyStateEffects();
+        SyncPresentation(newState, force: false);
+        CheckForUnknownStateWarning();
     }
 
     public void BeginPurifying(string reason = "BeginPurify")
@@ -384,7 +373,7 @@ public class YokaiStateController : MonoBehaviour
             }
         }
 
-        BindControllers(activeYokai, ShouldAllowRebindPresentationSync());
+        BindControllers(activeYokai);
         SetActiveYokai(activeYokai);
     }
 
@@ -394,7 +383,7 @@ public class YokaiStateController : MonoBehaviour
         CheckForUnknownStateWarning();
     }
 
-    void BindControllers(GameObject activeYokai, bool allowRebindPresentationSync)
+    void BindControllers(GameObject activeYokai)
     {
         YokaiGrowthController nextGrowth = null;
 
@@ -410,7 +399,7 @@ public class YokaiStateController : MonoBehaviour
         
         if (canEvaluateState)
         {
-            RequestEvaluateState("FullyInitialized", allowRebindPresentationSync);
+            RequestEvaluateState("FullyInitialized");
         }
     }
 
@@ -464,7 +453,7 @@ public class YokaiStateController : MonoBehaviour
         }
 
         if (!IsPurityEmpty())
-            RequestEvaluateStateRequested(YokaiState.EvolutionReady, "EvolutionReady", false);
+            RequestEvaluateStateRequested(YokaiState.EvolutionReady, "EvolutionReady");
     }
 
     public void OnPurityEmpty()
@@ -601,7 +590,7 @@ public class YokaiStateController : MonoBehaviour
         IsPurifyTriggeredByUser = false;
         SyncManagerState();
         OnPurifyCancelled?.Invoke();
-        RequestEvaluateState("PurifyCancelled", false);
+        RequestEvaluateState("PurifyCancelled");
     }
 
     public void ExecuteEmergencyPurify(string reason)
@@ -640,33 +629,20 @@ public class YokaiStateController : MonoBehaviour
 
     public void RequestEvaluateState(string reason)
     {
-        RequestEvaluateState(reason, false);
+        if (!canEvaluateState)
+            return;
+
+        SyncManagerState();
+        EvaluateState(reason: reason);
     }
 
-    public void RequestEvaluateState(string reason, bool forcePresentation)
+    public void RequestEvaluateStateRequested(YokaiState requestedState, string reason)
     {
         if (!canEvaluateState)
             return;
 
         SyncManagerState();
-        EvaluateState(reason: reason, forcePresentation: forcePresentation);
-    }
-
-    public void RequestEvaluateStateRequested(
-        YokaiState requestedState,
-        string reason,
-        bool forcePresentation)
-    {
-        if (!canEvaluateState)
-            return;
-
-        SyncManagerState();
-        EvaluateState(requestedState, reason: reason, forcePresentation: forcePresentation);
-    }
-
-    bool ShouldAllowRebindPresentationSync()
-    {
-        return false;
+        EvaluateState(requestedState, reason: reason);
     }
 
     YokaiStatePresentationController ResolvePresentationController()
@@ -675,17 +651,6 @@ public class YokaiStateController : MonoBehaviour
             return presentationController;
 
         return YokaiStatePresentationController.Instance;
-    }
-
-    void ForceSyncPresentation(YokaiState state)
-    {
-        if (state != currentState)
-        {
-            Debug.LogWarning(
-                $"[STATE] ForceSyncPresentation ignored. state={state}, currentState={currentState}");
-        }
-
-        SyncPresentation(currentState, force: true);
     }
 
     void SyncPresentation(YokaiState state, bool force)
