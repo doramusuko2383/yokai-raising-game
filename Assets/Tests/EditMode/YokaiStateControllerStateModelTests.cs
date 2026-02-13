@@ -143,6 +143,48 @@ public class YokaiStateControllerStateModelTests
         Assert.That(InvokeDetermineRequestedState(controller, YokaiState.EvolutionReady), Is.EqualTo(YokaiState.EnergyEmpty));
     }
 
+    [Test]
+    public void YokaiStateRules_ForcedStateAndEvolutionReadyLock_WorkAsExpected()
+    {
+        var forcedByPurifying = YokaiStateRules.DetermineForcedState(
+            YokaiState.Normal,
+            isPurifying: true,
+            isEvolving: true
+        );
+        Assert.That(forcedByPurifying, Is.EqualTo(YokaiState.Purifying));
+
+        var forcedByEvolutionReady = YokaiStateRules.DetermineForcedState(
+            YokaiState.EvolutionReady,
+            isPurifying: false,
+            isEvolving: false
+        );
+        Assert.That(forcedByEvolutionReady, Is.EqualTo(YokaiState.EvolutionReady));
+
+        Assert.That(
+            YokaiStateRules.CanDo(
+                YokaiState.EvolutionReady,
+                YokaiAction.StartEvolution,
+                isPurifying: false,
+                isPurifyCharging: false,
+                isPurityEmpty: false,
+                isSpiritEmpty: false
+            ),
+            Is.True
+        );
+
+        Assert.That(
+            YokaiStateRules.CanDo(
+                YokaiState.EvolutionReady,
+                YokaiAction.EatDango,
+                isPurifying: false,
+                isPurifyCharging: false,
+                isPurityEmpty: false,
+                isSpiritEmpty: false
+            ),
+            Is.False
+        );
+    }
+
     static YokaiStateController CreateController()
     {
         var go = new GameObject("StateController-Test");
