@@ -490,9 +490,10 @@ public class YokaiStateController : MonoBehaviour
     YokaiState? DetermineForcedState()
     {
         if (isPurifying)
-        {
             return YokaiState.Purifying;
-        }
+
+        if (isEvolving)
+            return YokaiState.Evolving;
 
         return null;
     }
