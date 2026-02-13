@@ -90,16 +90,14 @@ public class YokaiStateController : MonoBehaviour
 
     public bool CanDo(YokaiAction action)
     {
-        // 進化待ち中は進化開始のみ受け付ける
-        if (currentState == YokaiState.EvolutionReady
-            && action != YokaiAction.StartEvolution)
-            return false;
-
-        bool isAllowedByState = IsAllowedByState(currentState, action);
-        if (!isAllowedByState)
-            return false;
-
-        return IsActionConditionSatisfied(action);
+        return YokaiStateRules.CanDo(
+            currentState,
+            action,
+            isPurifying,
+            isPurifyCharging,
+            isPurityEmpty,
+            isSpiritEmpty
+        );
     }
 
     public bool TryDo(YokaiAction action, string reason = null)
@@ -187,169 +185,6 @@ public class YokaiStateController : MonoBehaviour
     internal void HandleEatDango()
     {
         RecoverSpirit();
-    }
-
-    private bool IsAllowedByState(YokaiState state, YokaiAction action)
-    {
-        // 進化中は基本なにもできない（演出中の誤操作を防ぐ）
-        // [State Rule] State のみで決まるルール
-        if (state == YokaiState.Evolving)
-            return false;
-
-        // 進化待ちは「進化開始」以外なにもできない（あなたの仕様）
-        // [State Rule] State のみで決まるルール
-        if (state == YokaiState.EvolutionReady)
-            return action == YokaiAction.StartEvolution;
-
-        switch (action)
-        {
-            case YokaiAction.PurifyStart:
-                return CanPurifyStartByState(state);
-
-            case YokaiAction.PurifyCancel:
-                return CanPurifyCancelByState(state);
-
-            case YokaiAction.PurifyHold:
-                return CanPurifyHoldByState(state);
-
-            case YokaiAction.PurifyHoldStart:
-                return CanPurifyHoldStartByState(state);
-
-            case YokaiAction.PurifyHoldCancel:
-                return CanPurifyHoldCancelByState(state);
-
-            case YokaiAction.EatDango:
-                return CanEatDangoByState(state);
-
-            case YokaiAction.EmergencySpiritRecover:
-                return CanEmergencySpiritRecoverByState(state);
-
-            case YokaiAction.EmergencyPurifyAd:
-                return CanEmergencyPurifyAdByState(state);
-
-            case YokaiAction.StartEvolution:
-                return CanStartEvolutionByState();
-        }
-
-        return false;
-    }
-
-    private bool IsActionConditionSatisfied(YokaiAction action)
-    {
-        switch (action)
-        {
-            case YokaiAction.PurifyStart:
-                return CanPurifyStartCondition();
-
-            case YokaiAction.PurifyCancel:
-                return CanPurifyCancelCondition();
-
-            case YokaiAction.PurifyHold:
-                return CanPurifyHoldCondition();
-
-            case YokaiAction.PurifyHoldStart:
-                return CanPurifyHoldStartCondition();
-
-            case YokaiAction.PurifyHoldCancel:
-                return CanPurifyHoldCancelCondition();
-
-            case YokaiAction.EmergencyPurifyAd:
-                return CanEmergencyPurifyAdCondition();
-
-        }
-
-        return true;
-    }
-
-    private bool CanPurifyStartByState(YokaiState state)
-    {
-        // 通常のおきよめ開始（通常状態のみ）
-        return state == YokaiState.Normal;
-    }
-
-    private bool CanPurifyCancelByState(YokaiState state)
-    {
-        // おきよめ中のキャンセル
-        return state == YokaiState.Purifying;
-    }
-
-    private bool CanPurifyHoldByState(YokaiState state)
-    {
-        // おきよめ長押しはおきよめ中のみ
-        return state == YokaiState.Purifying;
-    }
-
-    private bool CanPurifyHoldStartByState(YokaiState state)
-    {
-        return state == YokaiState.Purifying;
-    }
-
-    private bool CanPurifyHoldCancelByState(YokaiState state)
-    {
-        return state == YokaiState.Purifying;
-    }
-
-    private bool CanEatDangoByState(YokaiState state)
-    {
-        // [State Rule] State のみで決まるルール
-        // 通常だんご（通常状態のみ）
-        return state == YokaiState.Normal;
-    }
-
-    private bool CanEmergencySpiritRecoverByState(YokaiState state)
-    {
-        // [State Rule] State のみで決まるルール
-        // 霊力0の救済（EnergyEmpty のみ）
-        return state == YokaiState.EnergyEmpty;
-    }
-
-    private bool CanEmergencyPurifyAdByState(YokaiState state)
-    {
-        // 清浄度0の救済（緊急おきよめ）
-        return state == YokaiState.PurityEmpty;
-    }
-
-    private bool CanStartEvolutionByState()
-    {
-        // [State Rule] EvolutionReady のときのみ進化開始できる
-        return currentState == YokaiState.EvolutionReady;
-    }
-
-    private bool CanPurifyStartCondition()
-    {
-        // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
-        // 通常のおきよめ開始（通常状態のみ）
-        return currentState == YokaiState.Normal && !isPurifying;
-    }
-
-    private bool CanPurifyCancelCondition()
-    {
-        // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
-        // おきよめ中のキャンセル
-        return currentState == YokaiState.Purifying && isPurifying;
-    }
-
-    private bool CanPurifyHoldCondition()
-    {
-        // [Action Condition] おきよめ長押しはおきよめ中のみ
-        return currentState == YokaiState.Purifying && isPurifying;
-    }
-
-    private bool CanPurifyHoldStartCondition()
-    {
-        return currentState == YokaiState.Purifying && isPurifying && !isPurifyCharging;
-    }
-
-    private bool CanPurifyHoldCancelCondition()
-    {
-        return currentState == YokaiState.Purifying && isPurifying && isPurifyCharging;
-    }
-
-    private bool CanEmergencyPurifyAdCondition()
-    {
-        // [Action Condition] フラグ等が絡むため、将来切り出す予定の条件
-        // 清浄度0の救済（緊急おきよめ）
-        return currentState == YokaiState.PurityEmpty && !isPurifying;
     }
 
     void OnEnable()
@@ -497,43 +332,18 @@ public class YokaiStateController : MonoBehaviour
 
     YokaiState? DetermineForcedState()
     {
-        if (isPurifying)
-            return YokaiState.Purifying;
-
-        if (isEvolving)
-            return YokaiState.Evolving;
-
-        if (currentState == YokaiState.EvolutionReady)
-            return YokaiState.EvolutionReady;
-
-        return null;
+        return YokaiStateRules.DetermineForcedState(currentState, isPurifying, isEvolving);
     }
 
     YokaiState DetermineRequestedState(YokaiState requestedState)
     {
         Debug.Log($"[EVOLUTION] DetermineRequestedState requested={requestedState} current={currentState}");
-
-        // Empty 系状態を優先
-        if (isPurityEmpty)
-            return YokaiState.PurityEmpty;
-
-        if (isSpiritEmpty)
-            return YokaiState.EnergyEmpty;
-
-        // requestedState を優先
-        return requestedState;
+        return YokaiStateRules.DetermineRequestedState(currentState, requestedState, isPurityEmpty, isSpiritEmpty);
     }
 
     YokaiState DetermineDefaultState()
     {
-        // 通常評価
-        if (isPurityEmpty)
-            return YokaiState.PurityEmpty;
-
-        if (isSpiritEmpty)
-            return YokaiState.EnergyEmpty;
-
-        return YokaiState.Normal;
+        return YokaiStateRules.DetermineDefaultState(isPurityEmpty, isSpiritEmpty);
     }
 
     public void SetState(YokaiState newState, string reason)
