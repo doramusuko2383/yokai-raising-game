@@ -5,43 +5,40 @@ using Yokai;
 public class PentagramInputCatcher : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
 {
     [SerializeField]
-    YokaiStateController stateController;
+    UIActionController actionController;
 
-    void OnEnable()
+    bool EnsureActionController()
     {
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>(true);
-    }
+        if (actionController == null)
+        {
+            Debug.LogWarning("[PentagramInputCatcher] UIActionController not set in Inspector.");
+            return false;
+        }
 
-    bool CanHandleHold()
-    {
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>(true);
-
-        return stateController != null && stateController.CanDo(YokaiAction.PurifyHoldStart);
+        return true;
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (!CanHandleHold())
+        if (!EnsureActionController())
             return;
 
-        stateController.TryDo(YokaiAction.PurifyHoldStart, "HoldStart");
+        actionController.Execute(YokaiAction.PurifyHoldStart);
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>(true);
+        if (!EnsureActionController())
+            return;
 
-        stateController?.TryDo(YokaiAction.PurifyHoldCancel, "HoldCancel");
+        actionController.Execute(YokaiAction.PurifyHoldCancel);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>(true);
+        if (!EnsureActionController())
+            return;
 
-        stateController?.TryDo(YokaiAction.PurifyHoldCancel, "HoldCancel");
+        actionController.Execute(YokaiAction.PurifyHoldCancel);
     }
 }
