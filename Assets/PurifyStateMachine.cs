@@ -64,6 +64,12 @@ namespace Yokai
             controller.SetState(YokaiState.Normal, "PurifySuccess");
         }
 
+        public void FallbackComplete(string reason)
+        {
+            controller.NotifyPurifySucceeded();
+            controller.SetState(YokaiState.Normal, reason ?? "PurifyFallback");
+        }
+
         public void CancelPurify(string reason)
         {
             currentState = PurifyInternalState.Cancelled;

@@ -752,8 +752,7 @@ public class YokaiStateController : MonoBehaviour
         if (CurrentState != YokaiState.Purifying)
             return;
 
-        NotifyPurifySucceeded();
-        SetState(YokaiState.Normal, "PurifySuccess");
+        PurifyMachine.FallbackComplete(reason ?? "PurifyFallback");
     }
 
     void ApplyEmptyStateEffects()
