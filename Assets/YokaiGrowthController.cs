@@ -181,6 +181,9 @@ public class YokaiGrowthController : MonoBehaviour
             var currentState = stateController.currentState;
             if (currentState == YokaiState.EnergyEmpty || currentState == YokaiState.PurityEmpty)
                 return true;
+
+            if (currentState == YokaiState.EvolutionReady || currentState == YokaiState.Evolving)
+                return true;
         }
 
         return false;

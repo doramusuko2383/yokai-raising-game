@@ -41,6 +41,11 @@ namespace Yokai
         public void CompleteEvolution()
         {
             controller.SetEvolving(false);
+
+            // purity / spirit を初期値にリセット
+            controller.SpiritController.SetSpirit(80f);
+            controller.PurityController.SetPurity(80f);
+
             state = EvolutionInternalState.Idle;
             controller.RequestEvaluateStateRequested(
                 YokaiState.Normal,

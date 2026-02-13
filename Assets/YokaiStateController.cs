@@ -90,6 +90,11 @@ public class YokaiStateController : MonoBehaviour
 
     public bool CanDo(YokaiAction action)
     {
+        // 進化待ち中は進化開始のみ受け付ける
+        if (currentState == YokaiState.EvolutionReady
+            && action != YokaiAction.StartEvolution)
+            return false;
+
         bool isAllowedByState = IsAllowedByState(currentState, action);
         if (!isAllowedByState)
             return false;
@@ -423,6 +428,9 @@ public class YokaiStateController : MonoBehaviour
 
     public void OnSpiritEmpty()
     {
+        if (currentState == YokaiState.EvolutionReady)
+            return;
+
         isSpiritEmpty = true;
         canUseSpecialDango = true;
 
@@ -695,6 +703,9 @@ public class YokaiStateController : MonoBehaviour
 
     public void OnPurityEmpty()
     {
+        if (currentState == YokaiState.EvolutionReady)
+            return;
+
         isPurityEmpty = true;
         isPurifyTriggerReady = true;
 

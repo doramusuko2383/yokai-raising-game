@@ -74,6 +74,45 @@ public class YokaiStateControllerStateModelTests
         Assert.That(controller.CanDo(YokaiAction.StartEvolution), Is.True);
     }
 
+
+    [Test]
+    public void OnSpiritEmpty_DoesNotChangeState_InEvolutionReady()
+    {
+        var controller = CreateController();
+        controller.currentState = YokaiState.EvolutionReady;
+        SetPrivateBool(controller, "isSpiritEmpty", false);
+
+        controller.OnSpiritEmpty();
+
+        Assert.That(controller.CurrentState, Is.EqualTo(YokaiState.EvolutionReady));
+        Assert.That(controller.IsSpiritEmpty, Is.False);
+    }
+
+    [Test]
+    public void OnPurityEmpty_DoesNotChangeState_InEvolutionReady()
+    {
+        var controller = CreateController();
+        controller.currentState = YokaiState.EvolutionReady;
+        SetPrivateBool(controller, "isPurityEmpty", false);
+
+        controller.OnPurityEmpty();
+
+        Assert.That(controller.CurrentState, Is.EqualTo(YokaiState.EvolutionReady));
+        Assert.That(controller.IsPurityEmptyState, Is.False);
+    }
+
+    [Test]
+    public void CanDo_EvolutionReady_AllowsOnlyStartEvolution()
+    {
+        var controller = CreateController();
+        controller.currentState = YokaiState.EvolutionReady;
+
+        Assert.That(controller.CanDo(YokaiAction.StartEvolution), Is.True);
+        Assert.That(controller.CanDo(YokaiAction.EatDango), Is.False);
+        Assert.That(controller.CanDo(YokaiAction.EmergencyPurifyAd), Is.False);
+        Assert.That(controller.CanDo(YokaiAction.EmergencySpiritRecover), Is.False);
+    }
+
     [Test]
     public void DetermineRequestedState_PrioritizesRequestedState_WhenNotEmpty()
     {
