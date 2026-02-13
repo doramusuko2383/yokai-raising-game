@@ -58,6 +58,7 @@ public class YokaiStateController : MonoBehaviour
     string lastStateChangeReason;
     string lastPurityRecoveredReason;
     int lastPurityRecoveredFrame = -1;
+    YokaiActionExecutor actionExecutor;
 
     [Header("Purify Fallback")]
     [SerializeField]
@@ -104,98 +105,11 @@ public class YokaiStateController : MonoBehaviour
             return false;
         }
 
-        ExecuteActionInternal(action, reason);
+        actionExecutor.Execute(action, reason);
         return true;
     }
 
-    void ExecuteActionInternal(YokaiAction action, string reason)
-    {
-        if (!HandleStateTransition(action, reason))
-            return;
-
-        ApplySideEffects(action, reason);
-    }
-
-    bool HandleStateTransition(YokaiAction action, string reason)
-    {
-        switch (action)
-        {
-            case YokaiAction.Purify:
-                Debug.Log("[LEGACY] Purify action disabled");
-                return false;
-
-            case YokaiAction.PurifyStart:
-                if (reason == null)
-                    BeginPurifying();
-                else
-                    BeginPurifying(reason);
-                break;
-
-            case YokaiAction.PurifyCancel:
-                if (reason == "ChargeComplete")
-                    StopPurifyingForSuccess();
-                else if (reason == null)
-                    CancelPurifying();
-                else
-                    CancelPurifying(reason);
-                break;
-
-            case YokaiAction.PurifyHoldStart:
-                break;
-
-            case YokaiAction.PurifyHoldCancel:
-                if (isPurifying)
-                    CancelPurifying(reason ?? "HoldReleasedEarly");
-                break;
-
-            case YokaiAction.EmergencyPurifyAd:
-                ExecuteEmergencyPurify(reason ?? "EmergencyPurify");
-                break;
-
-            case YokaiAction.StartEvolution:
-                BeginEvolution();
-                break;
-
-            case YokaiAction.EmergencySpiritRecover:
-                break;
-
-            case YokaiAction.EatDango:
-                break;
-            default:
-                Debug.LogError($"Unhandled YokaiAction in ExecuteAction: {action}");
-                break;
-        }
-
-        return true;
-    }
-
-    void ApplySideEffects(YokaiAction action, string reason)
-    {
-        switch (action)
-        {
-            case YokaiAction.PurifyHoldStart:
-                // Begin charge phase
-                isPurifyCharging = true;
-                HasUserInteracted = true;
-                break;
-
-            case YokaiAction.PurifyHoldCancel:
-                // Cancel entire purify if user releases mid-charge
-                isPurifyCharging = false;
-                break;
-
-            case YokaiAction.EmergencySpiritRecover:
-                Debug.Log("[YokaiStateController] ExecuteAction EmergencySpiritRecover reached");
-                RecoverSpirit();
-                break;
-
-            case YokaiAction.EatDango:
-                RecoverSpirit();
-                break;
-        }
-    }
-
-    private void RecoverSpirit()
+    internal void RecoverSpiritInternal()
     {
         spiritController.AddSpirit(dangoAmount);
         TutorialManager.NotifyDangoUsed();
@@ -376,6 +290,7 @@ public class YokaiStateController : MonoBehaviour
 
     void Awake()
     {
+        actionExecutor = new YokaiActionExecutor(this);
     }
 
     void Start()
@@ -761,6 +676,18 @@ public class YokaiStateController : MonoBehaviour
     public bool IsPurityEmpty()
     {
         return isPurityEmpty;
+    }
+
+    internal bool IsPurifying => isPurifying;
+
+    internal void SetPurifyCharging(bool value)
+    {
+        isPurifyCharging = value;
+    }
+
+    internal void MarkUserInteracted()
+    {
+        HasUserInteracted = true;
     }
 
     bool HasReachedEvolutionScale()
