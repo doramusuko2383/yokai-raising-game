@@ -418,29 +418,48 @@ public class YokaiStateController : MonoBehaviour
         // 2) requestedState 評価時の維持状態
         // 3) Empty 系状態
         // 4) Normal
+        YokaiState? forcedState = DetermineForcedState();
+        if (forcedState.HasValue)
+            return forcedState.Value;
+
+        if (requestedState.HasValue)
+            return DetermineRequestedState(requestedState.Value);
+
+        return DetermineDefaultState();
+    }
+
+    YokaiState? DetermineForcedState()
+    {
         if (isPurifying)
         {
             return YokaiState.Purifying;
         }
 
-        if (requestedState.HasValue)
-        {
-            // requestedState 評価時も Empty は最優先
-            if (isPurityEmpty)
-                return YokaiState.PurityEmpty;
+        return null;
+    }
 
-            if (isSpiritEmpty)
-                return YokaiState.EnergyEmpty;
+    YokaiState DetermineRequestedState(YokaiState requestedState)
+    {
+        _ = requestedState;
 
-            // requestedState がある場合のみ、遷移中/維持中の状態を保持
-            if ((currentState == YokaiState.Purifying && !isPurifying)
-                || currentState == YokaiState.Evolving
-                || currentState == YokaiState.EvolutionReady)
-                return currentState;
+        // requestedState 評価時も Empty は最優先
+        if (isPurityEmpty)
+            return YokaiState.PurityEmpty;
 
-            return YokaiState.Normal;
-        }
+        if (isSpiritEmpty)
+            return YokaiState.EnergyEmpty;
 
+        // requestedState がある場合のみ、遷移中/維持中の状態を保持
+        if ((currentState == YokaiState.Purifying && !isPurifying)
+            || currentState == YokaiState.Evolving
+            || currentState == YokaiState.EvolutionReady)
+            return currentState;
+
+        return YokaiState.Normal;
+    }
+
+    YokaiState DetermineDefaultState()
+    {
         // 通常評価
         if (isPurityEmpty)
             return YokaiState.PurityEmpty;
