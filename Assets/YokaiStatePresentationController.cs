@@ -480,7 +480,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     YokaiState ResolveVisualState()
     {
-        if (stateController != null && stateController.IsEvolving)
+        if (stateController != null && stateController.currentState == YokaiState.Evolving)
             return YokaiState.Evolving;
 
         if (stateController != null && stateController.currentState == YokaiState.Purifying)

@@ -2,16 +2,12 @@ namespace Yokai
 {
 public static class YokaiStateRules
 {
-    public static YokaiState? DetermineForcedState(
-        YokaiState currentState,
-        bool isPurifying,
-        bool isEvolving
-    )
+    public static YokaiState? DetermineForcedState(YokaiState currentState)
     {
-        if (isPurifying)
+        if (currentState == YokaiState.Purifying)
             return YokaiState.Purifying;
 
-        if (isEvolving)
+        if (currentState == YokaiState.Evolving)
             return YokaiState.Evolving;
 
         if (currentState == YokaiState.EvolutionReady)
@@ -53,7 +49,6 @@ public static class YokaiStateRules
     public static bool CanDo(
         YokaiState currentState,
         YokaiAction action,
-        bool isPurifying,
         bool isPurifyCharging,
         bool isPurityEmpty,
         bool isSpiritEmpty
@@ -65,7 +60,7 @@ public static class YokaiStateRules
         if (!IsAllowedByState(currentState, action))
             return false;
 
-        return IsActionConditionSatisfied(currentState, action, isPurifying, isPurifyCharging);
+        return IsActionConditionSatisfied(currentState, action, isPurifyCharging);
     }
 
     static bool IsAllowedByState(YokaiState state, YokaiAction action)
@@ -106,27 +101,26 @@ public static class YokaiStateRules
     static bool IsActionConditionSatisfied(
         YokaiState currentState,
         YokaiAction action,
-        bool isPurifying,
         bool isPurifyCharging
     )
     {
         switch (action)
         {
             case YokaiAction.PurifyStart:
-                return currentState == YokaiState.Normal && !isPurifying;
+                return currentState == YokaiState.Normal;
 
             case YokaiAction.PurifyCancel:
             case YokaiAction.PurifyHold:
-                return currentState == YokaiState.Purifying && isPurifying;
+                return currentState == YokaiState.Purifying;
 
             case YokaiAction.PurifyHoldStart:
-                return currentState == YokaiState.Purifying && isPurifying && !isPurifyCharging;
+                return currentState == YokaiState.Purifying && !isPurifyCharging;
 
             case YokaiAction.PurifyHoldCancel:
-                return currentState == YokaiState.Purifying && isPurifying && isPurifyCharging;
+                return currentState == YokaiState.Purifying && isPurifyCharging;
 
             case YokaiAction.EmergencyPurifyAd:
-                return currentState == YokaiState.PurityEmpty && !isPurifying;
+                return currentState == YokaiState.PurityEmpty;
         }
 
         return true;
