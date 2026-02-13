@@ -771,7 +771,6 @@ public class YokaiStateController : MonoBehaviour
             purityController.SetPurity(recoveredPurity, reason ?? "EmergencyPurify");
         }
 
-        SetState(YokaiState.Normal, "EmergencyPurify");
         RequestEvaluateState("EmergencyPurify");
     }
 
