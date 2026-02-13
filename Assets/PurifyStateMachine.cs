@@ -13,20 +13,17 @@ namespace Yokai
         }
 
         PurifyInternalState currentState;
-        bool hasUserInteracted;
         readonly YokaiStateController controller;
 
         public PurifyStateMachine(YokaiStateController controller)
         {
             this.controller = controller;
             currentState = PurifyInternalState.Idle;
-            hasUserInteracted = false;
         }
 
         public void StartPurify(string reason)
         {
             currentState = PurifyInternalState.Idle;
-            hasUserInteracted = false;
             controller.SetHasUserInteracted(false);
             controller.SetPurifyCharging(false);
             controller.SetPurifying(true);
@@ -41,8 +38,8 @@ namespace Yokai
                 return;
 
             currentState = PurifyInternalState.Charging;
+            Debug.Log("[PURIFY FSM] Idle -> Charging");
             controller.SetPurifyCharging(true);
-            hasUserInteracted = true;
             controller.MarkUserInteracted();
         }
 
