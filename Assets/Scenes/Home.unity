@@ -219,6 +219,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chargeDuration: 1
   stateController: {fileID: 1786705811}
+  actionController: {fileID: 754336213}
   uiPentagramDrawer: {fileID: 549859993}
   linePentagramDrawer: {fileID: 0}
   pentagramRoot: {fileID: 935124025}

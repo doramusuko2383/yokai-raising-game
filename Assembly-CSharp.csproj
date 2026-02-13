@@ -84,6 +84,7 @@
     <Compile Include="Assets\Debug\EventSystemProbe.cs" />
     <Compile Include="Assets\EffectSettings.cs" />
     <Compile Include="Assets\Debug\InputKillSwitchProbe.cs" />
+    <Compile Include="Assets\PurifyStateMachine.cs" />
     <Compile Include="Assets\YokaiStatePresentationController.cs" />
     <Compile Include="Assets\MagicCircleSwipeController.cs" />
     <Compile Include="Assets\PurifyChargeController.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Assets\MentorMessageService.cs" />
     <Compile Include="Assets\OnmyojiHintCatalog.cs" />
     <Compile Include="Assets\PurifyButtonHandler.cs" />
+    <Compile Include="Assets\YokaiActionExecutor.cs" />
     <Compile Include="Assets\TutorialStep.cs" />
     <Compile Include="Assets\MagicCircleActivator.cs" />
     <Compile Include="Assets\OnmyojiHintType.cs" />
