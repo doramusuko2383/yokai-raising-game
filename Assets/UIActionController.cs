@@ -18,4 +18,17 @@ public class UIActionController : MonoBehaviour
 
         stateController.TryDo(action, "UIActionController");
     }
+
+    public void Execute(YokaiAction action, string reason)
+    {
+        Debug.Log($"[UIAction] Execute {action} ({reason})");
+
+        if (stateController == null)
+        {
+            Debug.LogError("[UIActionController] StateController not assigned.");
+            return;
+        }
+
+        stateController.TryDo(action, reason);
+    }
 }
