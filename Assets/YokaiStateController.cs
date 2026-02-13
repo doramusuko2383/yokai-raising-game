@@ -473,7 +473,7 @@ public class YokaiStateController : MonoBehaviour
     YokaiState DetermineNextState(YokaiState? requestedState = null)
     {
         // 優先順位:
-        // 1) 強制状態 (Purifying)
+        // 1) 強制状態 (Purifying / Evolving / EvolutionReady)
         // 2) requestedState 評価時の維持状態
         // 3) Empty 系状態
         // 4) Normal
@@ -494,6 +494,9 @@ public class YokaiStateController : MonoBehaviour
 
         if (isEvolving)
             return YokaiState.Evolving;
+
+        if (currentState == YokaiState.EvolutionReady)
+            return YokaiState.EvolutionReady;
 
         return null;
     }
@@ -981,7 +984,8 @@ public class YokaiStateController : MonoBehaviour
 
     void ApplyEmptyStateEffects()
     {
-        bool shouldEnableDecay = currentState != YokaiState.EnergyEmpty && currentState != YokaiState.PurityEmpty;
+        bool isLockedState = currentState == YokaiState.EvolutionReady || currentState == YokaiState.Evolving;
+        bool shouldEnableDecay = !isLockedState && currentState != YokaiState.EnergyEmpty && currentState != YokaiState.PurityEmpty;
         bool shouldEnableGrowth = shouldEnableDecay;
 
         if (spiritController != null)
