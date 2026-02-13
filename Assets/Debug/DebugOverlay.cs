@@ -7,6 +7,7 @@ public class DebugOverlay : MonoBehaviour
     const float PanelWidth = 260f;
     const float PanelPadding = 8f;
     const float ButtonHeight = 24f;
+    const float FastGrowthMultiplier = 240f;
 
     PurityController purityController;
     SpiritController spiritController;
@@ -101,7 +102,7 @@ public class DebugOverlay : MonoBehaviour
 
         EnsureStyles();
 
-        float panelHeight = 200f;
+        float panelHeight = 240f;
         panelRect = new Rect(PanelPadding, PanelPadding, PanelWidth, panelHeight);
         GUI.Box(panelRect, "DEBUG", GUI.skin.box);
 
@@ -125,12 +126,16 @@ public class DebugOverlay : MonoBehaviour
         string spiritLabel = spiritController != null
             ? $"{spiritController.spirit:0.##}/{spiritController.maxSpirit:0.##}"
             : "Unknown";
+        string growthSpeedLabel = growthController != null
+            ? $"x{growthController.DebugGrowthMultiplier:0.##}"
+            : "Unknown";
 
         GUILayout.Label($"State: {stateLabel}", labelStyle);
         GUILayout.Label($"Yokai: {yokaiName}", labelStyle);
         GUILayout.Label($"Stage: {growthLabel}", labelStyle);
         GUILayout.Label($"Purity: {purityLabel}", labelStyle);
         GUILayout.Label($"Spirit: {spiritLabel}", labelStyle);
+        GUILayout.Label($"Growth Speed: {growthSpeedLabel}", labelStyle);
     }
 
     void DrawControls()
@@ -148,6 +153,13 @@ public class DebugOverlay : MonoBehaviour
         if (GUILayout.Button("進化Ready", buttonStyle, GUILayout.Height(ButtonHeight)))
             SetEvolutionReady();
 
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("成長速度 x1", buttonStyle, GUILayout.Height(ButtonHeight)))
+            SetGrowthSpeedMultiplier(1f);
+        if (GUILayout.Button("成長速度 x240", buttonStyle, GUILayout.Height(ButtonHeight)))
+            SetGrowthSpeedMultiplier(FastGrowthMultiplier);
+        GUILayout.EndHorizontal();
+
         if (GUILayout.Button("シーンリセット", buttonStyle, GUILayout.Height(ButtonHeight)))
             ResetScene();
     }
@@ -163,6 +175,9 @@ public class DebugOverlay : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.E))
             SetEvolutionReady();
+
+        if (Input.GetKeyDown(KeyCode.G))
+            ToggleFastGrowth();
 
         if (Input.GetKeyDown(KeyCode.R))
             ResetScene();
@@ -200,6 +215,29 @@ public class DebugOverlay : MonoBehaviour
         {
             stateController.SetEvolutionReady();
         }
+    }
+
+    void SetGrowthSpeedMultiplier(float multiplier)
+    {
+        if (growthController == null)
+            ResolveDependencies();
+
+        if (growthController == null)
+            return;
+
+        growthController.SetDebugGrowthMultiplier(multiplier);
+    }
+
+    void ToggleFastGrowth()
+    {
+        if (growthController == null)
+            ResolveDependencies();
+
+        if (growthController == null)
+            return;
+
+        bool isFast = growthController.DebugGrowthMultiplier > 1f;
+        SetGrowthSpeedMultiplier(isFast ? 1f : FastGrowthMultiplier);
     }
 
     void ResetScene()
