@@ -413,6 +413,11 @@ public class YokaiStateController : MonoBehaviour
 
     YokaiState DetermineNextState(YokaiState? requestedState = null)
     {
+        // 優先順位:
+        // 1) 強制状態 (Purifying)
+        // 2) requestedState 評価時の維持状態
+        // 3) Empty 系状態
+        // 4) Normal
         if (isPurifying)
         {
             return YokaiState.Purifying;
@@ -420,12 +425,14 @@ public class YokaiStateController : MonoBehaviour
 
         if (requestedState.HasValue)
         {
+            // requestedState 評価時も Empty は最優先
             if (isPurityEmpty)
                 return YokaiState.PurityEmpty;
 
             if (isSpiritEmpty)
                 return YokaiState.EnergyEmpty;
 
+            // requestedState がある場合のみ、遷移中/維持中の状態を保持
             if ((currentState == YokaiState.Purifying && !isPurifying)
                 || currentState == YokaiState.Evolving
                 || currentState == YokaiState.EvolutionReady)
@@ -434,6 +441,7 @@ public class YokaiStateController : MonoBehaviour
             return YokaiState.Normal;
         }
 
+        // 通常評価
         if (isPurityEmpty)
             return YokaiState.PurityEmpty;
 
