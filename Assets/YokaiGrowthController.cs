@@ -25,6 +25,8 @@ public class YokaiGrowthController : MonoBehaviour
     [SerializeField]
     float growthMultiplier = 1.0f;
 
+    float debugGrowthMultiplier = 1.0f;
+
     [SerializeField]
     bool resetEvolutionReadyOnStartup = true;
 
@@ -147,7 +149,7 @@ public class YokaiGrowthController : MonoBehaviour
             return;
         }
 
-        float growthAmount = elapsedSeconds * growthRatePerSecond * growthMultiplier;
+        float growthAmount = elapsedSeconds * growthRatePerSecond * growthMultiplier * debugGrowthMultiplier;
         currentScale = Mathf.Clamp(currentScale + growthAmount, initialScale, maxScale);
 
         ApplyScale();
@@ -198,6 +200,13 @@ public class YokaiGrowthController : MonoBehaviour
         }
 
         return true;
+    }
+
+    public float DebugGrowthMultiplier => debugGrowthMultiplier;
+
+    public void SetDebugGrowthMultiplier(float multiplier)
+    {
+        debugGrowthMultiplier = Mathf.Max(multiplier, 0f);
     }
 
     void LogGrowthStoppedReason()
