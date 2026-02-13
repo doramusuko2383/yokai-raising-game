@@ -13,14 +13,12 @@ public class YokaiStateControllerStateModelTests
         var controller = CreateController();
 
         controller.currentState = YokaiState.Normal;
-        controller.isPurifying = false;
         SetPrivateBool(controller, "isPurifyCharging", false);
 
         Assert.That(controller.CanDo(YokaiAction.PurifyHoldStart), Is.False);
         Assert.That(controller.CanDo(YokaiAction.PurifyHoldCancel), Is.False);
 
         controller.currentState = YokaiState.Purifying;
-        controller.isPurifying = true;
 
         Assert.That(controller.CanDo(YokaiAction.PurifyHoldStart), Is.True);
         Assert.That(controller.CanDo(YokaiAction.PurifyHoldCancel), Is.False);
@@ -36,7 +34,6 @@ public class YokaiStateControllerStateModelTests
     {
         var controller = CreateController();
         controller.currentState = YokaiState.Purifying;
-        controller.isPurifying = true;
         SetPrivateBool(controller, "isPurifyCharging", false);
 
         bool executed = controller.TryDo(YokaiAction.PurifyHoldStart, "HoldStart");
@@ -44,7 +41,6 @@ public class YokaiStateControllerStateModelTests
         Assert.That(executed, Is.True);
         Assert.That(controller.IsPurifyCharging, Is.True);
         Assert.That(controller.HasUserInteracted, Is.True);
-        Assert.That(controller.isPurifying, Is.True);
     }
 
     [Test]
@@ -52,14 +48,12 @@ public class YokaiStateControllerStateModelTests
     {
         var controller = CreateController();
         controller.currentState = YokaiState.Purifying;
-        controller.isPurifying = true;
         SetPrivateBool(controller, "isPurifyCharging", true);
 
         bool executed = controller.TryDo(YokaiAction.PurifyHoldCancel, "HoldCancel");
 
         Assert.That(executed, Is.True);
         Assert.That(controller.IsPurifyCharging, Is.False);
-        Assert.That(controller.isPurifying, Is.False);
     }
 
     [Test]
@@ -118,7 +112,6 @@ public class YokaiStateControllerStateModelTests
     {
         var controller = CreateController();
         controller.currentState = YokaiState.Normal;
-        controller.isPurifying = false;
 
         SetPrivateBool(controller, "isPurityEmpty", false);
         SetPrivateBool(controller, "isSpiritEmpty", false);
@@ -146,25 +139,16 @@ public class YokaiStateControllerStateModelTests
     [Test]
     public void YokaiStateRules_ForcedStateAndEvolutionReadyLock_WorkAsExpected()
     {
-        var forcedByPurifying = YokaiStateRules.DetermineForcedState(
-            YokaiState.Normal,
-            isPurifying: true,
-            isEvolving: true
-        );
+        var forcedByPurifying = YokaiStateRules.DetermineForcedState(YokaiState.Purifying);
         Assert.That(forcedByPurifying, Is.EqualTo(YokaiState.Purifying));
 
-        var forcedByEvolutionReady = YokaiStateRules.DetermineForcedState(
-            YokaiState.EvolutionReady,
-            isPurifying: false,
-            isEvolving: false
-        );
+        var forcedByEvolutionReady = YokaiStateRules.DetermineForcedState(YokaiState.EvolutionReady);
         Assert.That(forcedByEvolutionReady, Is.EqualTo(YokaiState.EvolutionReady));
 
         Assert.That(
             YokaiStateRules.CanDo(
                 YokaiState.EvolutionReady,
                 YokaiAction.StartEvolution,
-                isPurifying: false,
                 isPurifyCharging: false,
                 isPurityEmpty: false,
                 isSpiritEmpty: false
@@ -176,7 +160,6 @@ public class YokaiStateControllerStateModelTests
             YokaiStateRules.CanDo(
                 YokaiState.EvolutionReady,
                 YokaiAction.EatDango,
-                isPurifying: false,
                 isPurifyCharging: false,
                 isPurityEmpty: false,
                 isSpiritEmpty: false

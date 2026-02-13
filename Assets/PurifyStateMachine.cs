@@ -26,10 +26,9 @@ namespace Yokai
             currentState = PurifyInternalState.Idle;
             controller.SetHasUserInteracted(false);
             controller.SetPurifyCharging(false);
-            controller.SetPurifying(true);
             controller.SetPurifyTriggeredByUser(true);
             Debug.Log("[PURIFY HOLD] BeginPurifying started (UI will handle charge)");
-            controller.RequestEvaluateState(reason ?? "BeginPurify", false);
+            controller.SetState(YokaiState.Purifying, reason ?? "BeginPurify");
         }
 
         public void StartCharging()
@@ -50,7 +49,8 @@ namespace Yokai
 
             currentState = PurifyInternalState.Cancelled;
             controller.SetPurifyCharging(false);
-            controller.CancelPurifying(reason ?? "HoldReleasedEarly");
+            controller.NotifyPurifyCancelled();
+            controller.SetState(YokaiState.Normal, reason ?? "HoldReleasedEarly");
         }
 
         public void CompleteCharging()
@@ -60,14 +60,16 @@ namespace Yokai
 
             currentState = PurifyInternalState.Completed;
             controller.SetPurifyCharging(false);
-            controller.StopPurifyingForSuccess();
+            controller.NotifyPurifySucceeded();
+            controller.SetState(YokaiState.Normal, "PurifySuccess");
         }
 
         public void CancelPurify(string reason)
         {
             currentState = PurifyInternalState.Cancelled;
             controller.SetPurifyCharging(false);
-            controller.CancelPurifying(reason ?? "Cancelled");
+            controller.NotifyPurifyCancelled();
+            controller.SetState(YokaiState.Normal, reason ?? "Cancelled");
         }
     }
 }

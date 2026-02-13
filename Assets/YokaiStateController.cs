@@ -12,7 +12,6 @@ public class YokaiStateController : MonoBehaviour
 
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
-    public bool isPurifying;
     public event System.Action<YokaiState, YokaiState> OnStateChanged;
     public event System.Action OnPurifySucceeded;
     public event System.Action OnPurifyCancelled;
@@ -20,7 +19,6 @@ public class YokaiStateController : MonoBehaviour
 
     bool isSpiritEmpty;
     bool isPurityEmpty;
-    bool isEvolving;
     bool isPurifyCharging;
     bool isPurifyTriggerReady;
     bool canUseSpecialDango;
@@ -78,7 +76,6 @@ public class YokaiStateController : MonoBehaviour
 
     public bool IsSpiritEmpty => isSpiritEmpty;
     public bool IsPurityEmptyState => isPurityEmpty;
-    public bool IsEvolving => isEvolving;
     public bool IsPurifyCharging => isPurifyCharging;
     public bool IsPurifyTriggerReady => isPurifyTriggerReady;
     public bool CanUseSpecialDango => canUseSpecialDango;
@@ -93,7 +90,6 @@ public class YokaiStateController : MonoBehaviour
         return YokaiStateRules.CanDo(
             currentState,
             action,
-            isPurifying,
             isPurifyCharging,
             isPurityEmpty,
             isSpiritEmpty
@@ -146,19 +142,9 @@ public class YokaiStateController : MonoBehaviour
         PurifyMachine.CancelCharging(reason);
     }
 
-    internal void SetPurifying(bool value)
-    {
-        isPurifying = value;
-    }
-
     internal void SetPurifyCharging(bool value)
     {
         isPurifyCharging = value;
-    }
-
-    internal void SetEvolving(bool value)
-    {
-        isEvolving = value;
     }
 
     internal void SetPurifyTriggeredByUser(bool value)
@@ -332,7 +318,7 @@ public class YokaiStateController : MonoBehaviour
 
     YokaiState? DetermineForcedState()
     {
-        return YokaiStateRules.DetermineForcedState(currentState, isPurifying, isEvolving);
+        return YokaiStateRules.DetermineForcedState(currentState);
     }
 
     YokaiState DetermineRequestedState(YokaiState requestedState)
@@ -394,7 +380,7 @@ public class YokaiStateController : MonoBehaviour
 
     public void CancelPurifying(string reason = "Cancelled")
     {
-        if (!isPurifying)
+        if (currentState != YokaiState.Purifying)
             return;
 
         isPurifyCharging = false;
@@ -615,7 +601,7 @@ public class YokaiStateController : MonoBehaviour
 
     public void NotifyPurifySucceeded()
     {
-        if (!isPurifying)
+        if (currentState != YokaiState.Purifying)
             return;
 
         StopPurifyFallback();
@@ -629,7 +615,6 @@ public class YokaiStateController : MonoBehaviour
             hasWarnedMissingPurifyControllers = true;
         }
 
-        isPurifying = false;
         isPurifyCharging = false;
         IsPurifyTriggeredByUser = false;
         SyncManagerState();
@@ -638,11 +623,10 @@ public class YokaiStateController : MonoBehaviour
 
     public void NotifyPurifyCancelled()
     {
-        if (!isPurifying)
+        if (currentState != YokaiState.Purifying)
             return;
 
         StopPurifyFallback();
-        isPurifying = false;
         isPurifyCharging = false;
         IsPurifyTriggeredByUser = false;
         SyncManagerState();
@@ -657,7 +641,6 @@ public class YokaiStateController : MonoBehaviour
 
         Debug.Log("[EMERGENCY] EmergencyPurify requested");
 
-        isPurifying = false;
         isPurifyCharging = false;
         IsPurifyTriggeredByUser = false;
 
@@ -672,7 +655,6 @@ public class YokaiStateController : MonoBehaviour
 
     void ResetPurifyingState()
     {
-        isPurifying = false;
         isPurifyCharging = false;
         IsPurifyTriggeredByUser = false;
         StopPurifyFallback();
@@ -791,7 +773,7 @@ public class YokaiStateController : MonoBehaviour
 
         purifyFallbackRoutine = null;
 
-        if (isPurifying)
+        if (currentState == YokaiState.Purifying)
             CompletePurifySuccess("PurifyFallback");
     }
 

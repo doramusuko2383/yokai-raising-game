@@ -28,30 +28,19 @@ namespace Yokai
             if (state != EvolutionInternalState.Ready)
                 return;
 
-            controller.SetEvolving(true);
             state = EvolutionInternalState.Evolving;
-            controller.RequestEvaluateStateRequested(
-                YokaiState.Evolving,
-                reason ?? "BeginEvolution",
-                false
-            );
+            controller.SetState(YokaiState.Evolving, reason ?? "BeginEvolution");
             Debug.Log("[EVOLUTION FSM] Ready -> Evolving");
         }
 
         public void CompleteEvolution()
         {
-            controller.SetEvolving(false);
-
             // purity / spirit を初期値にリセット
             controller.SpiritController.SetSpirit(80f);
             controller.PurityController.SetPurity(80f);
 
             state = EvolutionInternalState.Idle;
-            controller.RequestEvaluateStateRequested(
-                YokaiState.Normal,
-                "EvolutionComplete",
-                false
-            );
+            controller.SetState(YokaiState.Normal, "EvolutionComplete");
         }
     }
 }
