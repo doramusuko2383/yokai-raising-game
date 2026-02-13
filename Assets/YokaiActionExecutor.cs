@@ -53,7 +53,7 @@ namespace Yokai
                     break;
 
                 case YokaiAction.StartEvolution:
-                    controller.BeginEvolution();
+                    controller.EvolutionMachine.StartEvolution(reason);
                     break;
 
                 default:

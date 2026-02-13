@@ -8,6 +8,7 @@ public class YokaiStateController : MonoBehaviour
 {
     private YokaiActionExecutor actionExecutor;
     private PurifyStateMachine purifyMachine;
+    private EvolutionStateMachine evolutionMachine;
 
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
@@ -85,6 +86,7 @@ public class YokaiStateController : MonoBehaviour
     public PurityController PurityController => purityController;
     public string LastStateChangeReason => lastStateChangeReason;
     internal PurifyStateMachine PurifyMachine => purifyMachine ??= new PurifyStateMachine(this);
+    internal EvolutionStateMachine EvolutionMachine => evolutionMachine ??= new EvolutionStateMachine(this);
 
     public bool CanDo(YokaiAction action)
     {
@@ -149,6 +151,11 @@ public class YokaiStateController : MonoBehaviour
     internal void SetPurifyCharging(bool value)
     {
         isPurifyCharging = value;
+    }
+
+    internal void SetEvolving(bool value)
+    {
+        isEvolving = value;
     }
 
     internal void SetPurifyTriggeredByUser(bool value)
@@ -575,17 +582,12 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginEvolution()
     {
-        if (currentState != YokaiState.EvolutionReady)
-            return;
-
-        isEvolving = true;
-        RequestEvaluateStateRequested(YokaiState.Evolving, "BeginEvolution", false);
+        EvolutionMachine.StartEvolution("BeginEvolution");
     }
 
     public void CompleteEvolution()
     {
-        isEvolving = false;
-        RequestEvaluateStateRequested(YokaiState.Normal, "EvolutionComplete", false);
+        EvolutionMachine.CompleteEvolution();
     }
 
     public void BindCurrentYokai(GameObject activeYokai)
