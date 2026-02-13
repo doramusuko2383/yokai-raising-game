@@ -367,7 +367,7 @@ public class YokaiStateController : MonoBehaviour
         isSpiritEmpty = true;
         canUseSpecialDango = true;
 
-        EvaluateState(reason: "SpiritEmpty");
+        RequestEvaluateState("SpiritEmpty");
     }
 
     public void OnSpiritRecovered()
@@ -377,16 +377,12 @@ public class YokaiStateController : MonoBehaviour
 
         isSpiritEmpty = false;
         canUseSpecialDango = false;
-        EvaluateState(reason: "SpiritRecovered");
+        RequestEvaluateState("SpiritRecovered");
     }
 
     public void ForceReevaluate(string reason)
     {
-        if (!canEvaluateState)
-            return;
-
-        SyncManagerState();
-        EvaluateState(reason: reason, forcePresentation: ShouldAllowRebindPresentationSync());
+        RequestEvaluateState(reason, ShouldAllowRebindPresentationSync());
     }
 
     void EvaluateState(YokaiState? requestedState = null, string reason = "Auto", bool forcePresentation = false)
@@ -470,7 +466,7 @@ public class YokaiStateController : MonoBehaviour
         IsPurifyTriggeredByUser = true;
         HasUserInteracted = false;
         Debug.Log("[PURIFY HOLD] BeginPurifying started (UI will handle charge)");
-        EvaluateState(reason: reason, forcePresentation: false);
+        RequestEvaluateState(reason, false);
     }
 
     public void ConsumePurifyTrigger()
@@ -495,7 +491,7 @@ public class YokaiStateController : MonoBehaviour
 
         isPurifyCharging = false;
         NotifyPurifySucceeded();
-        EvaluateState(reason: "PurifySuccess", forcePresentation: true);
+        RequestEvaluateState("PurifySuccess", true);
     }
 
     public void CancelPurifying(string reason = "Cancelled")
@@ -505,7 +501,7 @@ public class YokaiStateController : MonoBehaviour
 
         isPurifyCharging = false;
         NotifyPurifyCancelled();
-        EvaluateState(reason: reason, forcePresentation: true);
+        RequestEvaluateState(reason, true);
     }
 
     public void BeginEvolution()
@@ -514,13 +510,13 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isEvolving = true;
-        EvaluateState(YokaiState.Evolving, reason: "BeginEvolution");
+        RequestEvaluateStateRequested(YokaiState.Evolving, "BeginEvolution", false);
     }
 
     public void CompleteEvolution()
     {
         isEvolving = false;
-        EvaluateState(YokaiState.Normal, reason: "EvolutionComplete");
+        RequestEvaluateStateRequested(YokaiState.Normal, "EvolutionComplete", false);
     }
 
     public void BindCurrentYokai(GameObject activeYokai)
@@ -565,8 +561,7 @@ public class YokaiStateController : MonoBehaviour
         
         if (canEvaluateState)
         {
-            SyncManagerState();
-            EvaluateState(reason: "FullyInitialized", forcePresentation: allowRebindPresentationSync);
+            RequestEvaluateState("FullyInitialized", allowRebindPresentationSync);
         }
     }
 
@@ -620,7 +615,7 @@ public class YokaiStateController : MonoBehaviour
         }
 
         if (!IsPurityEmpty())
-            EvaluateState(YokaiState.EvolutionReady, reason: "EvolutionReady");
+            RequestEvaluateStateRequested(YokaiState.EvolutionReady, "EvolutionReady", false);
     }
 
     public void OnPurityEmpty()
@@ -628,7 +623,7 @@ public class YokaiStateController : MonoBehaviour
         isPurityEmpty = true;
         isPurifyTriggerReady = true;
 
-        EvaluateState(reason: "PurityEmpty");
+        RequestEvaluateState("PurityEmpty");
     }
 
     public void OnPurityRecovered(string reason)
@@ -647,7 +642,7 @@ public class YokaiStateController : MonoBehaviour
 
         isPurityEmpty = false;
         isPurifyTriggerReady = false;
-        EvaluateState(reason: "PurityRecovered");
+        RequestEvaluateState("PurityRecovered");
     }
 
     void HandleThresholdReached(ref bool stateFlag, string reason)
@@ -656,7 +651,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         stateFlag = true;
-        EvaluateState(reason: reason);
+        RequestEvaluateState(reason);
     }
 
     public bool IsPurityEmpty()
@@ -756,7 +751,7 @@ public class YokaiStateController : MonoBehaviour
         IsPurifyTriggeredByUser = false;
         SyncManagerState();
         OnPurifyCancelled?.Invoke();
-        EvaluateState(reason: "PurifyCancelled", forcePresentation: false);
+        RequestEvaluateState("PurifyCancelled", false);
     }
 
     public void ExecuteEmergencyPurify(string reason)
@@ -798,11 +793,28 @@ public class YokaiStateController : MonoBehaviour
 
     public void RequestEvaluateState(string reason)
     {
+        RequestEvaluateState(reason, false);
+    }
+
+    public void RequestEvaluateState(string reason, bool forcePresentation)
+    {
         if (!canEvaluateState)
             return;
 
         SyncManagerState();
-        EvaluateState(reason: reason, forcePresentation: false);
+        EvaluateState(reason: reason, forcePresentation: forcePresentation);
+    }
+
+    public void RequestEvaluateStateRequested(
+        YokaiState requestedState,
+        string reason,
+        bool forcePresentation)
+    {
+        if (!canEvaluateState)
+            return;
+
+        SyncManagerState();
+        EvaluateState(requestedState, reason: reason, forcePresentation: forcePresentation);
     }
 
     bool ShouldAllowRebindPresentationSync()
