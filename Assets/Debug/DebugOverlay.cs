@@ -105,7 +105,8 @@ public class DebugOverlay : MonoBehaviour
         EnsureStyles();
 
         float panelHeight = 680f;
-        panelRect = new Rect(PanelPadding, PanelPadding, PanelWidth, panelHeight);
+        float x = Screen.width - PanelWidth - PanelPadding;
+        panelRect = new Rect(x, PanelPadding, PanelWidth, panelHeight);
         GUI.Box(panelRect, "DEBUG", GUI.skin.box);
 
         GUILayout.BeginArea(new Rect(panelRect.x + PanelPadding, panelRect.y + 24f, PanelWidth - PanelPadding * 2f, panelHeight - PanelPadding * 2f));
@@ -209,6 +210,9 @@ public class DebugOverlay : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.J))
             AdjustPurity(-10f);
+
+        if (Input.GetKeyDown(KeyCode.S))
+            AdjustSpirit(-10f);
 
         if (Input.GetKeyDown(KeyCode.E))
             SetEvolutionReady();
