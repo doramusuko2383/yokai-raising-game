@@ -316,8 +316,14 @@ public class YokaiStateController : MonoBehaviour
         OnStateChanged?.Invoke(prev, newState);
 
         isApplyingSideEffects = true;
-        sideEffectService.ApplyStateSideEffects(newState);
-        isApplyingSideEffects = false;
+        try
+        {
+            sideEffectService.ApplyStateSideEffects(newState);
+        }
+        finally
+        {
+            isApplyingSideEffects = false;
+        }
         CheckForUnknownStateWarning();
     }
 
