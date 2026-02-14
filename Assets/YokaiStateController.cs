@@ -332,7 +332,7 @@ public class YokaiStateController : MonoBehaviour
         switch (command)
         {
             case PurifyCommand.BeginPurifying:
-                HasUserInteracted = PurifyMachine.HasUserInteracted;
+                HasUserInteracted = false;
                 SetPurifyTriggeredByUser(true);
                 SetState(YokaiState.Purifying, reason ?? "BeginPurify");
                 break;

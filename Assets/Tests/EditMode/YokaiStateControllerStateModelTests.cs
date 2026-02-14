@@ -59,15 +59,14 @@ public class YokaiStateControllerStateModelTests
     public void PurifyFallback_TransitionsToNormalAndTriggersSuccess()
     {
         var controller = CreateController();
-        controller.currentState = YokaiState.Purifying;
+        controller.currentState = YokaiState.Normal;
 
         bool succeeded = false;
         controller.OnPurifySucceeded += () => succeeded = true;
 
-        var machine = new PurifyStateMachine();
-        machine.StartPurify("BeginPurify");
-        machine.StartCharging();
-        machine.CompleteCharging();
+        Assert.That(controller.TryDo(YokaiAction.PurifyStart, "BeginPurify"), Is.True);
+        Assert.That(controller.TryDo(YokaiAction.PurifyHoldStart, "HoldStart"), Is.True);
+        Assert.That(controller.TryDo(YokaiAction.PurifyCancel, "ChargeComplete"), Is.True);
 
         Assert.That(controller.CurrentState, Is.EqualTo(YokaiState.Normal));
         Assert.That(succeeded, Is.True);
