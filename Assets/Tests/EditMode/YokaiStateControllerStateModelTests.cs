@@ -67,7 +67,9 @@ public class YokaiStateControllerStateModelTests
         controller.OnPurifySucceeded += () => succeeded = true;
 
         var machine = new PurifyStateMachine(controller);
-        machine.FallbackComplete("PurifyFallback");
+        machine.StartPurify("BeginPurify");
+        machine.StartCharging();
+        machine.CompleteCharging();
 
         Assert.That(controller.CurrentState, Is.EqualTo(YokaiState.Normal));
         Assert.That(succeeded, Is.True);
