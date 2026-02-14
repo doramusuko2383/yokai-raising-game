@@ -273,41 +273,21 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
-        YokaiState nextState = DetermineNextState(requestedState);
-        SetState(nextState, reason);
-    }
-
-    YokaiState DetermineNextState(YokaiState? requestedState = null)
-    {
-        // 優先順位:
-        // 1) 強制状態 (Purifying / Evolving / EvolutionReady)
-        // 2) requestedState 評価時の維持状態
-        // 3) Empty 系状態
-        // 4) Normal
-        YokaiState? forcedState = DetermineForcedState();
-        if (forcedState.HasValue)
-            return forcedState.Value;
-
         if (requestedState.HasValue)
-            return DetermineRequestedState(requestedState.Value);
+        {
+            YokaiLogger.FSM($"[EVOLUTION] DetermineRequestedState requested={requestedState.Value} current={currentState}");
+        }
 
-        return DetermineDefaultState();
-    }
-
-    YokaiState? DetermineForcedState()
-    {
-        return YokaiStateRules.DetermineForcedState(currentState);
-    }
-
-    YokaiState DetermineRequestedState(YokaiState requestedState)
-    {
-        YokaiLogger.FSM($"[EVOLUTION] DetermineRequestedState requested={requestedState} current={currentState}");
-        return YokaiStateRules.DetermineRequestedState(currentState, requestedState, isPurityEmpty, isSpiritEmpty);
-    }
-
-    YokaiState DetermineDefaultState()
-    {
-        return YokaiStateRules.DetermineDefaultState(isPurityEmpty, isSpiritEmpty);
+        var nextState = YokaiStateEngine.DetermineNextState(
+            currentState,
+            requestedState,
+            isPurityEmpty,
+            isSpiritEmpty,
+            isPurifying,
+            currentState == YokaiState.Evolving,
+            currentState == YokaiState.EvolutionReady
+        );
+        SetState(nextState, reason);
     }
 
     public void SetState(YokaiState newState, string reason)
