@@ -9,6 +9,7 @@ public class YokaiStateController : MonoBehaviour
     private YokaiActionExecutor actionExecutor;
     private PurifyStateMachine purifyMachine;
     private EvolutionStateMachine evolutionMachine;
+    private YokaiSideEffectService sideEffectService;
 
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
@@ -83,6 +84,7 @@ public class YokaiStateController : MonoBehaviour
     public bool CanUseSpecialDango => canUseSpecialDango;
     public SpiritController SpiritController => spiritController;
     public PurityController PurityController => purityController;
+    internal YokaiGrowthController GrowthController => growthController;
     public string LastStateChangeReason => lastStateChangeReason;
     internal PurifyStateMachine PurifyMachine => purifyMachine ??= new PurifyStateMachine(this);
     internal EvolutionStateMachine EvolutionMachine => evolutionMachine ??= new EvolutionStateMachine(this);
@@ -174,6 +176,7 @@ public class YokaiStateController : MonoBehaviour
     {
         actionExecutor = new YokaiActionExecutor(this);
         purifyMachine = new PurifyStateMachine(this);
+        sideEffectService = new YokaiSideEffectService(this);
     }
 
     void Start()
@@ -322,8 +325,7 @@ public class YokaiStateController : MonoBehaviour
         YokaiLogger.State($"{prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
 
-        ApplyEmptyStateEffects();
-        SyncPresentation(newState, force: false);
+        sideEffectService.ApplyStateSideEffects(newState);
         CheckForUnknownStateWarning();
     }
 
@@ -673,7 +675,7 @@ public class YokaiStateController : MonoBehaviour
         EvaluateState(requestedState, reason: reason);
     }
 
-    YokaiStatePresentationController ResolvePresentationController()
+    internal YokaiStatePresentationController ResolvePresentationController()
     {
         if (presentationController != null)
             return presentationController;
