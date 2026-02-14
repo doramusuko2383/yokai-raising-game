@@ -233,6 +233,17 @@ public class YokaiGrowthController : MonoBehaviour
 #endif
     }
 
+
+    public void AddGrowth(float amount)
+    {
+        if (amount <= 0f)
+            return;
+
+        currentScale = Mathf.Clamp(currentScale + amount, initialScale, maxScale);
+        ApplyScale();
+        TryMarkEvolutionReady();
+    }
+
     public void ApplyScale()
     {
         transform.localScale = Vector3.one * currentScale;

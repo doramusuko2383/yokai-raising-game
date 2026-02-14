@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -685,38 +686,57 @@ public class YokaiStateController : MonoBehaviour
 
 
 
-    public void ApplyOfflineProgress(long deltaSeconds)
+    public void ApplyOfflineProgress(long deltaSeconds, long now)
     {
         if (deltaSeconds <= 0)
             return;
 
-        float delta = deltaSeconds;
+        if (purityController == null || spiritController == null || growthController == null)
+            return;
 
-        float purityDecayRate = GetPurityDecayRate();
-        if (purityController != null)
-            purityController.AddPurity(-purityDecayRate * delta);
+        var save = SaveManager.Instance != null ? SaveManager.Instance.CurrentSave : null;
+        var boost = save != null ? save.boost : null;
 
-        float spiritDecayRate = GetSpiritDecayRate();
-        if (spiritController != null)
-            spiritController.ChangeSpirit(-spiritDecayRate * delta);
+        long growthBoostSeconds = 0;
+        long decayHalfSeconds = 0;
 
-        float growthRate = GetGrowthRate();
-        if (growthController != null)
+        if (boost != null)
         {
-            growthController.currentScale = Mathf.Clamp(
-                growthController.currentScale + growthRate * delta,
-                growthController.InitialScale,
-                growthController.maxScale
-            );
-            growthController.ApplyScale();
+            if (boost.growthBoostExpireUnixTime > now)
+                growthBoostSeconds = Math.Min(deltaSeconds, boost.growthBoostExpireUnixTime - now);
+
+            if (boost.decayHalfBoostExpireUnixTime > now)
+                decayHalfSeconds = Math.Min(deltaSeconds, boost.decayHalfBoostExpireUnixTime - now);
         }
 
-        HandleZeroOvertimeStress(delta);
+        float purityRatePerSecond = GetPurityDecayRatePerSecond();
+        float spiritRatePerSecond = GetSpiritDecayRatePerSecond();
+        float growthRatePerSecond = GetGrowthRatePerSecond();
+
+        long decayNormalSeconds = deltaSeconds - decayHalfSeconds;
+        float purityDelta =
+            -(purityRatePerSecond * decayNormalSeconds)
+            + -(purityRatePerSecond * 0.5f * decayHalfSeconds);
+
+        float spiritDelta =
+            -(spiritRatePerSecond * decayNormalSeconds)
+            + -(spiritRatePerSecond * 0.5f * decayHalfSeconds);
+
+        long growthNormalSeconds = deltaSeconds - growthBoostSeconds;
+        float growthDelta =
+            (growthRatePerSecond * growthNormalSeconds)
+            + (growthRatePerSecond * 2f * growthBoostSeconds);
+
+        purityController.AddPurity(purityDelta);
+        spiritController.ChangeSpirit(spiritDelta);
+        growthController.AddGrowth(growthDelta);
+
+        HandleZeroOvertimeStress(deltaSeconds);
 
         RequestEvaluateState("OfflineProgress");
     }
 
-    float GetPurityDecayRate()
+    float GetPurityDecayRatePerSecond()
     {
         if (purityController == null)
             return 0f;
@@ -725,7 +745,7 @@ public class YokaiStateController : MonoBehaviour
         return Mathf.Max(0f, defaultPurityDecayPerMinute / 60f);
     }
 
-    float GetSpiritDecayRate()
+    float GetSpiritDecayRatePerSecond()
     {
         if (spiritController == null)
             return 0f;
@@ -734,7 +754,7 @@ public class YokaiStateController : MonoBehaviour
         return Mathf.Max(0f, defaultSpiritDecayPerMinute / 60f);
     }
 
-    float GetGrowthRate()
+    float GetGrowthRatePerSecond()
     {
         if (growthController == null)
             return 0f;
