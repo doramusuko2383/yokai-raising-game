@@ -23,14 +23,14 @@ namespace Yokai
                 return EvolutionCommand.None;
 
             state = EvolutionInternalState.Evolving;
-            YokaiLogger.FSM("Ready -> Evolving");
+            YokaiLogger.FSM("[Evolution] Ready -> Evolving");
             return EvolutionCommand.BeginEvolving;
         }
 
         public EvolutionCommand CompleteEvolution()
         {
             state = EvolutionInternalState.Idle;
-            YokaiLogger.FSM("Evolving -> Normal");
+            YokaiLogger.FSM("[Evolution] Evolving -> Normal");
             return EvolutionCommand.CompleteEvolution;
         }
     }

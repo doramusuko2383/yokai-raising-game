@@ -156,16 +156,16 @@ public class YokaiStateControllerStateModelTests
     }
 
     [Test]
-    public void YokaiStateRules_ForcedStateAndEvolutionReadyLock_WorkAsExpected()
+    public void StateEngines_ForcedStateAndEvolutionReadyLock_WorkAsExpected()
     {
-        var forcedByPurifying = YokaiStateRules.DetermineForcedState(YokaiState.Purifying);
+        var forcedByPurifying = YokaiStateEngine.DetermineForcedState(YokaiState.Normal, isPurifying: true, isEvolving: false, isEvolutionReady: false);
         Assert.That(forcedByPurifying, Is.EqualTo(YokaiState.Purifying));
 
-        var forcedByEvolutionReady = YokaiStateRules.DetermineForcedState(YokaiState.EvolutionReady);
+        var forcedByEvolutionReady = YokaiStateEngine.DetermineForcedState(YokaiState.Normal, isPurifying: false, isEvolving: false, isEvolutionReady: true);
         Assert.That(forcedByEvolutionReady, Is.EqualTo(YokaiState.EvolutionReady));
 
         Assert.That(
-            YokaiStateRules.CanDo(
+            YokaiActionRuleEngine.CanDo(
                 YokaiState.EvolutionReady,
                 YokaiAction.StartEvolution,
                 isPurifyCharging: false,
@@ -176,7 +176,7 @@ public class YokaiStateControllerStateModelTests
         );
 
         Assert.That(
-            YokaiStateRules.CanDo(
+            YokaiActionRuleEngine.CanDo(
                 YokaiState.EvolutionReady,
                 YokaiAction.EatDango,
                 isPurifyCharging: false,
@@ -202,8 +202,6 @@ public class YokaiStateControllerStateModelTests
 
     static YokaiState InvokeDetermineRequestedState(YokaiStateController controller, YokaiState requestedState)
     {
-        MethodInfo method = typeof(YokaiStateController).GetMethod("DetermineRequestedState", InstanceFlags);
-        Assert.That(method, Is.Not.Null, "Private method 'DetermineRequestedState' was not found.");
-        return (YokaiState)method.Invoke(controller, new object[] { requestedState });
+        return YokaiStateEngine.DetermineRequestedState(controller.CurrentState, requestedState, controller.IsPurityEmptyState, controller.IsSpiritEmpty);
     }
 }
