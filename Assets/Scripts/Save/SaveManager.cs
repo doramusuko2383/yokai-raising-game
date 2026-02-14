@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using Yokai;
 
 public class SaveManager : MonoBehaviour
 {
@@ -90,6 +91,8 @@ public class SaveManager : MonoBehaviour
 
     public void Load()
     {
+        long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
         try
         {
             if (File.Exists(SavePath))
@@ -109,11 +112,71 @@ public class SaveManager : MonoBehaviour
 
             if (CurrentSave == null)
                 CurrentSave = new GameSaveData();
+
+            if (CurrentSave.yokai == null)
+                CurrentSave.yokai = new YokaiSaveData();
+
+            if (CurrentSave.dango == null)
+                CurrentSave.dango = new DangoSaveData();
+
+            if (CurrentSave.boost == null)
+                CurrentSave.boost = new BoostSaveData();
+
+            long delta = Math.Max(0L, now - CurrentSave.lastSavedUnixTime);
+            HandleOfflineProgress(delta);
         }
         catch (Exception e)
         {
             Debug.LogWarning($"Load failed, creating new save. {e}");
             CurrentSave = new GameSaveData();
+
+            if (CurrentSave.yokai == null)
+                CurrentSave.yokai = new YokaiSaveData();
+
+            if (CurrentSave.dango == null)
+                CurrentSave.dango = new DangoSaveData();
+
+            if (CurrentSave.boost == null)
+                CurrentSave.boost = new BoostSaveData();
         }
+    }
+
+    void HandleOfflineProgress(long deltaSeconds)
+    {
+        if (deltaSeconds <= 0)
+            return;
+
+        var controller = YokaiStateController.Instance;
+        if (controller != null)
+            controller.ApplyOfflineProgress(deltaSeconds);
+
+        var dango = CurrentSave.dango;
+        if (dango != null)
+        {
+            long generated = deltaSeconds / 600;
+            long lastGen = dango.lastGeneratedUnixTime;
+            long newCount = dango.currentCount + generated;
+            dango.currentCount = (int)Mathf.Min(newCount, 3);
+            dango.lastGeneratedUnixTime = lastGen + generated * 600;
+        }
+
+        var boost = CurrentSave.boost;
+        if (boost != null)
+        {
+            long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            if (now >= boost.dailyResetUnixTime + 86400)
+            {
+                boost.dailyDecayBoostUsedCount = 0;
+                boost.dailyResetUnixTime = now - (now % 86400);
+            }
+
+            if (boost.growthBoostExpireUnixTime < now)
+                boost.growthBoostExpireUnixTime = 0;
+
+            if (boost.decayHalfBoostExpireUnixTime < now)
+                boost.decayHalfBoostExpireUnixTime = 0;
+        }
+
+        MarkDirty();
     }
 }
