@@ -7,6 +7,7 @@ namespace Yokai
 {
 public class YokaiStateController : MonoBehaviour
 {
+    public static YokaiStateController Instance { get; private set; }
     private YokaiActionExecutor actionExecutor;
     private PurifyStateMachine purifyMachine;
     private EvolutionStateMachine evolutionMachine;
@@ -174,6 +175,14 @@ public class YokaiStateController : MonoBehaviour
 
     void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+
         actionExecutor = new YokaiActionExecutor(this);
         purifyMachine = new PurifyStateMachine();
         sideEffectService = new YokaiSideEffectService(this);
@@ -191,6 +200,9 @@ public class YokaiStateController : MonoBehaviour
 
     void OnDisable()
     {
+        if (Instance == this)
+            Instance = null;
+
         ResetPurifyingState();
         UnregisterPurityEvents();
         UnregisterSpiritEvents();
@@ -669,6 +681,69 @@ public class YokaiStateController : MonoBehaviour
 
         PurifyMachine.MarkUserInteracted();
         HasUserInteracted = PurifyMachine.HasUserInteracted;
+    }
+
+
+
+    public void ApplyOfflineProgress(long deltaSeconds)
+    {
+        if (deltaSeconds <= 0)
+            return;
+
+        float delta = deltaSeconds;
+
+        float purityDecayRate = GetPurityDecayRate();
+        if (purityController != null)
+            purityController.AddPurity(-purityDecayRate * delta);
+
+        float spiritDecayRate = GetSpiritDecayRate();
+        if (spiritController != null)
+            spiritController.ChangeSpirit(-spiritDecayRate * delta);
+
+        float growthRate = GetGrowthRate();
+        if (growthController != null)
+        {
+            growthController.currentScale = Mathf.Clamp(
+                growthController.currentScale + growthRate * delta,
+                growthController.InitialScale,
+                growthController.maxScale
+            );
+            growthController.ApplyScale();
+        }
+
+        HandleZeroOvertimeStress(delta);
+
+        RequestEvaluateState("OfflineProgress");
+    }
+
+    float GetPurityDecayRate()
+    {
+        if (purityController == null)
+            return 0f;
+
+        const float defaultPurityDecayPerMinute = 2f;
+        return Mathf.Max(0f, defaultPurityDecayPerMinute / 60f);
+    }
+
+    float GetSpiritDecayRate()
+    {
+        if (spiritController == null)
+            return 0f;
+
+        const float defaultSpiritDecayPerMinute = 2.5f;
+        return Mathf.Max(0f, defaultSpiritDecayPerMinute / 60f);
+    }
+
+    float GetGrowthRate()
+    {
+        if (growthController == null)
+            return 0f;
+
+        return Mathf.Max(0f, growthController.growthRatePerSecond);
+    }
+
+    void HandleZeroOvertimeStress(float delta)
+    {
     }
 
     public void RequestEvaluateState(string reason)
