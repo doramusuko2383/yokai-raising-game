@@ -64,6 +64,7 @@ public class YokaiStateController : MonoBehaviour
     int lastPurityRecoveredFrame = -1;
     private int lastStateChangeFrame = -1;
     private bool isApplyingSideEffects = false;
+    private List<string> invariantWarnings = new List<string>();
 
     [Header("Purify Fallback")]
     [SerializeField]
@@ -88,6 +89,10 @@ public class YokaiStateController : MonoBehaviour
     public PurityController PurityController => purityController;
     internal YokaiGrowthController GrowthController => growthController;
     public string LastStateChangeReason => lastStateChangeReason;
+    public string LastActionBlockReason { get; private set; }
+    public string LastActionBlockedAction { get; private set; }
+    public int LastActionBlockFrame { get; private set; }
+    public IReadOnlyList<string> LastInvariantWarnings => invariantWarnings;
 
     public IReadOnlyList<string> GetStateHistory()
     {
@@ -123,6 +128,9 @@ public class YokaiStateController : MonoBehaviour
 
         if (!CanDo(action, out string denyReason))
         {
+            LastActionBlockReason = denyReason;
+            LastActionBlockedAction = action.ToString();
+            LastActionBlockFrame = Time.frameCount;
             YokaiLogger.Warning($"[ACTION BLOCK] action={action} blocked. reason={denyReason}");
             return false;
         }
@@ -790,26 +798,42 @@ public class YokaiStateController : MonoBehaviour
 
     private void InvariantCheck()
     {
+        invariantWarnings.Clear();
+
         if (currentState == YokaiState.Purifying && !IsPurifying)
         {
-            YokaiLogger.Warning($"[INVARIANT] currentState=Purifying but isPurifying=false");
+            string warn = "[INVARIANT] currentState=Purifying but isPurifying=false";
+            invariantWarnings.Add(warn);
+            YokaiLogger.Warning(warn);
         }
 
         if (IsPurifying && currentState != YokaiState.Purifying)
         {
-            YokaiLogger.Warning($"[INVARIANT] isPurifying=true but currentState={currentState}");
+            string warn = $"[INVARIANT] isPurifying=true but currentState={currentState}";
+            invariantWarnings.Add(warn);
+            YokaiLogger.Warning(warn);
         }
 
         if (IsPurifyCharging && currentState != YokaiState.Purifying)
         {
-            YokaiLogger.Warning($"[INVARIANT] isPurifyCharging=true but state={currentState}");
+            string warn = $"[INVARIANT] isPurifyCharging=true but state={currentState}";
+            invariantWarnings.Add(warn);
+            YokaiLogger.Warning(warn);
         }
 
         if (isPurityEmpty && currentState != YokaiState.PurityEmpty)
-            YokaiLogger.Warning($"[INVARIANT] purityEmpty flag=true but state={currentState}");
+        {
+            string warn = $"[INVARIANT] purityEmpty flag=true but state={currentState}";
+            invariantWarnings.Add(warn);
+            YokaiLogger.Warning(warn);
+        }
 
         if (isSpiritEmpty && currentState != YokaiState.EnergyEmpty)
-            YokaiLogger.Warning($"[INVARIANT] spiritEmpty flag=true but state={currentState}");
+        {
+            string warn = $"[INVARIANT] spiritEmpty flag=true but state={currentState}";
+            invariantWarnings.Add(warn);
+            YokaiLogger.Warning(warn);
+        }
     }
 
     void CheckForUnknownStateWarning()

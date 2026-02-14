@@ -17,6 +17,8 @@ public class DebugOverlay : MonoBehaviour
     GUIStyle labelStyle;
     GUIStyle buttonStyle;
     Rect panelRect;
+    Vector2 historyScroll;
+    Vector2 invariantScroll;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Initialize()
@@ -102,7 +104,7 @@ public class DebugOverlay : MonoBehaviour
 
         EnsureStyles();
 
-        float panelHeight = 420f;
+        float panelHeight = 680f;
         panelRect = new Rect(PanelPadding, PanelPadding, PanelWidth, panelHeight);
         GUI.Box(panelRect, "DEBUG", GUI.skin.box);
 
@@ -130,6 +132,7 @@ public class DebugOverlay : MonoBehaviour
             ? $"x{growthController.DebugGrowthMultiplier:0.##}"
             : "Unknown";
 
+        GUILayout.Label("▼ 状態概要", labelStyle);
         GUILayout.Label($"State: {stateLabel}", labelStyle);
         GUILayout.Label($"Yokai: {yokaiName}", labelStyle);
         GUILayout.Label($"Stage: {growthLabel}", labelStyle);
@@ -137,25 +140,43 @@ public class DebugOverlay : MonoBehaviour
         GUILayout.Label($"Spirit: {spiritLabel}", labelStyle);
         GUILayout.Label($"Growth Speed: {growthSpeedLabel}", labelStyle);
 
-        GUILayout.Space(10f);
-        GUILayout.Label("=== STATE TRACE ===", labelStyle);
-
         if (stateController != null)
         {
+            GUILayout.Space(8f);
+            GUILayout.Label("▼ Action Block 情報", labelStyle);
+            GUILayout.Label($"LastFrame: {stateController.LastActionBlockFrame}", labelStyle);
+            GUILayout.Label($"LastAction: {stateController.LastActionBlockedAction}", labelStyle);
+            GUILayout.Label($"LastReason: {stateController.LastActionBlockReason}", labelStyle);
+
+            GUILayout.Space(8f);
+            GUILayout.Label("▼ Invariant Warnings", labelStyle);
+            invariantScroll = GUILayout.BeginScrollView(invariantScroll, GUILayout.Height(120));
+            foreach (var warning in stateController.LastInvariantWarnings)
+            {
+                GUILayout.Label(warning, labelStyle);
+            }
+            GUILayout.EndScrollView();
+
+            GUILayout.Space(8f);
+            GUILayout.Label("▼ State 履歴", labelStyle);
             GUILayout.Label($"Current: {stateController.CurrentState}", labelStyle);
             GUILayout.Label($"LastReason: {stateController.LastStateChangeReason}", labelStyle);
-            GUILayout.Space(5f);
 
             var history = stateController.GetStateHistory();
+            historyScroll = GUILayout.BeginScrollView(historyScroll, GUILayout.Height(200));
             foreach (var entry in history)
             {
                 GUILayout.Label(entry, labelStyle);
             }
+            GUILayout.EndScrollView();
         }
     }
 
     void DrawControls()
     {
+        GUILayout.Space(8f);
+        GUILayout.Label("▼ Debug 操作", labelStyle);
+
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("清浄度 +", buttonStyle, GUILayout.Height(ButtonHeight)))
             AdjustPurity(10f);
