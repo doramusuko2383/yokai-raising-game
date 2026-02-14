@@ -63,6 +63,7 @@ public class YokaiStateController : MonoBehaviour
     string lastPurityRecoveredReason;
     int lastPurityRecoveredFrame = -1;
     private int lastStateChangeFrame = -1;
+    private bool isApplyingSideEffects = false;
 
     [Header("Purify Fallback")]
     [SerializeField]
@@ -293,15 +294,18 @@ public class YokaiStateController : MonoBehaviour
 
     public void SetState(YokaiState newState, string reason)
     {
+        // 副作用実行中の再入を防止
+        if (isApplyingSideEffects)
+            return;
+
         // 同じ状態への変更は不要
         if (currentState == newState)
             return;
 
-        // 同じフレーム内での複数回変更を防止
+        // 同一フレーム内の重複遷移防止
         if (lastStateChangeFrame == UnityEngine.Time.frameCount)
             return;
 
-        // フレーム番号を記録
         lastStateChangeFrame = UnityEngine.Time.frameCount;
 
         var prev = currentState;
@@ -311,7 +315,9 @@ public class YokaiStateController : MonoBehaviour
         YokaiLogger.State($"{prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
 
+        isApplyingSideEffects = true;
         sideEffectService.ApplyStateSideEffects(newState);
+        isApplyingSideEffects = false;
         CheckForUnknownStateWarning();
     }
 
