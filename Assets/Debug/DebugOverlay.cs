@@ -16,6 +16,9 @@ public class DebugOverlay : MonoBehaviour
 
     GUIStyle labelStyle;
     GUIStyle buttonStyle;
+    GUIStyle warningStyle;
+    GUIStyle highlightStyle;
+    GUIStyle strongStyle;
     Rect panelRect;
     Vector2 historyScroll;
     Vector2 invariantScroll;
@@ -101,6 +104,25 @@ public class DebugOverlay : MonoBehaviour
                 fontSize = 11
             };
         }
+
+        if (warningStyle == null)
+        {
+            warningStyle = new GUIStyle(labelStyle);
+            warningStyle.normal.textColor = Color.red;
+        }
+
+        if (highlightStyle == null)
+        {
+            highlightStyle = new GUIStyle(labelStyle);
+            highlightStyle.normal.textColor = Color.yellow;
+        }
+
+        if (strongStyle == null)
+        {
+            strongStyle = new GUIStyle(labelStyle);
+            strongStyle.fontSize = 14;
+            strongStyle.normal.textColor = Color.cyan;
+        }
     }
 
     void OnGUI()
@@ -140,7 +162,7 @@ public class DebugOverlay : MonoBehaviour
             : "Unknown";
 
         GUILayout.Label("▼ 状態概要", labelStyle);
-        GUILayout.Label($"State: {stateLabel}", labelStyle);
+        GUILayout.Label($"State: {stateLabel}", strongStyle);
         GUILayout.Label($"Yokai: {yokaiName}", labelStyle);
         GUILayout.Label($"Stage: {growthLabel}", labelStyle);
         GUILayout.Label($"Purity: {purityLabel}", labelStyle);
@@ -149,18 +171,26 @@ public class DebugOverlay : MonoBehaviour
 
         if (stateController != null)
         {
+            bool recentBlock =
+                stateController.LastActionBlockFrame > 0 &&
+                Time.frameCount - stateController.LastActionBlockFrame <= 60;
+            var actionStyle = recentBlock ? highlightStyle : labelStyle;
+
             GUILayout.Space(8f);
             GUILayout.Label("▼ Action Block 情報", labelStyle);
-            GUILayout.Label($"LastFrame: {stateController.LastActionBlockFrame}", labelStyle);
-            GUILayout.Label($"LastAction: {stateController.LastActionBlockedAction}", labelStyle);
-            GUILayout.Label($"LastReason: {stateController.LastActionBlockReason}", labelStyle);
+            GUILayout.Label($"LastFrame: {stateController.LastActionBlockFrame}", actionStyle);
+            GUILayout.Label($"LastAction: {stateController.LastActionBlockedAction}", actionStyle);
+            GUILayout.Label($"LastReason: {stateController.LastActionBlockReason}", actionStyle);
 
             GUILayout.Space(8f);
             GUILayout.Label("▼ Invariant Warnings", labelStyle);
+            var invariantStyle = stateController.LastInvariantWarnings.Count > 0
+                ? warningStyle
+                : labelStyle;
             invariantScroll = GUILayout.BeginScrollView(invariantScroll, GUILayout.Height(120));
             foreach (var warning in stateController.LastInvariantWarnings)
             {
-                GUILayout.Label(warning, labelStyle);
+                GUILayout.Label(warning, invariantStyle);
             }
             GUILayout.EndScrollView();
 
