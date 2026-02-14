@@ -47,6 +47,9 @@ namespace Yokai
             currentState = PurifyInternalState.Cancelled;
             YokaiLogger.FSM("[Purify] Charging -> Cancelled");
 
+            // 状態を初期化して次回操作を可能にする
+            currentState = PurifyInternalState.Idle;
+
             return PurifyCommand.CancelPurify;
         }
 
@@ -57,6 +60,9 @@ namespace Yokai
 
             currentState = PurifyInternalState.Completed;
             YokaiLogger.FSM("[Purify] Charging -> Completed");
+
+            // 状態を初期化して次回操作を可能にする
+            currentState = PurifyInternalState.Idle;
 
             return PurifyCommand.CompletePurify;
         }
