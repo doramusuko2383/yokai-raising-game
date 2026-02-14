@@ -45,8 +45,7 @@ namespace Yokai
                     var command = controller.PurifyMachine.StartCharging();
                     if (command == PurifyCommand.None)
                     {
-                        controller.SetPurifyCharging(true);
-                        controller.MarkUserInteracted();
+                        controller.NotifyUserInteraction();
                     }
                     break;
                 }

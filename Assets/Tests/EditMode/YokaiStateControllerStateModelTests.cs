@@ -13,7 +13,6 @@ public class YokaiStateControllerStateModelTests
         var controller = CreateController();
 
         controller.currentState = YokaiState.Normal;
-        SetPrivateBool(controller, "isPurifyCharging", false);
 
         Assert.That(controller.CanDo(YokaiAction.PurifyHoldStart), Is.False);
         Assert.That(controller.CanDo(YokaiAction.PurifyHoldCancel), Is.False);
@@ -23,7 +22,7 @@ public class YokaiStateControllerStateModelTests
         Assert.That(controller.CanDo(YokaiAction.PurifyHoldStart), Is.True);
         Assert.That(controller.CanDo(YokaiAction.PurifyHoldCancel), Is.False);
 
-        SetPrivateBool(controller, "isPurifyCharging", true);
+        controller.TryDo(YokaiAction.PurifyHoldStart, "HoldStart");
 
         Assert.That(controller.CanDo(YokaiAction.PurifyHoldStart), Is.False);
         Assert.That(controller.CanDo(YokaiAction.PurifyHoldCancel), Is.True);
@@ -34,7 +33,6 @@ public class YokaiStateControllerStateModelTests
     {
         var controller = CreateController();
         controller.currentState = YokaiState.Purifying;
-        SetPrivateBool(controller, "isPurifyCharging", false);
 
         bool executed = controller.TryDo(YokaiAction.PurifyHoldStart, "HoldStart");
 
@@ -48,7 +46,7 @@ public class YokaiStateControllerStateModelTests
     {
         var controller = CreateController();
         controller.currentState = YokaiState.Purifying;
-        SetPrivateBool(controller, "isPurifyCharging", true);
+        controller.TryDo(YokaiAction.PurifyHoldStart, "HoldStart");
 
         bool executed = controller.TryDo(YokaiAction.PurifyHoldCancel, "HoldCancel");
 
@@ -66,7 +64,7 @@ public class YokaiStateControllerStateModelTests
         bool succeeded = false;
         controller.OnPurifySucceeded += () => succeeded = true;
 
-        var machine = new PurifyStateMachine(controller);
+        var machine = new PurifyStateMachine();
         machine.StartPurify("BeginPurify");
         machine.StartCharging();
         machine.CompleteCharging();
@@ -170,7 +168,8 @@ public class YokaiStateControllerStateModelTests
                 YokaiAction.StartEvolution,
                 isPurifyCharging: false,
                 isPurityEmpty: false,
-                isSpiritEmpty: false
+                isSpiritEmpty: false,
+                out _
             ),
             Is.True
         );
@@ -181,7 +180,8 @@ public class YokaiStateControllerStateModelTests
                 YokaiAction.EatDango,
                 isPurifyCharging: false,
                 isPurityEmpty: false,
-                isSpiritEmpty: false
+                isSpiritEmpty: false,
+                out _
             ),
             Is.False
         );

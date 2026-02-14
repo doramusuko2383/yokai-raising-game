@@ -22,8 +22,6 @@ public class YokaiStateController : MonoBehaviour
 
     bool isSpiritEmpty;
     bool isPurityEmpty;
-    bool isPurifying;
-    bool isPurifyCharging;
     bool isPurifyTriggerReady;
     bool canUseSpecialDango;
     public bool HasUserInteracted { get; private set; } = false;
@@ -82,8 +80,8 @@ public class YokaiStateController : MonoBehaviour
 
     public bool IsSpiritEmpty => isSpiritEmpty;
     public bool IsPurityEmptyState => isPurityEmpty;
-    public bool IsPurifying => isPurifying;
-    public bool IsPurifyCharging => isPurifyCharging;
+    public bool IsPurifying => PurifyMachine.IsPurifying;
+    public bool IsPurifyCharging => PurifyMachine.IsCharging;
     public bool IsPurifyTriggerReady => isPurifyTriggerReady;
     public bool CanUseSpecialDango => canUseSpecialDango;
     public SpiritController SpiritController => spiritController;
@@ -100,12 +98,18 @@ public class YokaiStateController : MonoBehaviour
 
     public bool CanDo(YokaiAction action)
     {
+        return CanDo(action, out _);
+    }
+
+    public bool CanDo(YokaiAction action, out string reason)
+    {
         return YokaiActionRuleEngine.CanDo(
             currentState,
             action,
-            isPurifyCharging,
+            IsPurifyCharging,
             isPurityEmpty,
-            isSpiritEmpty
+            isSpiritEmpty,
+            out reason
         );
     }
 
@@ -117,8 +121,9 @@ public class YokaiStateController : MonoBehaviour
             return false;
         }
 
-        if (!CanDo(action))
+        if (!CanDo(action, out string denyReason))
         {
+            YokaiLogger.Warning($"[ACTION BLOCK] action={action} blocked. reason={denyReason}");
             return false;
         }
 
@@ -136,31 +141,9 @@ public class YokaiStateController : MonoBehaviour
         MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
         RequestEvaluateState("SpiritRecovered");
     }
-
-
-    internal void SetPurifying(bool value)
-    {
-        isPurifying = value;
-    }
-
-    internal void SetPurifyCharging(bool value)
-    {
-        isPurifyCharging = value;
-    }
-
     internal void SetPurifyTriggeredByUser(bool value)
     {
         IsPurifyTriggeredByUser = value;
-    }
-
-    internal void SetHasUserInteracted(bool value)
-    {
-        HasUserInteracted = value;
-    }
-
-    internal void MarkUserInteracted()
-    {
-        HasUserInteracted = true;
     }
 
     internal void HandleEmergencySpiritRecover()
@@ -293,7 +276,7 @@ public class YokaiStateController : MonoBehaviour
             requestedState,
             isPurityEmpty,
             isSpiritEmpty,
-            isPurifying,
+            IsPurifying,
             currentState == YokaiState.Evolving,
             currentState == YokaiState.EvolutionReady
         );
@@ -339,6 +322,7 @@ public class YokaiStateController : MonoBehaviour
             isApplyingSideEffects = false;
         }
         CheckForUnknownStateWarning();
+        InvariantCheck();
     }
 
     public void BeginPurifying(string reason = "BeginPurify")
@@ -348,9 +332,7 @@ public class YokaiStateController : MonoBehaviour
         switch (command)
         {
             case PurifyCommand.BeginPurifying:
-                SetHasUserInteracted(false);
-                SetPurifying(true);
-                SetPurifyCharging(false);
+                HasUserInteracted = PurifyMachine.HasUserInteracted;
                 SetPurifyTriggeredByUser(true);
                 SetState(YokaiState.Purifying, reason ?? "BeginPurify");
                 break;
@@ -605,8 +587,8 @@ public class YokaiStateController : MonoBehaviour
             hasWarnedMissingPurifyControllers = true;
         }
 
-        isPurifying = false;
-        isPurifyCharging = false;
+        PurifyMachine.Reset();
+        HasUserInteracted = PurifyMachine.HasUserInteracted;
         IsPurifyTriggeredByUser = false;
         SyncManagerState();
         OnPurifySucceeded?.Invoke();
@@ -618,8 +600,8 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         StopPurifyFallback();
-        isPurifying = false;
-        isPurifyCharging = false;
+        PurifyMachine.Reset();
+        HasUserInteracted = PurifyMachine.HasUserInteracted;
         IsPurifyTriggeredByUser = false;
         SyncManagerState();
         OnPurifyCancelled?.Invoke();
@@ -651,8 +633,8 @@ public class YokaiStateController : MonoBehaviour
 
         YokaiLogger.Action("[EMERGENCY] EmergencyPurify requested");
 
-        isPurifying = false;
-        isPurifyCharging = false;
+        PurifyMachine.Reset();
+        HasUserInteracted = PurifyMachine.HasUserInteracted;
         IsPurifyTriggeredByUser = false;
 
         if (purityController != null)
@@ -666,8 +648,8 @@ public class YokaiStateController : MonoBehaviour
 
     void ResetPurifyingState()
     {
-        isPurifying = false;
-        isPurifyCharging = false;
+        PurifyMachine.Reset();
+        HasUserInteracted = PurifyMachine.HasUserInteracted;
         IsPurifyTriggeredByUser = false;
         StopPurifyFallback();
     }
@@ -677,7 +659,8 @@ public class YokaiStateController : MonoBehaviour
         if (HasUserInteracted)
             return;
 
-        HasUserInteracted = true;
+        PurifyMachine.MarkUserInteracted();
+        HasUserInteracted = PurifyMachine.HasUserInteracted;
     }
 
     public void RequestEvaluateState(string reason)
@@ -802,6 +785,31 @@ public class YokaiStateController : MonoBehaviour
                 YokaiLogger.State($"[GROWTH] Growth {(shouldEnableGrowth ? "enabled" : "disabled")} (State={currentState})");
             }
         }
+    }
+
+
+    private void InvariantCheck()
+    {
+        if (currentState == YokaiState.Purifying && !IsPurifying)
+        {
+            YokaiLogger.Warning($"[INVARIANT] currentState=Purifying but isPurifying=false");
+        }
+
+        if (IsPurifying && currentState != YokaiState.Purifying)
+        {
+            YokaiLogger.Warning($"[INVARIANT] isPurifying=true but currentState={currentState}");
+        }
+
+        if (IsPurifyCharging && currentState != YokaiState.Purifying)
+        {
+            YokaiLogger.Warning($"[INVARIANT] isPurifyCharging=true but state={currentState}");
+        }
+
+        if (isPurityEmpty && currentState != YokaiState.PurityEmpty)
+            YokaiLogger.Warning($"[INVARIANT] purityEmpty flag=true but state={currentState}");
+
+        if (isSpiritEmpty && currentState != YokaiState.EnergyEmpty)
+            YokaiLogger.Warning($"[INVARIANT] spiritEmpty flag=true but state={currentState}");
     }
 
     void CheckForUnknownStateWarning()
