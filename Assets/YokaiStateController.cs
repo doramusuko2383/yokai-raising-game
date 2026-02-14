@@ -339,7 +339,7 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginEvolution()
     {
-        EvolutionMachine.StartEvolution("BeginEvolution");
+        EvolutionMachine.BeginEvolution();
     }
 
     public void CompleteEvolution()
