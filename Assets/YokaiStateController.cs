@@ -86,7 +86,7 @@ public class YokaiStateController : MonoBehaviour
     public PurityController PurityController => purityController;
     internal YokaiGrowthController GrowthController => growthController;
     public string LastStateChangeReason => lastStateChangeReason;
-    internal PurifyStateMachine PurifyMachine => purifyMachine ??= new PurifyStateMachine(this);
+    internal PurifyStateMachine PurifyMachine => purifyMachine ??= new PurifyStateMachine();
     internal EvolutionStateMachine EvolutionMachine => evolutionMachine ??= new EvolutionStateMachine(this);
 
     public bool CanDo(YokaiAction action)
@@ -175,7 +175,7 @@ public class YokaiStateController : MonoBehaviour
     void Awake()
     {
         actionExecutor = new YokaiActionExecutor(this);
-        purifyMachine = new PurifyStateMachine(this);
+        purifyMachine = new PurifyStateMachine();
         sideEffectService = new YokaiSideEffectService(this);
     }
 
@@ -331,7 +331,18 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginPurifying(string reason = "BeginPurify")
     {
-        PurifyMachine.StartPurify(reason);
+        var command = PurifyMachine.StartPurify(reason);
+
+        switch (command)
+        {
+            case PurifyCommand.BeginPurifying:
+                SetHasUserInteracted(false);
+                SetPurifying(true);
+                SetPurifyCharging(false);
+                SetPurifyTriggeredByUser(true);
+                SetState(YokaiState.Purifying, reason ?? "BeginPurify");
+                break;
+        }
     }
 
     public void ConsumePurifyTrigger()
