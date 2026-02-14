@@ -19,6 +19,7 @@ public class DebugOverlay : MonoBehaviour
     Rect panelRect;
     Vector2 historyScroll;
     Vector2 invariantScroll;
+    bool visible = true;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Initialize()
@@ -50,6 +51,11 @@ public class DebugOverlay : MonoBehaviour
     void Update()
     {
 #if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            visible = !visible;
+        }
+
         if (!DebugToolsConfig.Enabled)
             return;
 
@@ -99,7 +105,7 @@ public class DebugOverlay : MonoBehaviour
 
     void OnGUI()
     {
-        if (!DebugToolsConfig.Enabled)
+        if (!DebugToolsConfig.Enabled || !visible)
             return;
 
         EnsureStyles();
