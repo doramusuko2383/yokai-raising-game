@@ -29,7 +29,16 @@ public static class YokaiStateEngine
         bool isEvolutionReady
     )
     {
-        return YokaiStateRules.DetermineForcedState(current);
+        if (isPurifying)
+            return YokaiState.Purifying;
+
+        if (isEvolving)
+            return YokaiState.Evolving;
+
+        if (isEvolutionReady)
+            return YokaiState.EvolutionReady;
+
+        return null;
     }
 
     public static YokaiState DetermineRequestedState(
@@ -39,7 +48,13 @@ public static class YokaiStateEngine
         bool isSpiritEmpty
     )
     {
-        return YokaiStateRules.DetermineRequestedState(current, requested, isPurityEmpty, isSpiritEmpty);
+        if (isPurityEmpty)
+            return YokaiState.PurityEmpty;
+
+        if (isSpiritEmpty)
+            return YokaiState.EnergyEmpty;
+
+        return requested;
     }
 
     public static YokaiState DetermineDefaultState(
@@ -47,7 +62,13 @@ public static class YokaiStateEngine
         bool isSpiritEmpty
     )
     {
-        return YokaiStateRules.DetermineDefaultState(isPurityEmpty, isSpiritEmpty);
+        if (isPurityEmpty)
+            return YokaiState.PurityEmpty;
+
+        if (isSpiritEmpty)
+            return YokaiState.EnergyEmpty;
+
+        return YokaiState.Normal;
     }
 }
 }

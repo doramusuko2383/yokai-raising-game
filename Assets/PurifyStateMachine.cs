@@ -23,7 +23,7 @@ namespace Yokai
                 return PurifyCommand.None;
 
             currentState = PurifyInternalState.Idle;
-            YokaiLogger.FSM("BeginPurifying");
+            YokaiLogger.FSM("[Purify] BeginPurifying");
 
             return PurifyCommand.BeginPurifying;
         }
@@ -34,7 +34,7 @@ namespace Yokai
                 return PurifyCommand.None;
 
             currentState = PurifyInternalState.Charging;
-            YokaiLogger.FSM("Idle -> Charging");
+            YokaiLogger.FSM("[Purify] Idle -> Charging");
 
             return PurifyCommand.None;
         }
@@ -45,7 +45,7 @@ namespace Yokai
                 return PurifyCommand.None;
 
             currentState = PurifyInternalState.Cancelled;
-            YokaiLogger.FSM("Charging -> Cancelled");
+            YokaiLogger.FSM("[Purify] Charging -> Cancelled");
 
             return PurifyCommand.CancelPurify;
         }
@@ -56,7 +56,7 @@ namespace Yokai
                 return PurifyCommand.None;
 
             currentState = PurifyInternalState.Completed;
-            YokaiLogger.FSM("Charging -> Completed");
+            YokaiLogger.FSM("[Purify] Charging -> Completed");
 
             return PurifyCommand.CompletePurify;
         }

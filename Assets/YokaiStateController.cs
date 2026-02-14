@@ -91,7 +91,7 @@ public class YokaiStateController : MonoBehaviour
 
     public bool CanDo(YokaiAction action)
     {
-        return YokaiStateRules.CanDo(
+        return YokaiActionRuleEngine.CanDo(
             currentState,
             action,
             isPurifyCharging,
