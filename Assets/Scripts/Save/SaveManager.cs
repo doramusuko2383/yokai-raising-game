@@ -19,6 +19,8 @@ public class SaveManager : MonoBehaviour
 
     void Awake()
     {
+        Debug.Log($"[SaveManager] Awake at persistentDataPath={Application.persistentDataPath}");
+
         if (Instance != null)
         {
             Destroy(gameObject);
@@ -62,6 +64,8 @@ public class SaveManager : MonoBehaviour
 
     public void Save()
     {
+        Debug.Log($"[SaveManager] Save called, path={SavePath}");
+
         if (CurrentSave == null)
             return;
 
@@ -82,6 +86,8 @@ public class SaveManager : MonoBehaviour
             File.Move(TempPath, SavePath);
 
             isDirty = false;
+
+            Debug.Log("[SaveManager] Save completed");
         }
         catch (Exception e)
         {
