@@ -10,6 +10,7 @@ public class YokaiStateController : MonoBehaviour
     private PurifyStateMachine purifyMachine;
     private EvolutionStateMachine evolutionMachine;
     private YokaiSideEffectService sideEffectService;
+    private YokaiStateHistoryService historyService;
 
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
@@ -179,6 +180,7 @@ public class YokaiStateController : MonoBehaviour
         actionExecutor = new YokaiActionExecutor(this);
         purifyMachine = new PurifyStateMachine();
         sideEffectService = new YokaiSideEffectService(this);
+        historyService = new YokaiStateHistoryService();
     }
 
     void Start()
@@ -313,6 +315,12 @@ public class YokaiStateController : MonoBehaviour
         lastStateChangeReason = reason;
 
         YokaiLogger.State($"{prev} -> {newState} ({reason})");
+        historyService.Record(
+            prev,
+            newState,
+            reason,
+            UnityEngine.Time.frameCount
+        );
         OnStateChanged?.Invoke(prev, newState);
 
         isApplyingSideEffects = true;
