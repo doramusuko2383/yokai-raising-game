@@ -110,64 +110,51 @@ public class SaveManager : MonoBehaviour
                 CurrentSave = new GameSaveData();
             }
 
-            if (CurrentSave == null)
-                CurrentSave = new GameSaveData();
-
-            if (CurrentSave.yokai == null)
-                CurrentSave.yokai = new YokaiSaveData();
-
-            if (CurrentSave.dango == null)
-                CurrentSave.dango = new DangoSaveData();
-
-            if (CurrentSave.boost == null)
-                CurrentSave.boost = new BoostSaveData();
-
-            long delta = Math.Max(0L, now - CurrentSave.lastSavedUnixTime);
-            HandleOfflineProgress(delta);
         }
         catch (Exception e)
         {
             Debug.LogWarning($"Load failed, creating new save. {e}");
             CurrentSave = new GameSaveData();
-
-            if (CurrentSave.yokai == null)
-                CurrentSave.yokai = new YokaiSaveData();
-
-            if (CurrentSave.dango == null)
-                CurrentSave.dango = new DangoSaveData();
-
-            if (CurrentSave.boost == null)
-                CurrentSave.boost = new BoostSaveData();
         }
+
+        EnsureSaveDataInitialized();
+
+        long deltaRaw = Math.Max(0L, now - CurrentSave.lastSavedUnixTime);
+        long delta = Math.Min(deltaRaw, 60 * 60 * 8);
+        HandleOfflineProgress(delta, now);
     }
 
-    void HandleOfflineProgress(long deltaSeconds)
+    void EnsureSaveDataInitialized()
     {
-        if (deltaSeconds <= 0)
+        if (CurrentSave == null)
+            CurrentSave = new GameSaveData();
+
+        if (CurrentSave.yokai == null)
+            CurrentSave.yokai = new YokaiSaveData();
+
+        if (CurrentSave.dango == null)
+            CurrentSave.dango = new DangoSaveData();
+
+        if (CurrentSave.boost == null)
+            CurrentSave.boost = new BoostSaveData();
+    }
+
+    void HandleOfflineProgress(long deltaSeconds, long now)
+    {
+        if (deltaSeconds <= 0 || CurrentSave == null)
             return;
-
-        var controller = YokaiStateController.Instance;
-        if (controller != null)
-            controller.ApplyOfflineProgress(deltaSeconds);
-
-        var dango = CurrentSave.dango;
-        if (dango != null)
-        {
-            long generated = deltaSeconds / 600;
-            long lastGen = dango.lastGeneratedUnixTime;
-            long newCount = dango.currentCount + generated;
-            dango.currentCount = (int)Mathf.Min(newCount, 3);
-            dango.lastGeneratedUnixTime = lastGen + generated * 600;
-        }
 
         var boost = CurrentSave.boost;
         if (boost != null)
         {
-            long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            if (now >= boost.dailyResetUnixTime + 86400)
+            if (boost.dailyResetUnixTime <= 0)
+                boost.dailyResetUnixTime = now - (now % 86400);
+
+            long todayStart = now - (now % 86400);
+            if (todayStart > boost.dailyResetUnixTime)
             {
                 boost.dailyDecayBoostUsedCount = 0;
-                boost.dailyResetUnixTime = now - (now % 86400);
+                boost.dailyResetUnixTime = todayStart;
             }
 
             if (boost.growthBoostExpireUnixTime < now)
@@ -176,6 +163,33 @@ public class SaveManager : MonoBehaviour
             if (boost.decayHalfBoostExpireUnixTime < now)
                 boost.decayHalfBoostExpireUnixTime = 0;
         }
+
+        var dango = CurrentSave.dango;
+        if (dango != null)
+        {
+            const int MaxDango = 3;
+            const long Interval = 600;
+
+            if (dango.lastGeneratedUnixTime <= 0)
+            {
+                dango.lastGeneratedUnixTime = now;
+            }
+            else
+            {
+                long elapsed = Math.Max(0L, now - dango.lastGeneratedUnixTime);
+                long generated = elapsed / Interval;
+
+                if (generated > 0)
+                {
+                    dango.currentCount = (int)Mathf.Min(dango.currentCount + generated, MaxDango);
+                    dango.lastGeneratedUnixTime += generated * Interval;
+                }
+            }
+        }
+
+        var controller = YokaiStateController.Instance;
+        if (controller != null)
+            controller.ApplyOfflineProgress(deltaSeconds, now);
 
         MarkDirty();
     }
