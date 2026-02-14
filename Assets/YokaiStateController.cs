@@ -62,6 +62,7 @@ public class YokaiStateController : MonoBehaviour
     string lastStateChangeReason;
     string lastPurityRecoveredReason;
     int lastPurityRecoveredFrame = -1;
+    private int lastStateChangeFrame = -1;
 
     [Header("Purify Fallback")]
     [SerializeField]
@@ -292,11 +293,16 @@ public class YokaiStateController : MonoBehaviour
 
     public void SetState(YokaiState newState, string reason)
     {
+        // 同じ状態への変更は不要
         if (currentState == newState)
-        {
-            YokaiLogger.State($"[STATE SKIP] {newState} already active ({reason})");
             return;
-        }
+
+        // 同じフレーム内での複数回変更を防止
+        if (lastStateChangeFrame == UnityEngine.Time.frameCount)
+            return;
+
+        // フレーム番号を記録
+        lastStateChangeFrame = UnityEngine.Time.frameCount;
 
         var prev = currentState;
         currentState = newState;
