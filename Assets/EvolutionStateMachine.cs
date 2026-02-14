@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace Yokai
 {
     public class EvolutionStateMachine
@@ -25,14 +23,14 @@ namespace Yokai
                 return EvolutionCommand.None;
 
             state = EvolutionInternalState.Evolving;
-            Debug.Log("[EVO FSM] Ready -> Evolving");
+            YokaiLogger.FSM("Ready -> Evolving");
             return EvolutionCommand.BeginEvolving;
         }
 
         public EvolutionCommand CompleteEvolution()
         {
             state = EvolutionInternalState.Idle;
-            Debug.Log("[EVO FSM] Evolving -> Normal");
+            YokaiLogger.FSM("Evolving -> Normal");
             return EvolutionCommand.CompleteEvolution;
         }
     }

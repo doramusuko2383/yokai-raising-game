@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace Yokai
 {
     public class PurifyStateMachine
@@ -30,7 +28,7 @@ namespace Yokai
             controller.SetPurifying(true);
             controller.SetPurifyCharging(false);
             controller.SetPurifyTriggeredByUser(true);
-            Debug.Log("[PURIFY HOLD] BeginPurifying started (UI will handle charge)");
+            YokaiLogger.FSM("BeginPurifying started (UI will handle charge)");
             controller.SetState(YokaiState.Purifying, reason ?? "BeginPurify");
         }
 
@@ -40,7 +38,7 @@ namespace Yokai
                 return;
 
             currentState = PurifyInternalState.Charging;
-            Debug.Log("[PURIFY FSM] Idle -> Charging");
+            YokaiLogger.FSM("Idle -> Charging");
             controller.SetPurifyCharging(true);
             if (!hasUserInteracted)
             {

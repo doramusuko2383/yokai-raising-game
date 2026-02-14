@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace Yokai
 {
     public class YokaiActionExecutor
@@ -13,12 +11,12 @@ namespace Yokai
 
         public void Execute(YokaiAction action, string reason)
         {
-            Debug.Log($"[ACTION] action={action} reason={reason ?? "null"} state={controller.CurrentState}");
+            YokaiLogger.Action($"action={action} reason={reason ?? "null"} state={controller.CurrentState}");
 
             switch (action)
             {
                 case YokaiAction.Purify:
-                    Debug.Log("[LEGACY] Purify action disabled");
+                    YokaiLogger.Action("[LEGACY] Purify action disabled");
                     break;
 
                 case YokaiAction.PurifyStart:
@@ -57,7 +55,7 @@ namespace Yokai
                     break;
 
                 default:
-                    Debug.LogError($"Unhandled YokaiAction in ExecuteAction: {action}");
+                    YokaiLogger.Error($"Unhandled YokaiAction in ExecuteAction: {action}");
                     break;
             }
         }

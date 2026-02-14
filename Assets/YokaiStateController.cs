@@ -102,7 +102,7 @@ public class YokaiStateController : MonoBehaviour
     {
         if (action == YokaiAction.Purify)
         {
-            Debug.Log("[LEGACY] Purify action disabled");
+            YokaiLogger.Action("[LEGACY] Purify action disabled");
             return false;
         }
 
@@ -154,7 +154,7 @@ public class YokaiStateController : MonoBehaviour
 
     internal void HandleEmergencySpiritRecover()
     {
-        Debug.Log("[YokaiStateController] ExecuteAction EmergencySpiritRecover reached");
+        YokaiLogger.Action("[YokaiStateController] ExecuteAction EmergencySpiritRecover reached");
         RecoverSpirit();
     }
 
@@ -298,7 +298,7 @@ public class YokaiStateController : MonoBehaviour
 
     YokaiState DetermineRequestedState(YokaiState requestedState)
     {
-        Debug.Log($"[EVOLUTION] DetermineRequestedState requested={requestedState} current={currentState}");
+        YokaiLogger.FSM($"[EVOLUTION] DetermineRequestedState requested={requestedState} current={currentState}");
         return YokaiStateRules.DetermineRequestedState(currentState, requestedState, isPurityEmpty, isSpiritEmpty);
     }
 
@@ -311,7 +311,7 @@ public class YokaiStateController : MonoBehaviour
     {
         if (currentState == newState)
         {
-            Debug.Log($"[STATE SKIP] {newState} already active ({reason})");
+            YokaiLogger.State($"[STATE SKIP] {newState} already active ({reason})");
             return;
         }
 
@@ -319,7 +319,7 @@ public class YokaiStateController : MonoBehaviour
         currentState = newState;
         lastStateChangeReason = reason;
 
-        Debug.Log($"[STATE] {prev} -> {newState} ({reason})");
+        YokaiLogger.State($"{prev} -> {newState} ({reason})");
         OnStateChanged?.Invoke(prev, newState);
 
         ApplyEmptyStateEffects();
@@ -576,7 +576,7 @@ public class YokaiStateController : MonoBehaviour
         }
         else if (!hasWarnedMissingPurifyControllers)
         {
-            Debug.LogWarning("[PURIFY] PurityController is missing for purify recovery.");
+            YokaiLogger.Warning("[PURIFY] PurityController is missing for purify recovery.");
             hasWarnedMissingPurifyControllers = true;
         }
 
@@ -624,7 +624,7 @@ public class YokaiStateController : MonoBehaviour
         if (currentState != YokaiState.PurityEmpty)
             return;
 
-        Debug.Log("[EMERGENCY] EmergencyPurify requested");
+        YokaiLogger.Action("[EMERGENCY] EmergencyPurify requested");
 
         isPurifying = false;
         isPurifyCharging = false;
@@ -687,7 +687,7 @@ public class YokaiStateController : MonoBehaviour
         if (controller == null)
             return;
 
-        Debug.Log($"[SYNC] ApplyState {state} force={force}");
+        YokaiLogger.State($"[SYNC] ApplyState {state} force={force}");
         controller.ApplyState(state, force: force);
     }
 
@@ -713,7 +713,7 @@ public class YokaiStateController : MonoBehaviour
 
         if (!hasWarnedMissingMagicCircle)
         {
-            Debug.LogWarning("[PURIFY] MagicCircleRoot is missing; using fallback timer.");
+            YokaiLogger.Warning("[PURIFY] MagicCircleRoot is missing; using fallback timer.");
             hasWarnedMissingMagicCircle = true;
         }
 
@@ -758,7 +758,7 @@ public class YokaiStateController : MonoBehaviour
         {
             if (spiritController.SetNaturalDecayEnabled(shouldEnableDecay))
             {
-                Debug.Log($"[DECAY] NaturalDecay {(shouldEnableDecay ? "enabled" : "disabled")} (State={currentState})");
+                YokaiLogger.State($"[DECAY] NaturalDecay {(shouldEnableDecay ? "enabled" : "disabled")} (State={currentState})");
             }
         }
 
@@ -766,7 +766,7 @@ public class YokaiStateController : MonoBehaviour
         {
             if (purityController.SetNaturalDecayEnabled(shouldEnableDecay))
             {
-                Debug.Log($"[DECAY] NaturalDecay {(shouldEnableDecay ? "enabled" : "disabled")} (State={currentState})");
+                YokaiLogger.State($"[DECAY] NaturalDecay {(shouldEnableDecay ? "enabled" : "disabled")} (State={currentState})");
             }
         }
 
@@ -774,7 +774,7 @@ public class YokaiStateController : MonoBehaviour
         {
             if (growthController.SetGrowthEnabled(shouldEnableGrowth))
             {
-                Debug.Log($"[GROWTH] Growth {(shouldEnableGrowth ? "enabled" : "disabled")} (State={currentState})");
+                YokaiLogger.State($"[GROWTH] Growth {(shouldEnableGrowth ? "enabled" : "disabled")} (State={currentState})");
             }
         }
     }
