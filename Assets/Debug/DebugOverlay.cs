@@ -102,7 +102,7 @@ public class DebugOverlay : MonoBehaviour
 
         EnsureStyles();
 
-        float panelHeight = 240f;
+        float panelHeight = 420f;
         panelRect = new Rect(PanelPadding, PanelPadding, PanelWidth, panelHeight);
         GUI.Box(panelRect, "DEBUG", GUI.skin.box);
 
@@ -136,6 +136,22 @@ public class DebugOverlay : MonoBehaviour
         GUILayout.Label($"Purity: {purityLabel}", labelStyle);
         GUILayout.Label($"Spirit: {spiritLabel}", labelStyle);
         GUILayout.Label($"Growth Speed: {growthSpeedLabel}", labelStyle);
+
+        GUILayout.Space(10f);
+        GUILayout.Label("=== STATE TRACE ===", labelStyle);
+
+        if (stateController != null)
+        {
+            GUILayout.Label($"Current: {stateController.CurrentState}", labelStyle);
+            GUILayout.Label($"LastReason: {stateController.LastStateChangeReason}", labelStyle);
+            GUILayout.Space(5f);
+
+            var history = stateController.GetStateHistory();
+            foreach (var entry in history)
+            {
+                GUILayout.Label(entry, labelStyle);
+            }
+        }
     }
 
     void DrawControls()

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -89,6 +90,11 @@ public class YokaiStateController : MonoBehaviour
     public PurityController PurityController => purityController;
     internal YokaiGrowthController GrowthController => growthController;
     public string LastStateChangeReason => lastStateChangeReason;
+
+    public IReadOnlyList<string> GetStateHistory()
+    {
+        return historyService.GetHistoryList();
+    }
     internal PurifyStateMachine PurifyMachine => purifyMachine ??= new PurifyStateMachine();
     internal EvolutionStateMachine EvolutionMachine => evolutionMachine ??= new EvolutionStateMachine(this);
 
