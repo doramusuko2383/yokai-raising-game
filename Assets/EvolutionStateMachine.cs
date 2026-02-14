@@ -19,7 +19,7 @@ namespace Yokai
             this.controller = controller;
         }
 
-        public void StartEvolution(string reason)
+        public void BeginEvolution()
         {
             state = controller.CurrentState == YokaiState.EvolutionReady
                 ? EvolutionInternalState.Ready
@@ -29,8 +29,8 @@ namespace Yokai
                 return;
 
             state = EvolutionInternalState.Evolving;
-            controller.SetState(YokaiState.Evolving, reason ?? "BeginEvolution");
-            Debug.Log("[EVOLUTION FSM] Ready -> Evolving");
+            controller.SetState(YokaiState.Evolving, "BeginEvolution");
+            Debug.Log("[EVO FSM] Ready -> Evolving");
         }
 
         public void CompleteEvolution()
@@ -41,6 +41,7 @@ namespace Yokai
 
             state = EvolutionInternalState.Idle;
             controller.SetState(YokaiState.Normal, "EvolutionComplete");
+            Debug.Log("[EVO FSM] Evolving -> Normal");
         }
     }
 }
