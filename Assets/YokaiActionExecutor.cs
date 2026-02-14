@@ -20,23 +20,45 @@ namespace Yokai
                     break;
 
                 case YokaiAction.PurifyStart:
-                    controller.PurifyMachine.StartPurify(reason);
+                    controller.BeginPurifying(reason);
                     break;
 
                 case YokaiAction.PurifyCancel:
                     if (reason == "ChargeComplete")
-                        controller.PurifyMachine.CompleteCharging();
+                    {
+                        var command = controller.PurifyMachine.CompleteCharging();
+
+                        if (command == PurifyCommand.CompletePurify)
+                            controller.StopPurifyingForSuccess();
+                    }
                     else
-                        controller.PurifyMachine.CancelPurify(reason);
+                    {
+                        var command = controller.PurifyMachine.CancelCharging();
+
+                        if (command == PurifyCommand.CancelPurify)
+                            controller.CancelPurifying(reason);
+                    }
                     break;
 
                 case YokaiAction.PurifyHoldStart:
-                    controller.PurifyMachine.StartCharging();
+                {
+                    var command = controller.PurifyMachine.StartCharging();
+                    if (command == PurifyCommand.None)
+                    {
+                        controller.SetPurifyCharging(true);
+                        controller.MarkUserInteracted();
+                    }
                     break;
+                }
 
                 case YokaiAction.PurifyHoldCancel:
-                    controller.PurifyMachine.CancelCharging(reason);
+                {
+                    var command = controller.PurifyMachine.CancelCharging();
+
+                    if (command == PurifyCommand.CancelPurify)
+                        controller.CancelPurifying(reason ?? "HoldReleasedEarly");
                     break;
+                }
 
                 case YokaiAction.EmergencySpiritRecover:
                     controller.HandleEmergencySpiritRecover();

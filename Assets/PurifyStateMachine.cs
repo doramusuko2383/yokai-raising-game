@@ -11,67 +11,54 @@ namespace Yokai
         }
 
         PurifyInternalState currentState;
-        bool hasUserInteracted;
-        readonly YokaiStateController controller;
 
-        public PurifyStateMachine(YokaiStateController controller)
+        public PurifyStateMachine()
         {
-            this.controller = controller;
             currentState = PurifyInternalState.Idle;
         }
 
-        public void StartPurify(string reason)
-        {
-            currentState = PurifyInternalState.Idle;
-            hasUserInteracted = false;
-            controller.SetHasUserInteracted(false);
-            controller.SetPurifying(true);
-            controller.SetPurifyCharging(false);
-            controller.SetPurifyTriggeredByUser(true);
-            YokaiLogger.FSM("BeginPurifying started (UI will handle charge)");
-            controller.SetState(YokaiState.Purifying, reason ?? "BeginPurify");
-        }
-
-        public void StartCharging()
+        public PurifyCommand StartPurify(string reason)
         {
             if (currentState != PurifyInternalState.Idle)
-                return;
+                return PurifyCommand.None;
+
+            currentState = PurifyInternalState.Idle;
+            YokaiLogger.FSM("BeginPurifying");
+
+            return PurifyCommand.BeginPurifying;
+        }
+
+        public PurifyCommand StartCharging()
+        {
+            if (currentState != PurifyInternalState.Idle)
+                return PurifyCommand.None;
 
             currentState = PurifyInternalState.Charging;
             YokaiLogger.FSM("Idle -> Charging");
-            controller.SetPurifyCharging(true);
-            if (!hasUserInteracted)
-            {
-                hasUserInteracted = true;
-                controller.MarkUserInteracted();
-            }
+
+            return PurifyCommand.None;
         }
 
-        public void CancelCharging(string reason)
+        public PurifyCommand CancelCharging()
         {
             if (currentState != PurifyInternalState.Charging)
-                return;
+                return PurifyCommand.None;
 
             currentState = PurifyInternalState.Cancelled;
-            controller.SetPurifyCharging(false);
-            controller.CancelPurifying(reason ?? "HoldReleasedEarly");
+            YokaiLogger.FSM("Charging -> Cancelled");
+
+            return PurifyCommand.CancelPurify;
         }
 
-        public void CompleteCharging()
+        public PurifyCommand CompleteCharging()
         {
             if (currentState != PurifyInternalState.Charging)
-                return;
+                return PurifyCommand.None;
 
             currentState = PurifyInternalState.Completed;
-            controller.SetPurifyCharging(false);
-            controller.StopPurifyingForSuccess();
-        }
+            YokaiLogger.FSM("Charging -> Completed");
 
-        public void CancelPurify(string reason)
-        {
-            currentState = PurifyInternalState.Cancelled;
-            controller.SetPurifyCharging(false);
-            controller.CancelPurifying(reason ?? "Cancelled");
+            return PurifyCommand.CompletePurify;
         }
     }
 }
