@@ -19,29 +19,21 @@ namespace Yokai
             this.controller = controller;
         }
 
-        public void BeginEvolution()
+        public EvolutionCommand BeginEvolution()
         {
-            state = controller.CurrentState == YokaiState.EvolutionReady
-                ? EvolutionInternalState.Ready
-                : EvolutionInternalState.Idle;
-
-            if (state != EvolutionInternalState.Ready)
-                return;
+            if (controller.CurrentState != YokaiState.EvolutionReady)
+                return EvolutionCommand.None;
 
             state = EvolutionInternalState.Evolving;
-            controller.SetState(YokaiState.Evolving, "BeginEvolution");
             Debug.Log("[EVO FSM] Ready -> Evolving");
+            return EvolutionCommand.BeginEvolving;
         }
 
-        public void CompleteEvolution()
+        public EvolutionCommand CompleteEvolution()
         {
-            // purity / spirit を初期値にリセット
-            controller.SpiritController.SetSpirit(80f);
-            controller.PurityController.SetPurity(80f);
-
             state = EvolutionInternalState.Idle;
-            controller.SetState(YokaiState.Normal, "EvolutionComplete");
             Debug.Log("[EVO FSM] Evolving -> Normal");
+            return EvolutionCommand.CompleteEvolution;
         }
     }
 }

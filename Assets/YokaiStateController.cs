@@ -339,12 +339,28 @@ public class YokaiStateController : MonoBehaviour
 
     public void BeginEvolution()
     {
-        EvolutionMachine.BeginEvolution();
+        var command = EvolutionMachine.BeginEvolution();
+
+        switch (command)
+        {
+            case EvolutionCommand.BeginEvolving:
+                SetState(YokaiState.Evolving, "BeginEvolution");
+                break;
+        }
     }
 
     public void CompleteEvolution()
     {
-        EvolutionMachine.CompleteEvolution();
+        var command = EvolutionMachine.CompleteEvolution();
+
+        switch (command)
+        {
+            case EvolutionCommand.CompleteEvolution:
+                SpiritController.SetSpirit(80f);
+                PurityController.SetPurity(80f);
+                SetState(YokaiState.Normal, "EvolutionComplete");
+                break;
+        }
     }
 
     public void BindCurrentYokai(GameObject activeYokai)
