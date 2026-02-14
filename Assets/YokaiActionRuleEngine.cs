@@ -7,16 +7,36 @@ public static class YokaiActionRuleEngine
         YokaiAction action,
         bool isPurifyCharging,
         bool isPurityEmpty,
-        bool isSpiritEmpty
+        bool isSpiritEmpty,
+        out string reason
     )
     {
-        if (current == YokaiState.EvolutionReady)
-            return action == YokaiAction.StartEvolution;
+        if (current == YokaiState.Evolving)
+        {
+            reason = $"State={current} rejects all actions";
+            return false;
+        }
+
+        if (current == YokaiState.EvolutionReady && action != YokaiAction.StartEvolution)
+        {
+            reason = $"State={current} allows only action={YokaiAction.StartEvolution}";
+            return false;
+        }
 
         if (!IsAllowedByState(current, action))
+        {
+            reason = $"StateRule denies action={action} in state={current}";
             return false;
+        }
 
-        return IsActionConditionSatisfied(current, action, isPurifyCharging);
+        if (!IsActionConditionSatisfied(current, action, isPurifyCharging))
+        {
+            reason = $"ConditionRule denies action={action} (charging={isPurifyCharging}, purityEmpty={isPurityEmpty}, spiritEmpty={isSpiritEmpty})";
+            return false;
+        }
+
+        reason = string.Empty;
+        return true;
     }
 
     static bool IsAllowedByState(YokaiState state, YokaiAction action)
