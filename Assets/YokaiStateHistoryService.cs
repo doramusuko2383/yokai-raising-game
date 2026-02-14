@@ -29,5 +29,10 @@ namespace Yokai
         {
             return history;
         }
+
+        public IReadOnlyList<string> GetHistoryList()
+        {
+            return history.ToArray();
+        }
     }
 }
