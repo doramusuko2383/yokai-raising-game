@@ -16,6 +16,8 @@ public class DangoUIController : MonoBehaviour
     const int MaxDango = 3;
     const int Interval = 600;
 
+    // --- リアルタイム生成処理 ---
+
     void Update()
     {
         if (SaveManager.Instance == null)
@@ -24,6 +26,8 @@ public class DangoUIController : MonoBehaviour
         var save = SaveManager.Instance.CurrentSave;
         if (save == null || save.dango == null)
             return;
+
+        HandleRealtimeGeneration(save);
 
         UpdateUI(save);
     }
@@ -61,7 +65,7 @@ public class DangoUIController : MonoBehaviour
         if (currentCount >= MaxDango)
         {
             countdownText.text = "満タン";
-            countdownText.color = Color.yellow;
+            countdownText.color = Color.white;
             return;
         }
 
@@ -99,8 +103,11 @@ public class DangoUIController : MonoBehaviour
 
         // TODO: ここを広告SDK呼び出しに差し替える
         save.dango.currentCount += 1;
+        save.dango.lastGeneratedUnixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         SaveManager.Instance.MarkDirty();
+
+        PlayPopAnimation(save.dango.currentCount - 1);
     }
 
     public void OnClickAdGenerateDango()
@@ -126,6 +133,28 @@ public class DangoUIController : MonoBehaviour
 
         // 演出
         PlayPopAnimation(save.dango.currentCount - 1);
+    }
+
+    // --- リアルタイム生成 ---
+    void HandleRealtimeGeneration(GameSaveData save)
+    {
+        var dango = save.dango;
+
+        if (dango.currentCount >= MaxDango)
+            return;
+
+        long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        long elapsed = now - dango.lastGeneratedUnixTime;
+
+        if (elapsed < Interval)
+            return;
+
+        long generated = elapsed / Interval;
+
+        dango.currentCount = Mathf.Min(dango.currentCount + (int)generated, MaxDango);
+        dango.lastGeneratedUnixTime += generated * Interval;
+
+        SaveManager.Instance.MarkDirty();
     }
 
     void PlayPopAnimation(int index)
