@@ -18,6 +18,7 @@ public class DangoButtonHandler : MonoBehaviour
 
     bool isAdMode;
     bool isBusy; // 広告再生中などの多重クリック防止
+    bool subscribed;
     Coroutine pulseRoutine;
 
     void Awake()
@@ -31,14 +32,36 @@ public class DangoButtonHandler : MonoBehaviour
 
     void OnEnable()
     {
-        if (SaveManager.Instance != null)
-            SaveManager.Instance.OnDangoChanged += RefreshUI;
+        TrySubscribe();
+    }
+
+    void Start()
+    {
+        TrySubscribe();
+        RefreshUI();
     }
 
     void OnDisable()
     {
+        if (!subscribed)
+            return;
+
         if (SaveManager.Instance != null)
             SaveManager.Instance.OnDangoChanged -= RefreshUI;
+
+        subscribed = false;
+    }
+
+    void TrySubscribe()
+    {
+        if (subscribed)
+            return;
+
+        if (SaveManager.Instance == null)
+            return;
+
+        SaveManager.Instance.OnDangoChanged += RefreshUI;
+        subscribed = true;
     }
 
     public void RefreshUI()
@@ -121,6 +144,10 @@ public class DangoButtonHandler : MonoBehaviour
 
         // シミュレーションなので即解除。広告SDK導入後は「成功コールバック」で解除する。
         isBusy = false;
+        SaveManager.Instance.NotifyDangoChanged();
+
+        if (button != null)
+            button.interactable = true;
 
         RefreshUI();
     }
