@@ -2351,6 +2351,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 656228942389283711, guid: 366e9576cd92a104e916717384432116, type: 3}
   m_PrefabInstance: {fileID: 664355983866959897}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1454673635 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1102513701245437082, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+  m_PrefabInstance: {fileID: 6224671111732217254}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1469008922 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4729676478636256463, guid: 366e9576cd92a104e916717384432116, type: 3}
@@ -3506,6 +3517,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: buttonText
+      value: 
+      objectReference: {fileID: 1454673635}
+    - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: stateController
       value: 
       objectReference: {fileID: 1786705811}
@@ -3513,6 +3528,10 @@ PrefabInstance:
       propertyPath: actionController
       value: 
       objectReference: {fileID: 754336213}
+    - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: buttonBackground
+      value: 
+      objectReference: {fileID: 1390311718}
     - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: spiritController
       value: 
