@@ -164,6 +164,32 @@ public class YokaiStateController : MonoBehaviour
 
     internal void HandleEatDango()
     {
+        ExecuteEatDango();
+    }
+
+    void ExecuteEatDango()
+    {
+        var save = SaveManager.Instance?.CurrentSave;
+        if (save == null || save.dango == null)
+        {
+            Debug.LogWarning("[DANGO] Save data missing");
+            return;
+        }
+
+        if (save.dango.currentCount <= 0)
+        {
+            Debug.Log("[DANGO] No dango to consume");
+            return;
+        }
+
+        // --- 団子消費 ---
+        save.dango.currentCount--;
+
+        SaveManager.Instance.MarkDirty();
+
+        Debug.Log("[DANGO] Consumed 1 dango");
+
+        // --- 霊力回復 ---
         RecoverSpirit();
     }
 
