@@ -186,6 +186,7 @@ public class YokaiStateController : MonoBehaviour
         save.dango.currentCount--;
 
         SaveManager.Instance.MarkDirty();
+        FindObjectOfType<DangoButtonHandler>()?.RefreshUI();
 
         Debug.Log("[DANGO] Consumed 1 dango");
 

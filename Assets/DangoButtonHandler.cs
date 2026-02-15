@@ -17,41 +17,34 @@ public class DangoButtonHandler : MonoBehaviour
     UIActionController actionController;
 
     bool isAdMode;
-    int lastKnownCount = int.MinValue;
     bool isBusy; // 広告再生中などの多重クリック防止
+    Coroutine pulseRoutine;
 
-    void Update()
+    void Awake()
+    {
+        if (button == null)
+            button = GetComponent<Button>();
+
+        RefreshUI();
+    }
+
+    public void RefreshUI()
     {
         // 参照が刺さってないと即落ちするので安全化
         if (buttonText == null || buttonBackground == null)
             return;
 
-        if (button == null)
-            button = GetComponent<Button>();
-
-        if (SaveManager.Instance == null)
-            return;
-
-        var save = SaveManager.Instance.CurrentSave;
+        var save = SaveManager.Instance?.CurrentSave;
         if (save == null || save.dango == null)
             return;
 
         int count = Mathf.Clamp(save.dango.currentCount, 0, 3);
-        if (count == lastKnownCount && !isBusy)
-            return; // 状態変化なしならUI更新しない
-
-        lastKnownCount = count;
-
         bool hasDango = count > 0;
 
-        if (hasDango && isAdMode)
-        {
+        if (hasDango)
             ApplyEatMode();
-        }
-        else if (!hasDango && !isAdMode)
-        {
+        else
             ApplyAdMode();
-        }
 
         // Busy中は押せない（広告SDK差し替え時の事故防止）
         if (button != null)
@@ -115,13 +108,11 @@ public class DangoButtonHandler : MonoBehaviour
 
         // シミュレーションなので即解除。広告SDK導入後は「成功コールバック」で解除する。
         isBusy = false;
-        if (button != null) button.interactable = true;
-        lastKnownCount = int.MinValue; // 次フレームでUI強制更新
+
+        RefreshUI();
     }
 
     #region Pulse Animation
-
-    Coroutine pulseRoutine;
 
     void StartPulse()
     {
