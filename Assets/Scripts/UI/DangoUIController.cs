@@ -107,7 +107,7 @@ public class DangoUIController : MonoBehaviour
         save.dango.lastGeneratedUnixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         SaveManager.Instance.MarkDirty();
-        FindObjectOfType<DangoButtonHandler>()?.RefreshUI();
+        SaveManager.Instance.NotifyDangoChanged();
 
         PlayPopAnimation(save.dango.currentCount - 1);
     }
@@ -132,7 +132,7 @@ public class DangoUIController : MonoBehaviour
         save.dango.lastGeneratedUnixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         SaveManager.Instance.MarkDirty();
-        FindObjectOfType<DangoButtonHandler>()?.RefreshUI();
+        SaveManager.Instance.NotifyDangoChanged();
 
         // 演出
         PlayPopAnimation(save.dango.currentCount - 1);
@@ -158,7 +158,7 @@ public class DangoUIController : MonoBehaviour
         dango.lastGeneratedUnixTime += generated * Interval;
 
         SaveManager.Instance.MarkDirty();
-        FindObjectOfType<DangoButtonHandler>()?.RefreshUI();
+        SaveManager.Instance.NotifyDangoChanged();
     }
 
     void PlayPopAnimation(int index)
