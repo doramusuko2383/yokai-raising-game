@@ -185,6 +185,8 @@ public class YokaiStateController : MonoBehaviour
         // --- 団子消費 ---
         save.dango.currentCount--;
 
+        AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
+
         SaveManager.Instance.MarkDirty();
         SaveManager.Instance.NotifyDangoChanged();
 
