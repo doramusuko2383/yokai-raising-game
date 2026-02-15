@@ -103,6 +103,31 @@ public class DangoUIController : MonoBehaviour
         SaveManager.Instance.MarkDirty();
     }
 
+    public void OnClickAdGenerateDango()
+    {
+        Debug.Log("[DANGO] Ad generate button clicked");
+
+        if (SaveManager.Instance == null)
+            return;
+
+        var save = SaveManager.Instance.CurrentSave;
+        if (save == null || save.dango == null)
+            return;
+
+        const int MaxDango = 3;
+
+        if (save.dango.currentCount >= MaxDango)
+            return;
+
+        save.dango.currentCount++;
+        save.dango.lastGeneratedUnixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        SaveManager.Instance.MarkDirty();
+
+        // 演出
+        PlayPopAnimation(save.dango.currentCount - 1);
+    }
+
     void PlayPopAnimation(int index)
     {
         if (index < 0 || index >= dangoSlots.Length)
