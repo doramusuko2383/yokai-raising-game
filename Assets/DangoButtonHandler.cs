@@ -1,169 +1,119 @@
+using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Yokai;
 
 public class DangoButtonHandler : MonoBehaviour
 {
-    [SerializeField]
-    YokaiStateController stateController;
+    public TMP_Text buttonText;
+    public Image buttonBackground;
+    public Color normalColor = Color.white;
+    public Color adColor = new Color(0.4f, 0.7f, 1f);
 
     [SerializeField]
     UIActionController actionController;
 
+    bool isAdMode;
 
-    [SerializeField]
-    float dangoAmount = 30f;
-
-    [Header("UI References")]
-    [SerializeField]
-    GameObject dangoRoot;
-
-    [SerializeField]
-    Button dangoButton;
-    bool hasWarnedMissingStateController;
-    bool hasWarnedMissingAudioHook;
-    bool hasWarnedMissingAudioClip;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-    bool hasLoggedDependencyResolution;
-#endif
-
-    void Awake()
+    void Update()
     {
-        ResolveDependencies(logIfMissingOnce: true);
+        if (SaveManager.Instance == null)
+            return;
+
+        var save = SaveManager.Instance.CurrentSave;
+        if (save == null || save.dango == null)
+            return;
+
+        bool hasDango = save.dango.currentCount > 0;
+
+        if (hasDango)
+        {
+            if (isAdMode)
+            {
+                buttonText.text = "だんご";
+                buttonBackground.color = normalColor;
+                StopPulse();
+                isAdMode = false;
+            }
+        }
+        else
+        {
+            if (!isAdMode)
+            {
+                buttonText.text = "広告で回復";
+                buttonBackground.color = adColor;
+                StartPulse();
+                isAdMode = true;
+            }
+        }
     }
 
     public void OnClickDango()
     {
-        ResolveDependencies(logIfMissingOnce: true);
-        TryPlayDangoSE();
+        var save = SaveManager.Instance?.CurrentSave;
+        if (save == null || save.dango == null)
+            return;
 
-        if (actionController == null)
+        if (save.dango.currentCount > 0)
         {
-            Debug.LogWarning("[DangoButtonHandler] UIActionController not set in Inspector.");
-            return;
+            if (actionController == null)
+                actionController = FindObjectOfType<UIActionController>(true);
+
+            if (actionController != null)
+                actionController.Execute(YokaiAction.EatDango);
+            else
+                Debug.LogWarning("[DangoButtonHandler] UIActionController not found.");
         }
-
-        actionController.Execute(YokaiAction.EatDango);
-    }
-
-    public void RefreshUI()
-    {
-        ResolveDependencies(logIfMissingOnce: false);
-        if (stateController == null)
-        {
-            SetAllDisabled();
-            return;
-        }
-
-        bool canEat = stateController.CanDo(YokaiAction.EatDango);
-        if (dangoRoot != null)
-            dangoRoot.SetActive(canEat);
-        if (dangoButton != null)
-            dangoButton.interactable = canEat;
-    }
-
-    void SetAllDisabled()
-    {
-        if (dangoRoot != null)
-            dangoRoot.SetActive(false);
-        if (dangoButton != null)
-            dangoButton.interactable = false;
-    }
-
-    void ResolveDependencies(bool logIfMissingOnce)
-    {
-        if (stateController == null)
-            stateController = FindObjectOfType<YokaiStateController>(true);
-
-        bool hasAudioHook = EnsureAudioResolver(logIfMissingOnce);
-
-        if (logIfMissingOnce)
-        {
-            if (stateController == null)
-                WarnMissingStateController();
-
-
-            if (!hasAudioHook)
-                WarnMissingAudioHook();
-        }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        LogDependencyResolutionOnce(hasAudioHook);
-#endif
-    }
-
-    void WarnMissingStateController()
-    {
-        if (hasWarnedMissingStateController)
-            return;
-
-        Debug.LogWarning("[DANGO] StateController not set in Inspector");
-        hasWarnedMissingStateController = true;
-    }
-
-
-    bool EnsureAudioResolver(bool logIfMissingOnce)
-    {
-        if (AudioHook.ClipResolver != null)
-            return true;
-
-        if (AudioHook.ClipResolver == null && logIfMissingOnce)
-            WarnMissingAudioHook();
-
-        return AudioHook.ClipResolver != null;
-    }
-
-    void TryPlayDangoSE()
-    {
-        bool hasAudioHook = EnsureAudioResolver(logIfMissingOnce: true);
-        if (!hasAudioHook)
-            return;
-
-        try
-        {
-            if (!AudioHook.TryResolveClip(YokaiSE.SE_SPIRIT_RECOVER, out _))
-                WarnMissingAudioClip();
-
-            AudioHook.RequestPlay(YokaiSE.SE_SPIRIT_RECOVER);
-        }
-        catch (System.Exception ex)
-        {
-            WarnMissingAudioHook(ex);
-        }
-    }
-
-    void WarnMissingAudioClip()
-    {
-        if (hasWarnedMissingAudioClip)
-            return;
-
-        Debug.LogWarning("[SE] SE_SPIRIT_RECOVER clip is not resolved.");
-        hasWarnedMissingAudioClip = true;
-    }
-
-    void WarnMissingAudioHook(System.Exception ex = null)
-    {
-        if (hasWarnedMissingAudioHook)
-            return;
-
-        if (ex != null)
-            Debug.LogWarning($"[DANGO] Missing AudioHook or resolver. {ex.Message}");
         else
-            Debug.LogWarning("[DANGO] Missing AudioHook or resolver.");
-
-        hasWarnedMissingAudioHook = true;
+        {
+            ShowRewardAd();
+        }
     }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-    void LogDependencyResolutionOnce(bool hasAudioHook)
+    void ShowRewardAd()
     {
-        if (hasLoggedDependencyResolution)
-            return;
+        Debug.Log("[AD] Rewarded Ad Simulated");
 
-        string audioStatus = hasAudioHook ? "OK" : "Missing";
-        string stateStatus = stateController != null ? "OK" : "Missing";
-        Debug.Log($"[DANGO] deps: audioHook={audioStatus}, stateController={stateStatus}");
-        hasLoggedDependencyResolution = true;
+        var save = SaveManager.Instance.CurrentSave;
+        save.dango.currentCount = 1;
+        save.dango.lastGeneratedUnixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        SaveManager.Instance.MarkDirty();
     }
-#endif
+
+    #region Pulse Animation
+
+    Coroutine pulseRoutine;
+
+    void StartPulse()
+    {
+        if (pulseRoutine != null)
+            StopCoroutine(pulseRoutine);
+
+        pulseRoutine = StartCoroutine(Pulse());
+    }
+
+    void StopPulse()
+    {
+        if (pulseRoutine != null)
+            StopCoroutine(pulseRoutine);
+
+        transform.localScale = Vector3.one;
+    }
+
+    System.Collections.IEnumerator Pulse()
+    {
+        while (true)
+        {
+            float t = 0f;
+            while (t < 1f)
+            {
+                t += Time.deltaTime * 2f;
+                transform.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 1.05f, Mathf.Sin(t * Mathf.PI));
+                yield return null;
+            }
+        }
+    }
+
+    #endregion
 }
