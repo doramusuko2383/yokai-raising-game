@@ -28,6 +28,19 @@ public class DangoButtonHandler : MonoBehaviour
         RefreshUI();
     }
 
+
+    void OnEnable()
+    {
+        if (SaveManager.Instance != null)
+            SaveManager.Instance.OnDangoChanged += RefreshUI;
+    }
+
+    void OnDisable()
+    {
+        if (SaveManager.Instance != null)
+            SaveManager.Instance.OnDangoChanged -= RefreshUI;
+    }
+
     public void RefreshUI()
     {
         // 参照が刺さってないと即落ちするので安全化

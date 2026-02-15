@@ -6,6 +6,7 @@ using Yokai;
 public class SaveManager : MonoBehaviour
 {
     public static SaveManager Instance { get; private set; }
+    public event Action OnDangoChanged;
 
     public GameSaveData CurrentSave { get; private set; }
 
@@ -60,6 +61,11 @@ public class SaveManager : MonoBehaviour
     public void MarkDirty()
     {
         isDirty = true;
+    }
+
+    public void NotifyDangoChanged()
+    {
+        OnDangoChanged?.Invoke();
     }
 
     public void Save()
@@ -189,7 +195,7 @@ public class SaveManager : MonoBehaviour
                 {
                     dango.currentCount = (int)Mathf.Min(dango.currentCount + generated, MaxDango);
                     dango.lastGeneratedUnixTime += generated * Interval;
-                    FindObjectOfType<DangoButtonHandler>()?.RefreshUI();
+                    NotifyDangoChanged();
                 }
             }
         }
