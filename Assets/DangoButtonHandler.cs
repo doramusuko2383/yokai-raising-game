@@ -96,20 +96,19 @@ public class DangoButtonHandler : MonoBehaviour
         if (save == null || save.dango == null)
             return;
 
-        if (save.dango.currentCount > 0)
+        int countBefore = save.dango.currentCount;
+
+        if (countBefore > 0)
         {
             if (actionController == null)
                 actionController = FindObjectOfType<UIActionController>(true);
 
-            if (actionController != null)
-                actionController.Execute(YokaiAction.EatDango);
-            else
-                Debug.LogWarning("[DangoButtonHandler] UIActionController not found.");
+            actionController?.Execute(YokaiAction.EatDango);
+
+            return;
         }
-        else
-        {
-            ShowRewardAd();
-        }
+
+        ShowRewardAd();
     }
 
     void ApplyEatMode()
