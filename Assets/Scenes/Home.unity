@@ -1167,7 +1167,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c6513887b03d114682194ad398f82fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dangoSlots: []
+  dangoSlots:
+  - {fileID: 226981938}
+  - {fileID: 1021637372}
+  - {fileID: 859783446}
   countdownText: {fileID: 0}
   adGenerateButton: {fileID: 1709868827}
   emptyColor: {r: 1, g: 1, b: 1, a: 0.3}
