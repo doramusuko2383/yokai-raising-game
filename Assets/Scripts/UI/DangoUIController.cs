@@ -1,11 +1,12 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class DangoUIController : MonoBehaviour
 {
     public Image[] dangoSlots;
-    public Text countdownText;
+    public TMP_Text countdownText;
     public Button adGenerateButton;     // ←追加
 
     public Color emptyColor = new Color(1f, 1f, 1f, 0.3f);
