@@ -2,11 +2,14 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Yokai;
 
 public class DangoButtonHandler : MonoBehaviour
 {
     public TMP_Text buttonText;
     public Image buttonBackground;
+    [Tooltip("ボタンのClickable本体（未設定ならこのGameObjectのButtonを探す）")]
+    public Button button;
     public Color normalColor = Color.white;
     public Color adColor = new Color(0.4f, 0.7f, 1f);
 
@@ -14,9 +17,18 @@ public class DangoButtonHandler : MonoBehaviour
     UIActionController actionController;
 
     bool isAdMode;
+    int lastKnownCount = int.MinValue;
+    bool isBusy; // 広告再生中などの多重クリック防止
 
     void Update()
     {
+        // 参照が刺さってないと即落ちするので安全化
+        if (buttonText == null || buttonBackground == null)
+            return;
+
+        if (button == null)
+            button = GetComponent<Button>();
+
         if (SaveManager.Instance == null)
             return;
 
@@ -24,32 +36,33 @@ public class DangoButtonHandler : MonoBehaviour
         if (save == null || save.dango == null)
             return;
 
-        bool hasDango = save.dango.currentCount > 0;
+        int count = Mathf.Clamp(save.dango.currentCount, 0, 3);
+        if (count == lastKnownCount && !isBusy)
+            return; // 状態変化なしならUI更新しない
 
-        if (hasDango)
+        lastKnownCount = count;
+
+        bool hasDango = count > 0;
+
+        if (hasDango && isAdMode)
         {
-            if (isAdMode)
-            {
-                buttonText.text = "だんご";
-                buttonBackground.color = normalColor;
-                StopPulse();
-                isAdMode = false;
-            }
+            ApplyEatMode();
         }
-        else
+        else if (!hasDango && !isAdMode)
         {
-            if (!isAdMode)
-            {
-                buttonText.text = "広告で回復";
-                buttonBackground.color = adColor;
-                StartPulse();
-                isAdMode = true;
-            }
+            ApplyAdMode();
         }
+
+        // Busy中は押せない（広告SDK差し替え時の事故防止）
+        if (button != null)
+            button.interactable = !isBusy;
     }
 
     public void OnClickDango()
     {
+        if (isBusy)
+            return;
+
         var save = SaveManager.Instance?.CurrentSave;
         if (save == null || save.dango == null)
             return;
@@ -70,15 +83,40 @@ public class DangoButtonHandler : MonoBehaviour
         }
     }
 
+    void ApplyEatMode()
+    {
+        buttonText.text = "だんご";
+        buttonBackground.color = normalColor;
+        StopPulse();
+        isAdMode = false;
+    }
+
+    void ApplyAdMode()
+    {
+        buttonText.text = "広告で回復";
+        buttonBackground.color = adColor;
+        StartPulse();
+        isAdMode = true;
+    }
+
     void ShowRewardAd()
     {
+        // 本番は広告SDK呼び出しで非同期になる。今の段階でも多重クリック防止のためBusyにする。
+        isBusy = true;
+        if (button != null) button.interactable = false;
+
         Debug.Log("[AD] Rewarded Ad Simulated");
 
         var save = SaveManager.Instance.CurrentSave;
-        save.dango.currentCount = 1;
+        save.dango.currentCount = Mathf.Clamp(save.dango.currentCount + 1, 0, 3);
         save.dango.lastGeneratedUnixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         SaveManager.Instance.MarkDirty();
+
+        // シミュレーションなので即解除。広告SDK導入後は「成功コールバック」で解除する。
+        isBusy = false;
+        if (button != null) button.interactable = true;
+        lastKnownCount = int.MinValue; // 次フレームでUI強制更新
     }
 
     #region Pulse Animation
