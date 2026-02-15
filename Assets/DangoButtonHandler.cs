@@ -6,6 +6,14 @@ using Yokai;
 
 public class DangoButtonHandler : MonoBehaviour
 {
+    enum ActionButtonMode
+    {
+        EatDango,
+        AdRecover,
+        SpecialDango,
+        EmergencyPurify
+    }
+
     public TMP_Text buttonText;
     public Image buttonBackground;
     [Tooltip("ボタンのClickable本体（未設定ならこのGameObjectのButtonを探す）")]
@@ -16,6 +24,7 @@ public class DangoButtonHandler : MonoBehaviour
     [SerializeField]
     UIActionController actionController;
 
+    ActionButtonMode currentMode;
     bool isAdMode;
     bool isBusy; // 広告再生中などの多重クリック防止
     bool subscribed;
@@ -76,7 +85,7 @@ public class DangoButtonHandler : MonoBehaviour
     public void RefreshUI()
     {
         bool isTargetGraphicMatched = button != null && buttonBackground != null && ReferenceEquals(button.targetGraphic, buttonBackground);
-        Debug.Log($"[DangoButtonHandler] RefreshUI begin. isBusy={isBusy}, isAdMode={isAdMode}, hasButtonText={buttonText != null}, hasButtonBackground={buttonBackground != null}, hasButton={button != null}, targetGraphicMatched={isTargetGraphicMatched}");
+        Debug.Log($"[DangoButtonHandler] RefreshUI begin. isBusy={isBusy}, currentMode={currentMode}, hasButtonText={buttonText != null}, hasButtonBackground={buttonBackground != null}, hasButton={button != null}, targetGraphicMatched={isTargetGraphicMatched}");
 
         if (button != null && buttonBackground != null && !ReferenceEquals(button.targetGraphic, buttonBackground))
             Debug.LogWarning("[DangoButtonHandler] RefreshUI validation: buttonBackground is not matched with Button.targetGraphic.");
@@ -87,36 +96,8 @@ public class DangoButtonHandler : MonoBehaviour
             return;
         }
 
-        var saveManager = SaveManager.Instance;
-        if (saveManager == null)
-        {
-            Debug.LogWarning("[DangoButtonHandler] RefreshUI aborted: SaveManager.Instance is null.");
-            return;
-        }
-
-        var save = saveManager.CurrentSave;
-        if (save == null)
-        {
-            Debug.LogWarning("[DangoButtonHandler] RefreshUI aborted: CurrentSave is null.");
-            return;
-        }
-
-        if (save.dango == null)
-        {
-            Debug.LogWarning("[DangoButtonHandler] RefreshUI aborted: save.dango is null.");
-            return;
-        }
-
-        int rawCount = save.dango.currentCount;
-        int count = Mathf.Clamp(rawCount, 0, 3);
-        bool hasDango = count > 0;
-
-        Debug.Log($"[DangoButtonHandler] RefreshUI state. rawCount={rawCount}, clampedCount={count}, hasDango={hasDango}, lastGeneratedUnixTime={save.dango.lastGeneratedUnixTime}");
-
-        if (hasDango)
-            ApplyEatMode();
-        else
-            ApplyAdMode();
+        currentMode = DecideMode();
+        ApplyMode(currentMode);
 
         if (button != null)
         {
@@ -129,9 +110,42 @@ public class DangoButtonHandler : MonoBehaviour
         }
     }
 
+    ActionButtonMode DecideMode()
+    {
+        var save = SaveManager.Instance?.CurrentSave;
+        if (save == null || save.dango == null)
+            return ActionButtonMode.EatDango;
+
+        if (save.dango.currentCount > 0)
+            return ActionButtonMode.EatDango;
+
+        return ActionButtonMode.AdRecover;
+    }
+
+    void ApplyMode(ActionButtonMode mode)
+    {
+        Debug.Log($"[DangoButtonHandler] ApplyMode mode={mode}");
+
+        switch (mode)
+        {
+            case ActionButtonMode.EatDango:
+                ApplyEatMode();
+                break;
+            case ActionButtonMode.AdRecover:
+                ApplyAdMode();
+                break;
+            case ActionButtonMode.SpecialDango:
+                ApplySpecialDangoMode();
+                break;
+            case ActionButtonMode.EmergencyPurify:
+                ApplyEmergencyMode();
+                break;
+        }
+    }
+
     public void OnClickDango()
     {
-        Debug.Log($"[DangoButtonHandler] OnClickDango begin. isBusy={isBusy}");
+        Debug.Log($"[DangoButtonHandler] OnClickDango begin. isBusy={isBusy}, currentMode={currentMode}");
 
         if (isBusy)
         {
@@ -139,28 +153,46 @@ public class DangoButtonHandler : MonoBehaviour
             return;
         }
 
+        switch (currentMode)
+        {
+            case ActionButtonMode.EatDango:
+                ExecuteEat();
+                break;
+            case ActionButtonMode.AdRecover:
+                ShowRewardAd();
+                break;
+            case ActionButtonMode.SpecialDango:
+                ExecuteSpecialDango();
+                break;
+            case ActionButtonMode.EmergencyPurify:
+                ExecuteEmergencyPurify();
+                break;
+        }
+    }
+
+    void ExecuteEat()
+    {
         var save = SaveManager.Instance?.CurrentSave;
         if (save == null || save.dango == null)
         {
-            Debug.LogWarning($"[DangoButtonHandler] OnClickDango aborted: save or dango is null. hasSave={save != null}, hasDango={save?.dango != null}");
+            Debug.LogWarning($"[DangoButtonHandler] ExecuteEat aborted: save or dango is null. hasSave={save != null}, hasDango={save?.dango != null}");
             return;
         }
 
         int countBefore = save.dango.currentCount;
-        Debug.Log($"[DangoButtonHandler] OnClickDango countBefore={countBefore}");
+        Debug.Log($"[DangoButtonHandler] ExecuteEat countBefore={countBefore}");
 
-        if (countBefore > 0)
+        if (countBefore <= 0)
         {
-            if (actionController == null)
-                actionController = FindObjectOfType<UIActionController>(true);
-
-            actionController?.Execute(YokaiAction.EatDango);
-            Debug.Log($"[DangoButtonHandler] OnClickDango executed EatDango. actionControllerFound={actionController != null}");
-
+            Debug.Log("[DangoButtonHandler] ExecuteEat skipped: no dango available.");
             return;
         }
 
-        ShowRewardAd();
+        if (actionController == null)
+            actionController = FindObjectOfType<UIActionController>(true);
+
+        actionController?.Execute(YokaiAction.EatDango);
+        Debug.Log($"[DangoButtonHandler] ExecuteEat executed EatDango. actionControllerFound={actionController != null}");
     }
 
     void ApplyEatMode()
@@ -179,6 +211,34 @@ public class DangoButtonHandler : MonoBehaviour
         buttonText.color = new Color(0.65f, 0.8f, 1f);
         StartPulse(1.02f);
         isAdMode = true;
+    }
+
+    void ApplySpecialDangoMode()
+    {
+        Debug.Log($"[DangoButtonHandler] ApplySpecialDangoMode. previousIsAdMode={isAdMode}");
+        buttonText.text = "特別だんご";
+        buttonText.color = Color.yellow;
+        StopPulse();
+        isAdMode = false;
+    }
+
+    void ApplyEmergencyMode()
+    {
+        Debug.Log($"[DangoButtonHandler] ApplyEmergencyMode. previousIsAdMode={isAdMode}");
+        buttonText.text = "緊急浄化";
+        buttonText.color = new Color(1f, 0.6f, 0.6f);
+        StopPulse();
+        isAdMode = false;
+    }
+
+    void ExecuteSpecialDango()
+    {
+        Debug.Log("[DangoButtonHandler] ExecuteSpecialDango called. (placeholder)");
+    }
+
+    void ExecuteEmergencyPurify()
+    {
+        Debug.Log("[DangoButtonHandler] ExecuteEmergencyPurify called. (placeholder)");
     }
 
     void ShowRewardAd()
