@@ -65,6 +65,7 @@ public class SaveManager : MonoBehaviour
 
     public void NotifyDangoChanged()
     {
+        Debug.Log($"[SaveManager] NotifyDangoChanged invoked. hasListener={OnDangoChanged != null}");
         OnDangoChanged?.Invoke();
     }
 
