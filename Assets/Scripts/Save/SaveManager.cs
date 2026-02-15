@@ -189,6 +189,7 @@ public class SaveManager : MonoBehaviour
                 {
                     dango.currentCount = (int)Mathf.Min(dango.currentCount + generated, MaxDango);
                     dango.lastGeneratedUnixTime += generated * Interval;
+                    FindObjectOfType<DangoButtonHandler>()?.RefreshUI();
                 }
             }
         }
