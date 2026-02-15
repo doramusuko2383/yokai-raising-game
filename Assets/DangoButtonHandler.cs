@@ -167,7 +167,7 @@ public class DangoButtonHandler : MonoBehaviour
     {
         Debug.Log($"[DangoButtonHandler] ApplyEatMode. previousIsAdMode={isAdMode}");
         buttonText.text = "だんご";
-        buttonBackground.color = normalColor;
+        buttonText.color = Color.black;
         StopPulse();
         isAdMode = false;
     }
@@ -176,8 +176,8 @@ public class DangoButtonHandler : MonoBehaviour
     {
         Debug.Log($"[DangoButtonHandler] ApplyAdMode. previousIsAdMode={isAdMode}");
         buttonText.text = "広告で回復";
-        buttonBackground.color = adColor;
-        StartPulse();
+        buttonText.color = new Color(0.65f, 0.8f, 1f);
+        StartPulse(1.02f);
         isAdMode = true;
     }
 
@@ -203,12 +203,12 @@ public class DangoButtonHandler : MonoBehaviour
 
     #region Pulse Animation
 
-    void StartPulse()
+    void StartPulse(float scale)
     {
         if (pulseRoutine != null)
             StopCoroutine(pulseRoutine);
 
-        pulseRoutine = StartCoroutine(Pulse());
+        pulseRoutine = StartCoroutine(Pulse(scale));
     }
 
     void StopPulse()
@@ -219,15 +219,15 @@ public class DangoButtonHandler : MonoBehaviour
         transform.localScale = Vector3.one;
     }
 
-    System.Collections.IEnumerator Pulse()
+    System.Collections.IEnumerator Pulse(float scale)
     {
         while (true)
         {
             float t = 0f;
             while (t < 1f)
             {
-                t += Time.deltaTime * 2f;
-                transform.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 1.05f, Mathf.Sin(t * Mathf.PI));
+                t += Time.deltaTime * 1.5f;
+                transform.localScale = Vector3.Lerp(Vector3.one, Vector3.one * scale, Mathf.Sin(t * Mathf.PI));
                 yield return null;
             }
         }
