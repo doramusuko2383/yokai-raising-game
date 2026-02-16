@@ -177,15 +177,23 @@ public class YokaiStateController : MonoBehaviour
 
     internal void HandleSpecialDangoRecover()
     {
-        if (specialDangoUsedThisEnergyEmpty || spiritController == null)
+        if (specialDangoUsedThisEnergyEmpty)
             return;
+
+        if (spiritController == null)
+        {
+            Debug.LogWarning("[SpecialDango] spiritController is null.");
+            return;
+        }
 
         specialDangoUsedThisEnergyEmpty = true;
 
-        spiritController.AddSpirit(spiritController.MaxSpirit * 0.5f);
+        spiritController.AddSpirit(50f);
 
         RequestEvaluateState("SpecialDangoRecovered");
         NotifyStatusChanged();
+
+        Debug.Log("[SpecialDango] Recovered 50 spirit.");
     }
 
     internal void HandleEatDango()
