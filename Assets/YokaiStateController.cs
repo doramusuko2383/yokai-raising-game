@@ -177,7 +177,7 @@ public class YokaiStateController : MonoBehaviour
         if (spiritController == null)
             return;
 
-        spiritController.AddSpirit(spiritController.MaxSpirit * 0.5f);
+        spiritController.AddSpirit(spiritController.MaxSpirit);
         RequestEvaluateState("AdRecovered");
         NotifyStatusChanged();
     }
