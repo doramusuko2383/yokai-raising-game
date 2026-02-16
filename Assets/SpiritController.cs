@@ -49,6 +49,7 @@ public class SpiritController : MonoBehaviour
     StatGauge spiritGauge;
 
     public float SpiritNormalized => spiritGauge != null ? spiritGauge.Normalized : (maxSpirit > 0f ? Mathf.Clamp01(spirit / maxSpirit) : 0f);
+    public float MaxSpirit => maxSpirit;
 
     void Awake()
     {

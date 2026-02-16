@@ -252,11 +252,24 @@ public class DangoButtonHandler : MonoBehaviour
 
     void ExecuteSpecialDango()
     {
-        if (actionController == null)
-            actionController = FindObjectOfType<UIActionController>(true);
+        var controller = YokaiStateController.Instance;
+        if (controller == null)
+            return;
 
-        actionController?.Execute(YokaiAction.SpecialDangoRecover);
-        Debug.Log($"[DangoButtonHandler] ExecuteSpecialDango executed SpecialDangoRecover. actionControllerFound={actionController != null}");
+        if (!controller.CanUseSpecialDango)
+            return;
+
+        var spiritController = FindObjectOfType<SpiritController>();
+        if (spiritController == null)
+            return;
+
+        float recoverAmount = spiritController.MaxSpirit * 0.5f;
+        spiritController.ChangeSpirit(recoverAmount);
+
+        controller.ConsumeSpecialDango();
+        controller.RequestEvaluateState("SpecialDangoUsed");
+
+        Debug.Log("[SpecialDango] Used");
     }
 
 
@@ -272,6 +285,10 @@ public class DangoButtonHandler : MonoBehaviour
         save.dango.lastGeneratedUnixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         SaveManager.Instance.MarkDirty();
+
+        var controller = YokaiStateController.Instance;
+        if (controller != null && controller.CurrentState == YokaiState.EnergyEmpty)
+            controller.GrantSpecialDango();
 
         isBusy = false;
         SaveManager.Instance.NotifyDangoChanged();

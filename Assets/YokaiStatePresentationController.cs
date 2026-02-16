@@ -594,6 +594,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
             case YokaiState.EnergyEmpty:
                 actionPanel.SetActive(true);
+                purifyButton?.SetActive(true);
                 dangoButton?.SetActive(true);
                 break;
 
