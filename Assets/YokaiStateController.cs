@@ -329,7 +329,7 @@ public class YokaiStateController : MonoBehaviour
 
     void OnSpiritChanged(float current, float max)
     {
-        NotifyStatusChanged();
+        // 状態遷移時の UI 更新に統一するため、ここでは何もしない。
     }
 
     void OnPurityChanged(float current, float max)
@@ -411,7 +411,7 @@ public class YokaiStateController : MonoBehaviour
         currentState = newState;
         lastStateChangeReason = reason;
 
-        if (newState == YokaiState.EnergyEmpty)
+        if (newState != YokaiState.EnergyEmpty)
             CanUseSpecialDango = false;
 
         YokaiLogger.State($"{prev} -> {newState} ({reason})");
