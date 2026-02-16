@@ -27,7 +27,8 @@ public class DangoButtonHandler : MonoBehaviour
     ActionButtonMode currentMode;
     bool isAdMode;
     bool isBusy; // 広告再生中などの多重クリック防止
-    bool subscribed;
+    bool subscribedSave;
+    YokaiStateController subscribedStateController;
     Coroutine pulseRoutine;
 
     void Awake()
@@ -52,22 +53,25 @@ public class DangoButtonHandler : MonoBehaviour
 
     void OnDisable()
     {
-        if (!subscribed)
-            return;
-
-        if (SaveManager.Instance != null)
+        if (subscribedSave && SaveManager.Instance != null)
             SaveManager.Instance.OnDangoChanged -= RefreshUI;
 
-        subscribed = false;
+        if (subscribedStateController != null)
+            subscribedStateController.OnStatusChanged -= RefreshUI;
+
+        subscribedSave = false;
+        subscribedStateController = null;
     }
 
     void TrySubscribe()
     {
-        Debug.Log($"[DangoButtonHandler] TrySubscribe called. subscribed={subscribed}, hasSaveManager={SaveManager.Instance != null}");
+        Debug.Log($"[DangoButtonHandler] TrySubscribe called. subscribedSave={subscribedSave}, hasSaveManager={SaveManager.Instance != null}");
 
-        if (subscribed)
+        TrySubscribeStateController();
+
+        if (subscribedSave)
         {
-            Debug.Log("[DangoButtonHandler] TrySubscribe skipped: already subscribed.");
+            Debug.Log("[DangoButtonHandler] TrySubscribe skipped: already subscribed to SaveManager.");
             return;
         }
 
@@ -78,8 +82,25 @@ public class DangoButtonHandler : MonoBehaviour
         }
 
         SaveManager.Instance.OnDangoChanged += RefreshUI;
-        subscribed = true;
+        subscribedSave = true;
         Debug.Log("[DangoButtonHandler] TrySubscribe succeeded: subscribed to SaveManager.OnDangoChanged.");
+    }
+
+    void TrySubscribeStateController()
+    {
+        var controller = YokaiStateController.Instance;
+        if (controller == null)
+            return;
+
+        if (subscribedStateController == controller)
+            return;
+
+        if (subscribedStateController != null)
+            subscribedStateController.OnStatusChanged -= RefreshUI;
+
+        subscribedStateController = controller;
+        subscribedStateController.OnStatusChanged += RefreshUI;
+        Debug.Log("[DangoButtonHandler] TrySubscribeStateController succeeded: subscribed to YokaiStateController.OnStatusChanged.");
     }
 
     public void RefreshUI()
@@ -118,17 +139,22 @@ public class DangoButtonHandler : MonoBehaviour
     {
         var controller = YokaiStateController.Instance;
         var save = SaveManager.Instance?.CurrentSave;
-        if (controller == null || save == null || save.dango == null)
+        if (controller == null)
             return ActionButtonMode.EatDango;
 
-        // 優先順位：上から強い
-        if (controller.IsPurityEmptyState)
-            return ActionButtonMode.EmergencyPurify;
+        switch (controller.CurrentState)
+        {
+            case YokaiState.PurityEmpty:
+                return ActionButtonMode.EmergencyPurify;
 
-        if (controller.IsSpiritEmpty && controller.CanUseSpecialDango)
-            return ActionButtonMode.SpecialDango;
+            case YokaiState.EnergyEmpty:
+                if (controller.CanUseSpecialDango)
+                    return ActionButtonMode.SpecialDango;
 
-        if (save.dango.currentCount > 0)
+                return ActionButtonMode.AdRecover;
+        }
+
+        if (save?.dango?.currentCount > 0)
             return ActionButtonMode.EatDango;
 
         return ActionButtonMode.AdRecover;
@@ -250,7 +276,17 @@ public class DangoButtonHandler : MonoBehaviour
 
     void ExecuteEmergencyPurify()
     {
-        Debug.Log("[DangoButtonHandler] ExecuteEmergencyPurify called. (placeholder)");
+        if (actionController == null)
+            actionController = FindObjectOfType<UIActionController>(true);
+
+        if (actionController == null)
+        {
+            Debug.LogWarning("[DangoButtonHandler] ExecuteEmergencyPurify aborted: UIActionController not found.");
+            return;
+        }
+
+        actionController.Execute(YokaiAction.EmergencyPurifyAd);
+        Debug.Log("[DangoButtonHandler] ExecuteEmergencyPurify executed EmergencyPurifyAd.");
     }
 
     void ShowRewardAd()

@@ -253,45 +253,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         return stateController;
     }
-
-    // ---- Input routing guard ----
-    [Header("Emergency Purify Wiring")]
-    [SerializeField] bool autoWireEmergencyPurifyButton = true;
-
-    Button cachedEmergencyButton;
-    void OnEmergencyPurifyClicked()
-    {
-        var sc = ResolveStateController();
-        if (sc == null)
-            return;
-
-        Debug.Log("[RECOVERY] PurityRecoverAd clicked (runtime wired)");
-        sc.ExecuteEmergencyPurify("PurityRecoverAd");
-    }
-
-    void EnsureEmergencyPurifyButtonWired(GameObject buttonGO)
-    {
-        if (!autoWireEmergencyPurifyButton || buttonGO == null)
-            return;
-
-        var btn = buttonGO.GetComponent<UnityEngine.UI.Button>();
-        if (btn == null)
-            return;
-
-        if (cachedEmergencyButton != btn)
-        {
-            // 別インスタンスに切り替わった時も確実に貼り直す
-            if (cachedEmergencyButton != null)
-                cachedEmergencyButton.onClick.RemoveListener(OnEmergencyPurifyClicked);
-
-            cachedEmergencyButton = btn;
-            cachedEmergencyButton.onClick.RemoveListener(OnEmergencyPurifyClicked);
-            cachedEmergencyButton.onClick.AddListener(OnEmergencyPurifyClicked);
-
-            Debug.Log("[RECOVERY] EmergencyPurify button wired at runtime");
-        }
-    }
-
     void SetPentagramInputEnabled(bool enabled)
     {
         if (pentagramInputCatcher == null)
@@ -627,12 +588,7 @@ public class YokaiStatePresentationController : MonoBehaviour
 
             case YokaiState.PurityEmpty:
                 actionPanel.SetActive(true);
-                var purityAd =
-                    purityRecoverAdButton != null
-                        ? purityRecoverAdButton
-                        : legacyPurityRecoverAdButton;
-                purityAd?.SetActive(true);
-                EnsureEmergencyPurifyButtonWired(purityAd);
+                dangoButton?.SetActive(true);
                 break;
 
             case YokaiState.EnergyEmpty:
