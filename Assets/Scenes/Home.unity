@@ -2202,6 +2202,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1355842318 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2412124311346105366, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+  m_PrefabInstance: {fileID: 6224671111732217254}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1355842313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1390311716
 GameObject:
   m_ObjectHideFlags: 0
@@ -3568,6 +3579,10 @@ PrefabInstance:
       propertyPath: m_hasFontAssetChanged
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: button
+      value: 
+      objectReference: {fileID: 1355842318}
     - target: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: buttonText
       value: 
