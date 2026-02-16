@@ -252,7 +252,11 @@ public class DangoButtonHandler : MonoBehaviour
 
     void ExecuteSpecialDango()
     {
-        Debug.Log("[DangoButtonHandler] ExecuteSpecialDango called. (placeholder)");
+        if (actionController == null)
+            actionController = FindObjectOfType<UIActionController>(true);
+
+        actionController?.Execute(YokaiAction.EmergencySpiritRecover);
+        Debug.Log($"[DangoButtonHandler] ExecuteSpecialDango executed EmergencySpiritRecover. actionControllerFound={actionController != null}");
     }
 
 
