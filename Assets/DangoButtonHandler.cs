@@ -96,8 +96,12 @@ public class DangoButtonHandler : MonoBehaviour
             return;
         }
 
-        currentMode = DecideMode();
-        ApplyMode(currentMode);
+        var newMode = DecideMode();
+        if (newMode != currentMode)
+        {
+            currentMode = newMode;
+            ApplyMode(currentMode);
+        }
 
         if (button != null)
         {
@@ -116,10 +120,29 @@ public class DangoButtonHandler : MonoBehaviour
         if (save == null || save.dango == null)
             return ActionButtonMode.EatDango;
 
+        // 将来拡張用：最優先条件から順番に判定する。
+        if (IsEmergencyPurifyCondition())
+            return ActionButtonMode.EmergencyPurify;
+
+        if (IsSpecialDangoCondition())
+            return ActionButtonMode.SpecialDango;
+
         if (save.dango.currentCount > 0)
             return ActionButtonMode.EatDango;
 
         return ActionButtonMode.AdRecover;
+    }
+
+    bool IsEmergencyPurifyCondition()
+    {
+        // TODO: 霊力0 / 清浄度0 など、緊急浄化判定を追加予定。
+        return false;
+    }
+
+    bool IsSpecialDangoCondition()
+    {
+        // TODO: 特別だんごの条件判定を追加予定。
+        return false;
     }
 
     void ApplyMode(ActionButtonMode mode)
