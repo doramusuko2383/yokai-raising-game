@@ -386,6 +386,7 @@ public class YokaiStateController : MonoBehaviour
             UnityEngine.Time.frameCount
         );
         OnStateChanged?.Invoke(prev, newState);
+        NotifyStatusChanged();
 
         isApplyingSideEffects = true;
         try
