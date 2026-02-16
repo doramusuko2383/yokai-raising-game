@@ -10,8 +10,7 @@ public class DangoButtonHandler : MonoBehaviour
     {
         EatDango,
         AdRecover,
-        SpecialDango,
-        EmergencyPurify
+        SpecialDango
     }
 
     public TMP_Text buttonText;
@@ -142,16 +141,12 @@ public class DangoButtonHandler : MonoBehaviour
         if (controller == null)
             return ActionButtonMode.EatDango;
 
-        switch (controller.CurrentState)
+        if (controller.CurrentState == YokaiState.EnergyEmpty)
         {
-            case YokaiState.PurityEmpty:
-                return ActionButtonMode.EmergencyPurify;
+            if (controller.CanUseSpecialDango)
+                return ActionButtonMode.SpecialDango;
 
-            case YokaiState.EnergyEmpty:
-                if (controller.CanUseSpecialDango)
-                    return ActionButtonMode.SpecialDango;
-
-                return ActionButtonMode.AdRecover;
+            return ActionButtonMode.AdRecover;
         }
 
         if (save?.dango?.currentCount > 0)
@@ -174,9 +169,6 @@ public class DangoButtonHandler : MonoBehaviour
                 break;
             case ActionButtonMode.SpecialDango:
                 ApplySpecialDangoMode();
-                break;
-            case ActionButtonMode.EmergencyPurify:
-                ApplyEmergencyMode();
                 break;
         }
     }
@@ -201,9 +193,6 @@ public class DangoButtonHandler : MonoBehaviour
                 break;
             case ActionButtonMode.SpecialDango:
                 ExecuteSpecialDango();
-                break;
-            case ActionButtonMode.EmergencyPurify:
-                ExecuteEmergencyPurify();
                 break;
         }
     }
@@ -260,34 +249,12 @@ public class DangoButtonHandler : MonoBehaviour
         isAdMode = false;
     }
 
-    void ApplyEmergencyMode()
-    {
-        Debug.Log($"[DangoButtonHandler] ApplyEmergencyMode. previousIsAdMode={isAdMode}");
-        buttonText.text = "緊急浄化";
-        buttonText.color = new Color(1f, 0.6f, 0.6f);
-        StopPulse();
-        isAdMode = false;
-    }
 
     void ExecuteSpecialDango()
     {
         Debug.Log("[DangoButtonHandler] ExecuteSpecialDango called. (placeholder)");
     }
 
-    void ExecuteEmergencyPurify()
-    {
-        if (actionController == null)
-            actionController = FindObjectOfType<UIActionController>(true);
-
-        if (actionController == null)
-        {
-            Debug.LogWarning("[DangoButtonHandler] ExecuteEmergencyPurify aborted: UIActionController not found.");
-            return;
-        }
-
-        actionController.Execute(YokaiAction.EmergencyPurifyAd);
-        Debug.Log("[DangoButtonHandler] ExecuteEmergencyPurify executed EmergencyPurifyAd.");
-    }
 
     void ShowRewardAd()
     {
