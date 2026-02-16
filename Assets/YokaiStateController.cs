@@ -53,9 +53,6 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     float minimumRecoverValue = 10f;
 
-    [SerializeField]
-    float specialDangoRecoverAmount = 50f;
-
     bool evolutionResultPending;
     YokaiEvolutionStage evolutionResultStage;
     const float EvolutionReadyScale = 2.0f;
@@ -89,7 +86,6 @@ public class YokaiStateController : MonoBehaviour
     public bool IsPurifying => PurifyMachine.IsPurifying;
     public bool IsPurifyCharging => PurifyMachine.IsCharging;
     public bool IsPurifyTriggerReady => isPurifyTriggerReady;
-    public bool CanUseSpecialDango { get; private set; }
     public float CurrentSpirit => spiritController != null ? spiritController.spirit : 0f;
     public float CurrentPurity => purityController != null ? purityController.purity : 0f;
     public float CurrentSpiritNormalized => spiritController != null ? spiritController.SpiritNormalized : 0f;
@@ -165,18 +161,6 @@ public class YokaiStateController : MonoBehaviour
         OnStatusChanged?.Invoke();
     }
 
-    public void GrantSpecialDango()
-    {
-        CanUseSpecialDango = true;
-        NotifyStatusChanged();
-    }
-
-    public void ConsumeSpecialDango()
-    {
-        CanUseSpecialDango = false;
-        NotifyStatusChanged();
-    }
-
     internal void SetPurifyTriggeredByUser(bool value)
     {
         IsPurifyTriggeredByUser = value;
@@ -188,24 +172,14 @@ public class YokaiStateController : MonoBehaviour
         RecoverSpirit();
     }
 
-    internal void HandleSpecialDangoRecover()
+    public void RecoverFromAd()
     {
-        if (!CanUseSpecialDango)
-            return;
-
         if (spiritController == null)
-        {
-            Debug.LogWarning("[SpecialDango] spiritController is null.");
             return;
-        }
 
-        ConsumeSpecialDango();
-
-        spiritController.AddSpirit(specialDangoRecoverAmount);
-
-        RequestEvaluateState("SpecialDangoUsed");
-
-        Debug.Log($"[SpecialDango] Recovered {specialDangoRecoverAmount} spirit.");
+        spiritController.AddSpirit(spiritController.MaxSpirit * 0.5f);
+        RequestEvaluateState("AdRecovered");
+        NotifyStatusChanged();
     }
 
     internal void HandleEatDango()
@@ -410,9 +384,6 @@ public class YokaiStateController : MonoBehaviour
         var prev = currentState;
         currentState = newState;
         lastStateChangeReason = reason;
-
-        if (newState != YokaiState.EnergyEmpty)
-            CanUseSpecialDango = false;
 
         YokaiLogger.State($"{prev} -> {newState} ({reason})");
         historyService.Record(
