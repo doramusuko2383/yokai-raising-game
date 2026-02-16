@@ -26,7 +26,6 @@ public class YokaiStateController : MonoBehaviour
     bool isSpiritEmpty;
     bool isPurityEmpty;
     bool isPurifyTriggerReady;
-    bool specialDangoUsedThisEnergyEmpty;
     public bool HasUserInteracted { get; private set; } = false;
     public bool IsPurifyTriggeredByUser { get; private set; }
 
@@ -87,9 +86,7 @@ public class YokaiStateController : MonoBehaviour
     public bool IsPurifying => PurifyMachine.IsPurifying;
     public bool IsPurifyCharging => PurifyMachine.IsCharging;
     public bool IsPurifyTriggerReady => isPurifyTriggerReady;
-    public bool CanUseSpecialDango =>
-        CurrentState == YokaiState.EnergyEmpty &&
-        !specialDangoUsedThisEnergyEmpty;
+    public bool CanUseSpecialDango { get; private set; }
     public float CurrentSpirit => spiritController != null ? spiritController.spirit : 0f;
     public float CurrentPurity => purityController != null ? purityController.purity : 0f;
     public float CurrentSpiritNormalized => spiritController != null ? spiritController.SpiritNormalized : 0f;
@@ -164,6 +161,19 @@ public class YokaiStateController : MonoBehaviour
     {
         OnStatusChanged?.Invoke();
     }
+
+    public void GrantSpecialDango()
+    {
+        CanUseSpecialDango = true;
+        NotifyStatusChanged();
+    }
+
+    public void ConsumeSpecialDango()
+    {
+        CanUseSpecialDango = false;
+        NotifyStatusChanged();
+    }
+
     internal void SetPurifyTriggeredByUser(bool value)
     {
         IsPurifyTriggeredByUser = value;
@@ -177,7 +187,7 @@ public class YokaiStateController : MonoBehaviour
 
     internal void HandleSpecialDangoRecover()
     {
-        if (specialDangoUsedThisEnergyEmpty)
+        if (!CanUseSpecialDango)
             return;
 
         if (spiritController == null)
@@ -186,12 +196,11 @@ public class YokaiStateController : MonoBehaviour
             return;
         }
 
-        specialDangoUsedThisEnergyEmpty = true;
+        ConsumeSpecialDango();
 
         spiritController.AddSpirit(50f);
 
-        RequestEvaluateState("SpecialDangoRecovered");
-        NotifyStatusChanged();
+        RequestEvaluateState("SpecialDangoUsed");
 
         Debug.Log("[SpecialDango] Recovered 50 spirit.");
     }
@@ -337,7 +346,6 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isSpiritEmpty = true;
-        specialDangoUsedThisEnergyEmpty = false;
 
         RequestEvaluateState("SpiritEmpty");
     }
@@ -399,6 +407,9 @@ public class YokaiStateController : MonoBehaviour
         var prev = currentState;
         currentState = newState;
         lastStateChangeReason = reason;
+
+        if (newState == YokaiState.EnergyEmpty)
+            CanUseSpecialDango = false;
 
         YokaiLogger.State($"{prev} -> {newState} ({reason})");
         historyService.Record(
