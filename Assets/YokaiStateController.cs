@@ -53,6 +53,9 @@ public class YokaiStateController : MonoBehaviour
     [SerializeField]
     float minimumRecoverValue = 10f;
 
+    [SerializeField]
+    float specialDangoRecoverAmount = 50f;
+
     bool evolutionResultPending;
     YokaiEvolutionStage evolutionResultStage;
     const float EvolutionReadyScale = 2.0f;
@@ -198,11 +201,11 @@ public class YokaiStateController : MonoBehaviour
 
         ConsumeSpecialDango();
 
-        spiritController.AddSpirit(50f);
+        spiritController.AddSpirit(specialDangoRecoverAmount);
 
         RequestEvaluateState("SpecialDangoUsed");
 
-        Debug.Log("[SpecialDango] Recovered 50 spirit.");
+        Debug.Log($"[SpecialDango] Recovered {specialDangoRecoverAmount} spirit.");
     }
 
     internal void HandleEatDango()

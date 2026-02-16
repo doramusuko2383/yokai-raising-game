@@ -252,24 +252,10 @@ public class DangoButtonHandler : MonoBehaviour
 
     void ExecuteSpecialDango()
     {
-        var controller = YokaiStateController.Instance;
-        if (controller == null)
-            return;
+        if (actionController == null)
+            actionController = FindObjectOfType<UIActionController>(true);
 
-        if (!controller.CanUseSpecialDango)
-            return;
-
-        var spiritController = FindObjectOfType<SpiritController>();
-        if (spiritController == null)
-            return;
-
-        float recoverAmount = spiritController.MaxSpirit * 0.5f;
-        spiritController.ChangeSpirit(recoverAmount);
-
-        controller.ConsumeSpecialDango();
-        controller.RequestEvaluateState("SpecialDangoUsed");
-
-        Debug.Log("[SpecialDango] Used");
+        actionController?.Execute(YokaiAction.SpecialDangoRecover);
     }
 
 
