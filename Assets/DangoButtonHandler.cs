@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,8 +8,7 @@ public class DangoButtonHandler : MonoBehaviour
     enum ActionButtonMode
     {
         EatDango,
-        AdRecover,
-        SpecialDango
+        SpecialRecover
     }
 
     public TMP_Text buttonText;
@@ -137,22 +135,13 @@ public class DangoButtonHandler : MonoBehaviour
     ActionButtonMode DecideMode()
     {
         var controller = YokaiStateController.Instance;
-        var save = SaveManager.Instance?.CurrentSave;
         if (controller == null)
             return ActionButtonMode.EatDango;
 
         if (controller.CurrentState == YokaiState.EnergyEmpty)
-        {
-            if (controller.CanUseSpecialDango)
-                return ActionButtonMode.SpecialDango;
+            return ActionButtonMode.SpecialRecover;
 
-            return ActionButtonMode.AdRecover;
-        }
-
-        if (save?.dango?.currentCount > 0)
-            return ActionButtonMode.EatDango;
-
-        return ActionButtonMode.AdRecover;
+        return ActionButtonMode.EatDango;
     }
 
     void ApplyMode(ActionButtonMode mode)
@@ -164,11 +153,8 @@ public class DangoButtonHandler : MonoBehaviour
             case ActionButtonMode.EatDango:
                 ApplyEatMode();
                 break;
-            case ActionButtonMode.AdRecover:
-                ApplyAdMode();
-                break;
-            case ActionButtonMode.SpecialDango:
-                ApplySpecialDangoMode();
+            case ActionButtonMode.SpecialRecover:
+                ApplySpecialRecoverMode();
                 break;
         }
     }
@@ -188,11 +174,8 @@ public class DangoButtonHandler : MonoBehaviour
             case ActionButtonMode.EatDango:
                 ExecuteEat();
                 break;
-            case ActionButtonMode.AdRecover:
-                ShowRewardAd();
-                break;
-            case ActionButtonMode.SpecialDango:
-                ExecuteSpecialDango();
+            case ActionButtonMode.SpecialRecover:
+                ExecuteSpecialRecover();
                 break;
         }
     }
@@ -231,33 +214,19 @@ public class DangoButtonHandler : MonoBehaviour
         isAdMode = false;
     }
 
-    void ApplyAdMode()
+    void ApplySpecialRecoverMode()
     {
-        Debug.Log($"[DangoButtonHandler] ApplyAdMode. previousIsAdMode={isAdMode}");
-        buttonText.text = "広告で回復";
+        Debug.Log($"[DangoButtonHandler] ApplySpecialRecoverMode. previousIsAdMode={isAdMode}");
+        buttonText.text = "特別だんご";
         buttonText.color = new Color(0.65f, 0.8f, 1f);
         StartPulse(1.02f);
         isAdMode = true;
     }
 
-    void ApplySpecialDangoMode()
+    void ExecuteSpecialRecover()
     {
-        Debug.Log($"[DangoButtonHandler] ApplySpecialDangoMode. previousIsAdMode={isAdMode}");
-        buttonText.text = "特別だんご";
-        buttonText.color = Color.yellow;
-        StopPulse();
-        isAdMode = false;
+        ShowRewardAd();
     }
-
-
-    void ExecuteSpecialDango()
-    {
-        if (actionController == null)
-            actionController = FindObjectOfType<UIActionController>(true);
-
-        actionController?.Execute(YokaiAction.SpecialDangoRecover);
-    }
-
 
     void ShowRewardAd()
     {
@@ -266,18 +235,11 @@ public class DangoButtonHandler : MonoBehaviour
 
         Debug.Log("[AD] Rewarded Ad Simulated");
 
-        var save = SaveManager.Instance.CurrentSave;
-        save.dango.currentCount = Mathf.Clamp(save.dango.currentCount + 1, 0, 3);
-        save.dango.lastGeneratedUnixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
-        SaveManager.Instance.MarkDirty();
-
         var controller = YokaiStateController.Instance;
-        if (controller != null && controller.CurrentState == YokaiState.EnergyEmpty)
-            controller.GrantSpecialDango();
+        controller?.RecoverFromAd();
 
         isBusy = false;
-        SaveManager.Instance.NotifyDangoChanged();
+        SaveManager.Instance?.NotifyDangoChanged();
 
         if (button != null)
             button.interactable = true;

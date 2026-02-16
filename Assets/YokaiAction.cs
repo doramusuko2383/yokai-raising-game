@@ -10,7 +10,6 @@ public enum YokaiAction
 
     EmergencyPurifyAd,
     EmergencySpiritRecover,
-    SpecialDangoRecover,
 
     StartEvolution,
     Purify,
