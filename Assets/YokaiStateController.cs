@@ -411,7 +411,7 @@ public class YokaiStateController : MonoBehaviour
         currentState = newState;
         lastStateChangeReason = reason;
 
-        if (newState == YokaiState.EnergyEmpty)
+        if (newState != YokaiState.EnergyEmpty)
             CanUseSpecialDango = false;
 
         YokaiLogger.State($"{prev} -> {newState} ({reason})");
