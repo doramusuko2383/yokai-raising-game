@@ -63,6 +63,10 @@ namespace Yokai
                     controller.HandleEmergencySpiritRecover();
                     break;
 
+                case YokaiAction.SpecialDangoRecover:
+                    controller.HandleSpecialDangoRecover();
+                    break;
+
                 case YokaiAction.EatDango:
                     controller.HandleEatDango();
                     break;

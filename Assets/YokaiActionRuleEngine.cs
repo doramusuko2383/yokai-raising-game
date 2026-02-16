@@ -62,6 +62,7 @@ public static class YokaiActionRuleEngine
                 return state == YokaiState.Normal;
 
             case YokaiAction.EmergencySpiritRecover:
+            case YokaiAction.SpecialDangoRecover:
                 return state == YokaiState.EnergyEmpty;
 
             case YokaiAction.EmergencyPurifyAd:
