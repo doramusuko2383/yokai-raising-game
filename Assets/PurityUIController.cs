@@ -34,6 +34,7 @@ public class PurityUIController : MonoBehaviour
 
     void OnEnable()
     {
+        BindStateController(ResolveStateController());
         BindCurrentYokai(CurrentYokaiContext.Current);
         CurrentYokaiContext.CurrentChanged += BindCurrentYokai;
 
@@ -45,6 +46,7 @@ public class PurityUIController : MonoBehaviour
     {
         CurrentYokaiContext.CurrentChanged -= BindCurrentYokai;
         BindPurityController(null);
+        BindStateController(null);
 
         ResetPulse();
     }
@@ -61,6 +63,11 @@ public class PurityUIController : MonoBehaviour
             puritySlider.maxValue = 1f;
             puritySlider.value = purityController != null ? purityController.PurityNormalized : 0f;
         }
+    }
+
+    void OnStatusChanged()
+    {
+        RefreshUI();
     }
 
     void CacheFillReferences()
@@ -126,7 +133,28 @@ public class PurityUIController : MonoBehaviour
         if (activeYokai != null)
             controller = activeYokai.GetComponentInChildren<PurityController>(true);
 
+        BindStateController(ResolveStateController());
         BindPurityController(controller);
+    }
+
+
+    Yokai.YokaiStateController ResolveStateController()
+    {
+        return CurrentYokaiContext.ResolveStateController() ?? stateController;
+    }
+
+    void BindStateController(Yokai.YokaiStateController controller)
+    {
+        if (stateController == controller)
+            return;
+
+        if (stateController != null)
+            stateController.OnStatusChanged -= OnStatusChanged;
+
+        stateController = controller;
+
+        if (stateController != null)
+            stateController.OnStatusChanged += OnStatusChanged;
     }
 
     void BindPurityController(PurityController controller)
@@ -134,13 +162,7 @@ public class PurityUIController : MonoBehaviour
         if (purityController == controller)
             return;
 
-        if (purityController != null)
-            purityController.PurityChanged -= OnPurityChanged;
-
         purityController = controller;
-
-        if (purityController != null)
-            purityController.PurityChanged += OnPurityChanged;
 
         RefreshUI();
     }

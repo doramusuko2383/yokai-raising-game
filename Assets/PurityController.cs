@@ -126,6 +126,20 @@ public class PurityController : MonoBehaviour
         SetPurity(maxPurity * Mathf.Clamp01(ratio), "SetPurityRatio");
     }
 
+    void ApplyPurityDecay(float decayAmount)
+    {
+        if (decayAmount <= 0f)
+            return;
+
+        ChangePurity(-decayAmount);
+
+        var stateController = CurrentYokaiContext.StateController;
+        if (stateController != null)
+        {
+            stateController.NotifyStatusChanged();
+        }
+    }
+
     void HandleNaturalDecay()
     {
         if (!naturalDecayEnabled)
@@ -144,7 +158,7 @@ public class PurityController : MonoBehaviour
         int ticks = Mathf.FloorToInt(decayTimer / decayIntervalSeconds);
         decayTimer -= ticks * decayIntervalSeconds;
         float decayAmount = naturalDecayPerMinute * ticks;
-        ChangePurity(-decayAmount);
+        ApplyPurityDecay(decayAmount);
     }
 
     void NotifyPurityChanged(string reason)
