@@ -329,7 +329,7 @@ public class YokaiStateController : MonoBehaviour
 
     void OnSpiritChanged(float current, float max)
     {
-        NotifyStatusChanged();
+        // 状態遷移時の UI 更新に統一するため、ここでは何もしない。
     }
 
     void OnPurityChanged(float current, float max)
