@@ -26,7 +26,7 @@ public class YokaiStateController : MonoBehaviour
     bool isSpiritEmpty;
     bool isPurityEmpty;
     bool isPurifyTriggerReady;
-    bool canUseSpecialDango;
+    bool specialDangoUsedThisEnergyEmpty;
     public bool HasUserInteracted { get; private set; } = false;
     public bool IsPurifyTriggeredByUser { get; private set; }
 
@@ -87,7 +87,9 @@ public class YokaiStateController : MonoBehaviour
     public bool IsPurifying => PurifyMachine.IsPurifying;
     public bool IsPurifyCharging => PurifyMachine.IsCharging;
     public bool IsPurifyTriggerReady => isPurifyTriggerReady;
-    public bool CanUseSpecialDango => canUseSpecialDango;
+    public bool CanUseSpecialDango =>
+        CurrentState == YokaiState.EnergyEmpty &&
+        !specialDangoUsedThisEnergyEmpty;
     public float CurrentSpirit => spiritController != null ? spiritController.spirit : 0f;
     public float CurrentPurity => purityController != null ? purityController.purity : 0f;
     public float CurrentSpiritNormalized => spiritController != null ? spiritController.SpiritNormalized : 0f;
@@ -171,6 +173,19 @@ public class YokaiStateController : MonoBehaviour
     {
         YokaiLogger.Action("[YokaiStateController] ExecuteAction EmergencySpiritRecover reached");
         RecoverSpirit();
+    }
+
+    internal void HandleSpecialDangoRecover()
+    {
+        if (specialDangoUsedThisEnergyEmpty || spiritController == null)
+            return;
+
+        specialDangoUsedThisEnergyEmpty = true;
+
+        spiritController.AddSpirit(spiritController.MaxSpirit * 0.5f);
+
+        RequestEvaluateState("SpecialDangoRecovered");
+        NotifyStatusChanged();
     }
 
     internal void HandleEatDango()
@@ -314,7 +329,7 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isSpiritEmpty = true;
-        canUseSpecialDango = true;
+        specialDangoUsedThisEnergyEmpty = false;
 
         RequestEvaluateState("SpiritEmpty");
     }
@@ -325,7 +340,6 @@ public class YokaiStateController : MonoBehaviour
             return;
 
         isSpiritEmpty = false;
-        canUseSpecialDango = false;
         RequestEvaluateState("SpiritRecovered");
     }
 

@@ -255,8 +255,8 @@ public class DangoButtonHandler : MonoBehaviour
         if (actionController == null)
             actionController = FindObjectOfType<UIActionController>(true);
 
-        actionController?.Execute(YokaiAction.EmergencySpiritRecover);
-        Debug.Log($"[DangoButtonHandler] ExecuteSpecialDango executed EmergencySpiritRecover. actionControllerFound={actionController != null}");
+        actionController?.Execute(YokaiAction.SpecialDangoRecover);
+        Debug.Log($"[DangoButtonHandler] ExecuteSpecialDango executed SpecialDangoRecover. actionControllerFound={actionController != null}");
     }
 
 

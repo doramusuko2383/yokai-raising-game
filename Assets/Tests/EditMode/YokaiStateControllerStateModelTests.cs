@@ -121,6 +121,28 @@ public class YokaiStateControllerStateModelTests
         Assert.That(controller.CanDo(YokaiAction.EatDango), Is.False);
         Assert.That(controller.CanDo(YokaiAction.EmergencyPurifyAd), Is.False);
         Assert.That(controller.CanDo(YokaiAction.EmergencySpiritRecover), Is.False);
+        Assert.That(controller.CanDo(YokaiAction.SpecialDangoRecover), Is.False);
+    }
+
+    [Test]
+    public void SpecialDangoAvailability_IsResetPerEnergyEmpty()
+    {
+        var controller = CreateController();
+
+        controller.currentState = YokaiState.EnergyEmpty;
+        controller.OnSpiritEmpty();
+
+        Assert.That(controller.CanUseSpecialDango, Is.True);
+
+        SetPrivateBool(controller, "specialDangoUsedThisEnergyEmpty", true);
+        Assert.That(controller.CanUseSpecialDango, Is.False);
+
+        controller.OnSpiritRecovered();
+        Assert.That(controller.CanUseSpecialDango, Is.False);
+
+        controller.currentState = YokaiState.EnergyEmpty;
+        controller.OnSpiritEmpty();
+        Assert.That(controller.CanUseSpecialDango, Is.True);
     }
 
     [Test]
