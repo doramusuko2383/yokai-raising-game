@@ -890,7 +890,6 @@ MonoBehaviour:
   purityEmptyJitterAmplitude: 0.015
   recoverAdButton: {fileID: 1451458901}
   legacyPurityRecoverAdButton: {fileID: 1855358516}
-  autoWireEmergencyPurifyButton: 1
 --- !u!1 &667190786 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8349528510299463072, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
@@ -3244,6 +3243,10 @@ PrefabInstance:
       propertyPath: m_hasFontAssetChanged
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8134997482538087775, guid: 366e9576cd92a104e916717384432116, type: 3}
+      propertyPath: m_TargetGraphic
+      value: 
+      objectReference: {fileID: 1390311718}
     - target: {fileID: 9021745638291456789, guid: 366e9576cd92a104e916717384432116, type: 3}
       propertyPath: stateController
       value: 
@@ -3383,6 +3386,10 @@ PrefabInstance:
       propertyPath: actionController
       value: 
       objectReference: {fileID: 754336213}
+    - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
+      propertyPath: m_TargetGraphic
+      value: 
+      objectReference: {fileID: 1390311718}
     - target: {fileID: 6288603465833306020, guid: ea3ec6b6a86895143854d05b30815dbe, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -3536,6 +3543,10 @@ PrefabInstance:
       propertyPath: spiritController
       value: 
       objectReference: {fileID: 515532832}
+    - target: {fileID: 2412124311346105366, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: m_TargetGraphic
+      value: 
+      objectReference: {fileID: 1390311718}
     - target: {fileID: 4131890420529113334, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_SizeDelta.x
       value: 406.402
@@ -3560,6 +3571,10 @@ PrefabInstance:
       propertyPath: m_BlocksRaycasts
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+      propertyPath: m_TargetGraphic
+      value: 
+      objectReference: {fileID: 1390311718}
     - target: {fileID: 6597136054994394166, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
