@@ -18,6 +18,7 @@ public class YokaiStateController : MonoBehaviour
     [Header("状態")]
     public YokaiState currentState = YokaiState.Normal;
     public event System.Action<YokaiState, YokaiState> OnStateChanged;
+    public event Action OnStatusChanged;
     public event System.Action OnPurifySucceeded;
     public event System.Action OnPurifyCancelled;
     public YokaiState CurrentState => currentState;
@@ -87,6 +88,10 @@ public class YokaiStateController : MonoBehaviour
     public bool IsPurifyCharging => PurifyMachine.IsCharging;
     public bool IsPurifyTriggerReady => isPurifyTriggerReady;
     public bool CanUseSpecialDango => canUseSpecialDango;
+    public float CurrentSpirit => spiritController != null ? spiritController.spirit : 0f;
+    public float CurrentPurity => purityController != null ? purityController.purity : 0f;
+    public float CurrentSpiritNormalized => spiritController != null ? spiritController.SpiritNormalized : 0f;
+    public float CurrentPurityNormalized => purityController != null ? purityController.PurityNormalized : 0f;
     public SpiritController SpiritController => spiritController;
     public PurityController PurityController => purityController;
     internal YokaiGrowthController GrowthController => growthController;
@@ -150,6 +155,12 @@ public class YokaiStateController : MonoBehaviour
         TutorialManager.NotifyDangoUsed();
         MentorMessageService.ShowHint(OnmyojiHintType.EnergyRecovered);
         RequestEvaluateState("SpiritRecovered");
+        NotifyStatusChanged();
+    }
+
+    public void NotifyStatusChanged()
+    {
+        OnStatusChanged?.Invoke();
     }
     internal void SetPurifyTriggeredByUser(bool value)
     {
@@ -247,6 +258,7 @@ public class YokaiStateController : MonoBehaviour
         {
             purityController.OnPurityEmpty += OnPurityEmpty;
             purityController.OnPurityRecovered += OnPurityRecovered;
+            purityController.PurityChanged += OnPurityChanged;
         }
     }
 
@@ -256,6 +268,7 @@ public class YokaiStateController : MonoBehaviour
         {
             spiritController.OnSpiritEmpty += OnSpiritEmpty;
             spiritController.OnSpiritRecovered += OnSpiritRecovered;
+            spiritController.SpiritChanged += OnSpiritChanged;
         }
     }
 
@@ -265,6 +278,7 @@ public class YokaiStateController : MonoBehaviour
         {
             purityController.OnPurityEmpty -= OnPurityEmpty;
             purityController.OnPurityRecovered -= OnPurityRecovered;
+            purityController.PurityChanged -= OnPurityChanged;
         }
     }
 
@@ -274,7 +288,18 @@ public class YokaiStateController : MonoBehaviour
         {
             spiritController.OnSpiritEmpty -= OnSpiritEmpty;
             spiritController.OnSpiritRecovered -= OnSpiritRecovered;
+            spiritController.SpiritChanged -= OnSpiritChanged;
         }
+    }
+
+    void OnSpiritChanged(float current, float max)
+    {
+        NotifyStatusChanged();
+    }
+
+    void OnPurityChanged(float current, float max)
+    {
+        NotifyStatusChanged();
     }
 
     void SyncManagerState()
@@ -763,6 +788,7 @@ public class YokaiStateController : MonoBehaviour
         HandleZeroOvertimeStress(deltaSeconds);
 
         RequestEvaluateState("OfflineProgress");
+        NotifyStatusChanged();
     }
 
     float GetPurityDecayRatePerSecond()

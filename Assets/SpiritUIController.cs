@@ -56,15 +56,14 @@ public class SpiritUIController : MonoBehaviour
         }
     }
 
-    void OnSpiritChanged(float current, float max)
-    {
-        RefreshUI();
-        SyncWeakVisualsWithState();
-    }
-
     void OnStateChanged(YokaiState previousState, YokaiState newState)
     {
         SetWeakVisuals(IsWeakState(newState));
+    }
+
+    void OnStatusChanged()
+    {
+        RefreshUI();
     }
 
     void RefreshUI()
@@ -178,12 +177,18 @@ public class SpiritUIController : MonoBehaviour
             return;
 
         if (stateController != null)
+        {
             stateController.OnStateChanged -= OnStateChanged;
+            stateController.OnStatusChanged -= OnStatusChanged;
+        }
 
         stateController = controller;
 
         if (stateController != null)
+        {
             stateController.OnStateChanged += OnStateChanged;
+            stateController.OnStatusChanged += OnStatusChanged;
+        }
     }
 
     void BindSpiritController(SpiritController controller)
@@ -191,13 +196,7 @@ public class SpiritUIController : MonoBehaviour
         if (spiritController == controller)
             return;
 
-        if (spiritController != null)
-            spiritController.SpiritChanged -= OnSpiritChanged;
-
         spiritController = controller;
-
-        if (spiritController != null)
-            spiritController.SpiritChanged += OnSpiritChanged;
 
         RefreshUI();
         SyncWeakVisualsWithState();
