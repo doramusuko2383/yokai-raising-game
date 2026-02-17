@@ -67,12 +67,14 @@
     <Compile Include="Assets\DangoButtonHandler.cs" />
     <Compile Include="Assets\Debug\DebugOverlay.cs" />
     <Compile Include="Assets\AudioInitializer.cs" />
+    <Compile Include="Assets\Scripts\Zukan\ZukanPanelController.cs" />
     <Compile Include="Assets\EnergyRecoverAdButtonHandler.cs" />
     <Compile Include="Assets\Scripts\Save\YokaiStatisticsData.cs" />
     <Compile Include="Assets\EvolutionRule.cs" />
     <Compile Include="Assets\CurrentYokaiContext.cs" />
     <Compile Include="Assets\WorldConfig.cs" />
     <Compile Include="Assets\EvolutionStateMachine.cs" />
+    <Compile Include="Assets\Scripts\Zukan\ZukanManager.cs" />
     <Compile Include="Assets\YokaiEncyclopedia.cs" />
     <Compile Include="Assets\Scenes\FireBallIdle.cs" />
     <Compile Include="Assets\YokaiEvolutionController.cs" />
@@ -104,6 +106,7 @@
     <Compile Include="Assets\YokaiStateController.cs" />
     <Compile Include="Assets\YokaiAction.cs" />
     <Compile Include="Assets\PurityController.cs" />
+    <Compile Include="Assets\Data\YokaiData.cs" />
     <Compile Include="Assets\MagicCircleSwipeHandler.cs" />
     <Compile Include="Assets\Scripts\Save\BoostSaveData.cs" />
     <Compile Include="Assets\YokaiStateHistoryService.cs" />
@@ -111,6 +114,7 @@
     <Compile Include="Assets\EvolutionCommand.cs" />
     <Compile Include="Assets\MentorMessageUI.cs" />
     <Compile Include="Assets\CharacterSwitcher.cs" />
+    <Compile Include="Assets\Scripts\Zukan\ZukanItemController.cs" />
     <Compile Include="Assets\AudioHook.cs" />
     <Compile Include="Assets\PurityRecoverAdButtonHandler.cs" />
     <Compile Include="Assets\MentorMessageService.cs" />
