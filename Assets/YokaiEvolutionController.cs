@@ -318,7 +318,10 @@ public class YokaiEvolutionController : MonoBehaviour
             return;
 
         if (YokaiEncyclopedia.TryResolveYokaiId(yokaiObject.name, out var yokaiId, out _))
+        {
             YokaiEncyclopedia.RegisterDiscovery(yokaiId);
+            RegisterUnlockedYokaiId((int)yokaiId);
+        }
     }
 
     void RegisterEncyclopediaEvolution(GameObject yokaiObject)
@@ -327,7 +330,26 @@ public class YokaiEvolutionController : MonoBehaviour
             return;
 
         if (YokaiEncyclopedia.TryResolveYokaiId(yokaiObject.name, out var yokaiId, out var stage))
+        {
             YokaiEncyclopedia.RegisterEvolution(yokaiId, stage);
+            RegisterUnlockedYokaiId((int)yokaiId);
+        }
+    }
+
+    void RegisterUnlockedYokaiId(int yokaiId)
+    {
+        if (SaveManager.Instance == null || SaveManager.Instance.CurrentSave == null)
+            return;
+
+        var save = SaveManager.Instance.CurrentSave;
+        if (save.unlockedYokaiIds == null)
+            save.unlockedYokaiIds = new HashSet<int>();
+
+        if (save.unlockedYokaiIds.Add(yokaiId))
+        {
+            SaveManager.Instance.MarkDirty();
+            SaveManager.Instance.NotifySaveDataChanged();
+        }
     }
 
     GameObject FindYokaiByName(string targetName)

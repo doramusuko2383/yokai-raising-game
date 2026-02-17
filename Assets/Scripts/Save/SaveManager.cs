@@ -7,6 +7,7 @@ public class SaveManager : MonoBehaviour
 {
     public static SaveManager Instance { get; private set; }
     public event Action OnDangoChanged;
+    public event Action OnSaveDataChanged;
 
     public GameSaveData CurrentSave { get; private set; }
 
@@ -67,6 +68,11 @@ public class SaveManager : MonoBehaviour
     {
         Debug.Log($"[SaveManager] NotifyDangoChanged invoked. hasListener={OnDangoChanged != null}");
         OnDangoChanged?.Invoke();
+    }
+
+    public void NotifySaveDataChanged()
+    {
+        OnSaveDataChanged?.Invoke();
     }
 
     public void Save()
@@ -150,6 +156,9 @@ public class SaveManager : MonoBehaviour
 
         if (CurrentSave.boost == null)
             CurrentSave.boost = new BoostSaveData();
+
+        if (CurrentSave.unlockedYokaiIds == null)
+            CurrentSave.unlockedYokaiIds = new System.Collections.Generic.HashSet<int>();
     }
 
     void HandleOfflineProgress(long deltaSeconds, long now)
