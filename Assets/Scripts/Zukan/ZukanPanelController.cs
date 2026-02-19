@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -44,7 +45,9 @@ public class ZukanPanelController : MonoBehaviour
 
     void OnEnable()
     {
-        ZukanItemController.OnItemClicked += OpenDetail;
+        Debug.Log("[ZUKAN] OnEnable");
+
+        ZukanItemController.OnItemClicked += HandleItemClicked;
 
         if (SaveManager.Instance != null)
             SaveManager.Instance.OnSaveDataChanged += HandleSaveDataChanged;
@@ -52,7 +55,9 @@ public class ZukanPanelController : MonoBehaviour
 
     void OnDisable()
     {
-        ZukanItemController.OnItemClicked -= OpenDetail;
+        Debug.Log("[ZUKAN] OnDisable");
+
+        ZukanItemController.OnItemClicked -= HandleItemClicked;
 
         if (SaveManager.Instance != null)
             SaveManager.Instance.OnSaveDataChanged -= HandleSaveDataChanged;
@@ -60,6 +65,8 @@ public class ZukanPanelController : MonoBehaviour
 
     public void OpenZukanPanel()
     {
+        Debug.Log("[ZUKAN] OpenZukanPanel called");
+
         if (zukanPanel != null)
             zukanPanel.SetActive(true);
 
@@ -77,10 +84,17 @@ public class ZukanPanelController : MonoBehaviour
 
     public void Initialize()
     {
+        Debug.Log("[ZUKAN] Initialize called");
+
         if (contentParent == null || zukanItemPrefab == null || zukanManager == null)
+        {
+            Debug.LogWarning("[ZUKAN] Missing references in Initialize");
             return;
+        }
 
         ClearChildren(contentParent);
+
+        Debug.Log($"[ZUKAN] Yokai count: {zukanManager.allYokaiList.Count}");
 
         foreach (var data in zukanManager.allYokaiList)
         {
@@ -97,16 +111,23 @@ public class ZukanPanelController : MonoBehaviour
         StartFade(false);
     }
 
-    private void OpenDetail(string id)
+    void HandleItemClicked(string id)
     {
+        Debug.Log($"[ZUKAN] Item clicked: {id}");
+
         var data = zukanManager.GetData(id);
 
         if (data == null)
         {
-            Debug.LogWarning($"[ZUKAN] Data not found for id: {id}");
+            Debug.LogWarning("[ZUKAN] Data not found for id: " + id);
             return;
         }
 
+        OpenDetail(data);
+    }
+
+    private void OpenDetail(YokaiData data)
+    {
         if (fullImage != null)
             fullImage.sprite = data.fullImage;
 
