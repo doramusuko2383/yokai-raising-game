@@ -1,41 +1,34 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+using System;
 
 public class ZukanItemController : MonoBehaviour
 {
-    [SerializeField]
-    Image iconImage;
+    [SerializeField] private Image iconImage;
+    [SerializeField] private Button button;
+    [SerializeField] private TextMeshProUGUI nameText;
 
-    [SerializeField]
-    Button button;
+    private string yokaiId;
 
-    [SerializeField]
-    TMP_Text nameText;
+    public static event Action<string> OnItemClicked;
 
-    YokaiData yokaiData;
-
-    public void Setup(YokaiData data, bool isUnlocked, System.Action<YokaiData> onClick)
+    public void Setup(string id, Sprite icon, string displayName)
     {
-        yokaiData = data;
+        yokaiId = id;
 
         if (iconImage != null)
-        {
-            iconImage.sprite = data != null ? data.icon : null;
-            iconImage.color = isUnlocked ? Color.white : new Color(0f, 0f, 0f, 1f);
-        }
+            iconImage.sprite = icon;
 
         if (nameText != null)
-            nameText.text = isUnlocked && data != null ? data.displayName : "？？？";
+            nameText.text = displayName;
 
         if (button != null)
         {
             button.onClick.RemoveAllListeners();
-            button.interactable = isUnlocked;
             button.onClick.AddListener(() =>
             {
-                if (yokaiData != null)
-                    onClick?.Invoke(yokaiData);
+                OnItemClicked?.Invoke(yokaiId);
             });
         }
     }

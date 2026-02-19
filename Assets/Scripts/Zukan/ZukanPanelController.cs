@@ -44,12 +44,16 @@ public class ZukanPanelController : MonoBehaviour
 
     void OnEnable()
     {
+        ZukanItemController.OnItemClicked += OpenDetail;
+
         if (SaveManager.Instance != null)
             SaveManager.Instance.OnSaveDataChanged += HandleSaveDataChanged;
     }
 
     void OnDisable()
     {
+        ZukanItemController.OnItemClicked -= OpenDetail;
+
         if (SaveManager.Instance != null)
             SaveManager.Instance.OnSaveDataChanged -= HandleSaveDataChanged;
     }
@@ -81,7 +85,7 @@ public class ZukanPanelController : MonoBehaviour
         foreach (var data in zukanManager.allYokaiList)
         {
             var item = Instantiate(zukanItemPrefab, contentParent);
-            item.Setup(data, IsUnlocked(data.id), OnItemClick);
+            item.Setup(data.id.ToString(), data.icon, data.displayName);
         }
     }
 
@@ -93,38 +97,29 @@ public class ZukanPanelController : MonoBehaviour
         StartFade(false);
     }
 
-    void OnItemClick(YokaiData data)
+    private void OpenDetail(string id)
     {
-        ShowDetail(data);
-    }
+        var data = zukanManager.GetData(id);
 
-    void ShowDetail(YokaiData data)
-    {
         if (data == null)
-            return;
-
-        bool unlocked = IsUnlocked(data.id);
-
-        if (fullImage != null)
         {
-            fullImage.sprite = data.fullImage != null ? data.fullImage : data.icon;
-            fullImage.color = unlocked ? Color.white : new Color(0f, 0f, 0f, 1f);
+            Debug.LogWarning($"[ZUKAN] Data not found for id: {id}");
+            return;
         }
 
+        if (fullImage != null)
+            fullImage.sprite = data.fullImage;
+
         if (nameText != null)
-            nameText.text = unlocked ? data.displayName : "？？？";
+            nameText.text = data.displayName;
 
         if (descriptionText != null)
-            descriptionText.text = unlocked ? data.description : "？？？";
+            descriptionText.text = data.description;
 
-        StartFade(true);
+        if (zukanDetailPanel != null)
+            zukanDetailPanel.SetActive(true);
     }
 
-    bool IsUnlocked(int yokaiId)
-    {
-        var save = SaveManager.Instance != null ? SaveManager.Instance.CurrentSave : null;
-        return save != null && save.unlockedYokaiIds != null && save.unlockedYokaiIds.Contains(yokaiId);
-    }
 
     void HandleSaveDataChanged()
     {
