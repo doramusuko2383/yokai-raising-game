@@ -7,6 +7,12 @@ public class ZukanManager : MonoBehaviour
 
     public YokaiData GetData(string id)
     {
-        return allYokaiList.Find(x => x.id.ToString() == id);
+        foreach (var data in allYokaiList)
+        {
+            if (data.id.ToString() == id)
+                return data;
+        }
+
+        return null;
     }
 }
