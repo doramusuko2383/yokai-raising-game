@@ -19,9 +19,6 @@ public class ZukanPanelController : MonoBehaviour
 
     [Header("Panels")]
     [SerializeField]
-    GameObject zukanPanel;
-
-    [SerializeField]
     CanvasGroup zukanRootCanvasGroup;
 
     [SerializeField]
@@ -77,9 +74,6 @@ public class ZukanPanelController : MonoBehaviour
         zukanRootCanvasGroup.interactable = true;
         zukanRootCanvasGroup.blocksRaycasts = true;
 
-        if (zukanPanel != null)
-            zukanPanel.SetActive(true);
-
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(false);
 
@@ -101,18 +95,15 @@ public class ZukanPanelController : MonoBehaviour
 
     public void CloseZukan()
     {
+        if (zukanRootCanvasGroup == null)
+            return;
+
+        zukanRootCanvasGroup.alpha = 0f;
+        zukanRootCanvasGroup.interactable = false;
+        zukanRootCanvasGroup.blocksRaycasts = false;
+
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(false);
-
-        if (zukanRootCanvasGroup != null)
-        {
-            zukanRootCanvasGroup.alpha = 0f;
-            zukanRootCanvasGroup.interactable = false;
-            zukanRootCanvasGroup.blocksRaycasts = false;
-        }
-
-        if (zukanPanel != null)
-            zukanPanel.SetActive(false);
     }
 
     public void OpenZukanPanel() => OpenZukan();
@@ -181,7 +172,7 @@ public class ZukanPanelController : MonoBehaviour
 
     void HandleSaveDataChanged()
     {
-        if (zukanPanel != null && zukanPanel.activeInHierarchy)
+        if (zukanRootCanvasGroup != null && zukanRootCanvasGroup.alpha > 0.5f)
             Initialize();
     }
 
