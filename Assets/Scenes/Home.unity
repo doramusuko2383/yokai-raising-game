@@ -1072,6 +1072,7 @@ RectTransform:
   m_Children:
   - {fileID: 157375751}
   - {fileID: 1336574118}
+  - {fileID: 1901824389}
   m_Father: {fileID: 543276398}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1774,7 +1775,6 @@ RectTransform:
   - {fileID: 2100000001}
   - {fileID: 754336212}
   - {fileID: 235259490}
-  - {fileID: 1901824389}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -7346,7 +7346,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 543276398}
+  m_Father: {fileID: 235259490}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -7368,7 +7368,6 @@ MonoBehaviour:
   zukanManager: {fileID: 831383922}
   contentParent: {fileID: 649177932}
   zukanItemPrefab: {fileID: 2659560467769390538, guid: 0da2009107a64174685ce989dae21778, type: 3}
-  zukanPanel: {fileID: 1336574117}
   zukanRootCanvasGroup: {fileID: 235259491}
   zukanDetailPanel: {fileID: 157375750}
   detailCanvasGroup: {fileID: 157375752}
