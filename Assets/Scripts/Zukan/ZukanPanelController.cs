@@ -1,5 +1,8 @@
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class ZukanPanelController : MonoBehaviour
@@ -14,6 +17,18 @@ public class ZukanPanelController : MonoBehaviour
 
     [SerializeField]
     ZukanItemController zukanItemPrefab;
+
+    [SerializeField]
+    ScrollRect listScrollRect;
+
+    [SerializeField]
+    Button leftArrowButton;
+
+    [SerializeField]
+    Button rightArrowButton;
+
+    [SerializeField]
+    Vector2 cellSpacing = new Vector2(16f, 16f);
 
     [Header("Panels")]
     [SerializeField]
@@ -35,11 +50,48 @@ public class ZukanPanelController : MonoBehaviour
     [SerializeField]
     TMP_Text descriptionText;
 
+    [SerializeField]
+    string lockedNameText = "???";
+
+    [SerializeField]
+    string lockedDescriptionText = "未解放";
+
+    const int ColumnsPerPage = 3;
+    const int RowsPerPage = 4;
+    const int ItemsPerPage = ColumnsPerPage * RowsPerPage;
+
+    readonly List<YokaiData> itemOrder = new List<YokaiData>();
+    readonly Dictionary<string, bool> unlockCache = new Dictionary<string, bool>();
+
+    RectTransform contentRect;
+    RectTransform viewportRect;
+    int pageCount = 1;
+    int currentPage;
+    bool isSnapping;
+
+    void Awake()
+    {
+        if (listScrollRect == null && zukanListPanel != null)
+            listScrollRect = zukanListPanel.GetComponentInChildren<ScrollRect>(true);
+
+        if (listScrollRect != null)
+        {
+            listScrollRect.horizontal = true;
+            listScrollRect.vertical = false;
+            contentRect = listScrollRect.content;
+            viewportRect = listScrollRect.viewport;
+        }
+    }
+
     void OnEnable()
     {
-        Debug.Log("[ZUKAN] OnEnable");
-
         ZukanItemController.OnItemClicked += HandleItemClicked;
+
+        if (leftArrowButton != null)
+            leftArrowButton.onClick.AddListener(PrevPage);
+
+        if (rightArrowButton != null)
+            rightArrowButton.onClick.AddListener(NextPage);
 
         if (SaveManager.Instance != null)
             SaveManager.Instance.OnSaveDataChanged += HandleSaveDataChanged;
@@ -47,18 +99,42 @@ public class ZukanPanelController : MonoBehaviour
 
     void OnDisable()
     {
-        Debug.Log("[ZUKAN] OnDisable");
-
         ZukanItemController.OnItemClicked -= HandleItemClicked;
+
+        if (leftArrowButton != null)
+            leftArrowButton.onClick.RemoveListener(PrevPage);
+
+        if (rightArrowButton != null)
+            rightArrowButton.onClick.RemoveListener(NextPage);
 
         if (SaveManager.Instance != null)
             SaveManager.Instance.OnSaveDataChanged -= HandleSaveDataChanged;
     }
 
+    void LateUpdate()
+    {
+        if (zukanRootCanvasGroup == null || zukanRootCanvasGroup.alpha <= 0.5f || listScrollRect == null)
+            return;
+
+        if (!listScrollRect.horizontal || pageCount <= 1 || isSnapping)
+            return;
+
+        bool dragging = listScrollRect.dragging;
+        if (!dragging && Input.GetMouseButton(0) && EventSystem.current != null)
+            dragging = EventSystem.current.IsPointerOverGameObject();
+
+        if (!dragging)
+        {
+            int nearestPage = GetNearestPage();
+            if (nearestPage != currentPage)
+                SetPage(nearestPage, true);
+            else
+                SnapToCurrentPage(false);
+        }
+    }
+
     public void OpenZukan()
     {
-        Debug.Log("[ZUKAN] OpenZukan called");
-
         if (zukanRootCanvasGroup == null)
             return;
 
@@ -70,7 +146,7 @@ public class ZukanPanelController : MonoBehaviour
             zukanListPanel.SetActive(true);
 
         if (zukanDetailPanel != null)
-            zukanDetailPanel.SetActive(false);
+            zukanDetailPanel.SetActive(true);
 
         Initialize();
     }
@@ -110,63 +186,260 @@ public class ZukanPanelController : MonoBehaviour
 
     public void Initialize()
     {
-        Debug.Log("[ZUKAN] Initialize called");
-
         if (contentParent == null || zukanItemPrefab == null || zukanManager == null)
-        {
-            Debug.LogWarning("[ZUKAN] Missing references in Initialize");
             return;
-        }
 
-        ClearChildren(contentParent);
-
-        Debug.Log($"[ZUKAN] Yokai count: {zukanManager.allYokaiList.Count}");
-
-        foreach (var data in zukanManager.allYokaiList)
+        if (listScrollRect != null)
         {
-            var item = Instantiate(zukanItemPrefab, contentParent);
-            item.Setup(data.id.ToString(), data.icon, data.displayName);
+            contentRect = listScrollRect.content;
+            viewportRect = listScrollRect.viewport;
         }
+
+        CacheUnlockedStatus();
+        BuildPagedList();
+        SetPage(0, false);
     }
 
-    public void CloseDetailPanel()
+    public void CloseDetailPanel() { }
+
+    void BuildPagedList()
     {
-        if (zukanDetailPanel == null)
+        ClearChildren(contentParent);
+        itemOrder.Clear();
+
+        if (zukanManager.allYokaiList == null)
+        {
+            pageCount = 1;
+            return;
+        }
+
+        pageCount = Mathf.Max(1, Mathf.CeilToInt(zukanManager.allYokaiList.Count / (float)ItemsPerPage));
+
+        ConfigureContentAsPageContainer();
+
+        for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
+        {
+            var pageRoot = new GameObject($"Page_{pageIndex + 1}", typeof(RectTransform), typeof(GridLayoutGroup));
+            var pageRect = pageRoot.GetComponent<RectTransform>();
+            pageRect.SetParent(contentParent, false);
+            pageRect.anchorMin = Vector2.up;
+            pageRect.anchorMax = Vector2.up;
+            pageRect.pivot = new Vector2(0f, 1f);
+            pageRect.anchoredPosition = Vector2.zero;
+
+            float pageWidth = viewportRect != null ? viewportRect.rect.width : ((RectTransform)contentParent).rect.width;
+            float pageHeight = viewportRect != null ? viewportRect.rect.height : ((RectTransform)contentParent).rect.height;
+            pageRect.sizeDelta = new Vector2(Mathf.Max(1f, pageWidth), Mathf.Max(1f, pageHeight));
+
+            var grid = pageRoot.GetComponent<GridLayoutGroup>();
+            ConfigurePageGrid(grid, pageRect.rect.size);
+
+            int pageStart = pageIndex * ItemsPerPage;
+            int pageEnd = Mathf.Min(pageStart + ItemsPerPage, zukanManager.allYokaiList.Count);
+
+            for (int i = pageStart; i < pageEnd; i++)
+            {
+                var data = zukanManager.allYokaiList[i];
+                var item = Instantiate(zukanItemPrefab, pageRect);
+                bool unlocked = IsUnlocked(data.id.ToString());
+                item.Setup(data.id.ToString(), data.icon, data.displayName, unlocked, lockedNameText);
+                itemOrder.Add(data);
+            }
+        }
+
+        Canvas.ForceUpdateCanvases();
+        SnapToCurrentPage(true);
+        UpdateArrowInteractable();
+    }
+
+    void ConfigureContentAsPageContainer()
+    {
+        if (!(contentParent is RectTransform parentRect))
             return;
 
-        zukanDetailPanel.SetActive(false);
+        var grid = contentParent.GetComponent<GridLayoutGroup>();
+        if (grid != null)
+            Destroy(grid);
+
+        var horizontal = contentParent.GetComponent<HorizontalLayoutGroup>();
+        if (horizontal == null)
+            horizontal = contentParent.gameObject.AddComponent<HorizontalLayoutGroup>();
+
+        horizontal.childControlWidth = false;
+        horizontal.childControlHeight = false;
+        horizontal.childForceExpandWidth = false;
+        horizontal.childForceExpandHeight = false;
+        horizontal.spacing = 0f;
+        horizontal.padding = new RectOffset(0, 0, 0, 0);
+
+        var fitter = contentParent.GetComponent<ContentSizeFitter>();
+        if (fitter == null)
+            fitter = contentParent.gameObject.AddComponent<ContentSizeFitter>();
+
+        fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        fitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+        parentRect.anchorMin = Vector2.up;
+        parentRect.anchorMax = Vector2.up;
+        parentRect.pivot = new Vector2(0f, 1f);
+        parentRect.anchoredPosition = Vector2.zero;
+    }
+
+    void ConfigurePageGrid(GridLayoutGroup grid, Vector2 pageSize)
+    {
+        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        grid.constraintCount = ColumnsPerPage;
+        grid.spacing = cellSpacing;
+        grid.padding = new RectOffset(0, 0, 0, 0);
+        grid.childAlignment = TextAnchor.UpperLeft;
+        grid.startAxis = GridLayoutGroup.Axis.Horizontal;
+
+        float totalSpacingX = cellSpacing.x * (ColumnsPerPage - 1);
+        float totalSpacingY = cellSpacing.y * (RowsPerPage - 1);
+        float cellWidth = Mathf.Max(200f, (pageSize.x - totalSpacingX) / ColumnsPerPage);
+        float cellHeight = Mathf.Max(120f, (pageSize.y - totalSpacingY) / RowsPerPage);
+
+        grid.cellSize = new Vector2(cellWidth, cellHeight);
     }
 
     void HandleItemClicked(string id)
     {
-        Debug.Log($"[ZUKAN] Item clicked: {id}");
-
         var data = zukanManager.GetData(id);
-
         if (data == null)
-        {
-            Debug.LogWarning("[ZUKAN] Data not found for id: " + id);
             return;
-        }
 
         OpenDetail(data);
     }
 
-    private void OpenDetail(YokaiData data)
+    void OpenDetail(YokaiData data)
     {
+        if (data == null)
+            return;
+
+        bool unlocked = IsUnlocked(data.id.ToString());
+
         if (fullImage != null)
-            fullImage.sprite = data.fullImage;
+        {
+            fullImage.sprite = data.fullImage != null ? data.fullImage : data.icon;
+            fullImage.color = unlocked ? Color.white : new Color(0f, 0f, 0f, 0.85f);
+        }
 
         if (nameText != null)
-            nameText.text = data.displayName;
+            nameText.text = unlocked ? data.displayName : lockedNameText;
 
         if (descriptionText != null)
-            descriptionText.text = data.description;
+            descriptionText.text = unlocked ? data.description : lockedDescriptionText;
 
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(true);
     }
 
+    void CacheUnlockedStatus()
+    {
+        unlockCache.Clear();
+
+        if (zukanManager == null || zukanManager.allYokaiList == null)
+            return;
+
+        foreach (var data in zukanManager.allYokaiList)
+            unlockCache[data.id.ToString()] = IsUnlockedFromSave(data.id);
+    }
+
+    bool IsUnlocked(string id)
+    {
+        return unlockCache.TryGetValue(id, out bool unlocked) && unlocked;
+    }
+
+    bool IsUnlockedFromSave(int yokaiId)
+    {
+        if (SaveManager.Instance == null || SaveManager.Instance.CurrentSave == null || SaveManager.Instance.CurrentSave.unlockedYokaiIds == null)
+            return false;
+
+        return SaveManager.Instance.CurrentSave.unlockedYokaiIds.Contains(yokaiId);
+    }
+
+    void PrevPage()
+    {
+        SetPage(currentPage - 1, true);
+    }
+
+    void NextPage()
+    {
+        SetPage(currentPage + 1, true);
+    }
+
+    void SetPage(int page, bool smooth)
+    {
+        int clamped = Mathf.Clamp(page, 0, pageCount - 1);
+        if (clamped != currentPage)
+            currentPage = clamped;
+
+        SnapToCurrentPage(smooth);
+        SelectTopLeftOfCurrentPage();
+        UpdateArrowInteractable();
+    }
+
+    void SnapToCurrentPage(bool smooth)
+    {
+        if (listScrollRect == null || pageCount <= 1)
+            return;
+
+        float target = currentPage / (float)(pageCount - 1);
+        if (smooth)
+            StartCoroutine(SmoothSnap(target));
+        else
+            listScrollRect.horizontalNormalizedPosition = target;
+    }
+
+    IEnumerator SmoothSnap(float target)
+    {
+        isSnapping = true;
+        float velocity = 0f;
+
+        while (Mathf.Abs(listScrollRect.horizontalNormalizedPosition - target) > 0.001f)
+        {
+            float value = Mathf.SmoothDamp(
+                listScrollRect.horizontalNormalizedPosition,
+                target,
+                ref velocity,
+                0.12f,
+                Mathf.Infinity,
+                Time.unscaledDeltaTime);
+
+            listScrollRect.horizontalNormalizedPosition = value;
+            yield return null;
+        }
+
+        listScrollRect.horizontalNormalizedPosition = target;
+        isSnapping = false;
+    }
+
+    int GetNearestPage()
+    {
+        if (pageCount <= 1)
+            return 0;
+
+        float t = listScrollRect.horizontalNormalizedPosition;
+        return Mathf.RoundToInt(t * (pageCount - 1));
+    }
+
+    void SelectTopLeftOfCurrentPage()
+    {
+        if (itemOrder.Count == 0)
+            return;
+
+        int index = Mathf.Clamp(currentPage * ItemsPerPage, 0, itemOrder.Count - 1);
+        OpenDetail(itemOrder[index]);
+    }
+
+    void UpdateArrowInteractable()
+    {
+        if (leftArrowButton != null)
+            leftArrowButton.interactable = currentPage > 0;
+
+        if (rightArrowButton != null)
+            rightArrowButton.interactable = currentPage < pageCount - 1;
+    }
 
     void HandleSaveDataChanged()
     {
