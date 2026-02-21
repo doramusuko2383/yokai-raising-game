@@ -7656,7 +7656,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1901824390}
         m_TargetAssemblyTypeName: ZukanPanelController, Assembly-CSharp
-        m_MethodName: OpenZukan
+        m_MethodName: ToggleZukan
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
