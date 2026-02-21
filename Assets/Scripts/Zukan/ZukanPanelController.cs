@@ -70,20 +70,33 @@ public class ZukanPanelController : MonoBehaviour
     {
         Debug.Log("[ZUKAN] OpenZukan called");
 
-        if (zukanRootCanvasGroup != null)
-        {
-            zukanRootCanvasGroup.alpha = 1f;
-            zukanRootCanvasGroup.interactable = true;
-            zukanRootCanvasGroup.blocksRaycasts = true;
-        }
+        if (zukanRootCanvasGroup == null)
+            return;
+
+        zukanRootCanvasGroup.alpha = 1f;
+        zukanRootCanvasGroup.interactable = true;
+        zukanRootCanvasGroup.blocksRaycasts = true;
 
         if (zukanPanel != null)
             zukanPanel.SetActive(true);
 
         if (zukanDetailPanel != null)
-            zukanDetailPanel.SetActive(true);
+            zukanDetailPanel.SetActive(false);
 
         Initialize();
+    }
+
+    public void ToggleZukan()
+    {
+        if (zukanRootCanvasGroup == null)
+            return;
+
+        bool isOpen = zukanRootCanvasGroup.alpha > 0.5f;
+
+        if (isOpen)
+            CloseZukan();
+        else
+            OpenZukan();
     }
 
     public void CloseZukan()
