@@ -1,5 +1,3 @@
-using System.Collections;
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,10 +20,10 @@ public class ZukanPanelController : MonoBehaviour
     CanvasGroup zukanRootCanvasGroup;
 
     [SerializeField]
-    GameObject zukanDetailPanel;
+    GameObject zukanListPanel;
 
     [SerializeField]
-    CanvasGroup detailCanvasGroup;
+    GameObject zukanDetailPanel;
 
     [Header("Detail")]
     [SerializeField]
@@ -36,12 +34,6 @@ public class ZukanPanelController : MonoBehaviour
 
     [SerializeField]
     TMP_Text descriptionText;
-
-    [Header("Animation")]
-    [SerializeField]
-    float fadeDuration = 0.2f;
-
-    Coroutine fadeCoroutine;
 
     void OnEnable()
     {
@@ -74,6 +66,9 @@ public class ZukanPanelController : MonoBehaviour
         zukanRootCanvasGroup.interactable = true;
         zukanRootCanvasGroup.blocksRaycasts = true;
 
+        if (zukanListPanel != null)
+            zukanListPanel.SetActive(true);
+
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(false);
 
@@ -101,6 +96,9 @@ public class ZukanPanelController : MonoBehaviour
         zukanRootCanvasGroup.alpha = 0f;
         zukanRootCanvasGroup.interactable = false;
         zukanRootCanvasGroup.blocksRaycasts = false;
+
+        if (zukanListPanel != null)
+            zukanListPanel.SetActive(false);
 
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(false);
@@ -136,7 +134,7 @@ public class ZukanPanelController : MonoBehaviour
         if (zukanDetailPanel == null)
             return;
 
-        StartFade(false);
+        zukanDetailPanel.SetActive(false);
     }
 
     void HandleItemClicked(string id)
@@ -174,49 +172,6 @@ public class ZukanPanelController : MonoBehaviour
     {
         if (zukanRootCanvasGroup != null && zukanRootCanvasGroup.alpha > 0.5f)
             Initialize();
-    }
-
-    void StartFade(bool isOpening)
-    {
-        if (fadeCoroutine != null)
-            StopCoroutine(fadeCoroutine);
-
-        fadeCoroutine = StartCoroutine(FadeDetailCoroutine(isOpening));
-    }
-
-    IEnumerator FadeDetailCoroutine(bool isOpening)
-    {
-        if (zukanDetailPanel == null)
-            yield break;
-
-        if (detailCanvasGroup == null)
-        {
-            zukanDetailPanel.SetActive(isOpening);
-            yield break;
-        }
-
-        if (isOpening)
-        {
-            zukanDetailPanel.SetActive(true);
-            detailCanvasGroup.alpha = 0f;
-        }
-
-        float start = detailCanvasGroup.alpha;
-        float target = isOpening ? 1f : 0f;
-        float elapsed = 0f;
-
-        while (elapsed < fadeDuration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = fadeDuration <= 0f ? 1f : Mathf.Clamp01(elapsed / fadeDuration);
-            detailCanvasGroup.alpha = Mathf.Lerp(start, target, t);
-            yield return null;
-        }
-
-        detailCanvasGroup.alpha = target;
-
-        if (!isOpening)
-            zukanDetailPanel.SetActive(false);
     }
 
     static void ClearChildren(Transform parent)
