@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class ZukanPanelController : MonoBehaviour
@@ -113,17 +112,14 @@ public class ZukanPanelController : MonoBehaviour
 
     void LateUpdate()
     {
-        if (zukanRootCanvasGroup == null || zukanRootCanvasGroup.alpha <= 0.5f || listScrollRect == null)
+        if (zukanRootCanvasGroup == null ||
+            zukanRootCanvasGroup.alpha <= 0.5f ||
+            listScrollRect == null ||
+            pageCount <= 1 ||
+            isSnapping)
             return;
 
-        if (!listScrollRect.horizontal || pageCount <= 1 || isSnapping)
-            return;
-
-        bool dragging = listScrollRect.dragging;
-        if (!dragging && Input.GetMouseButton(0) && EventSystem.current != null)
-            dragging = EventSystem.current.IsPointerOverGameObject();
-
-        if (!dragging)
+        if (!Input.GetMouseButton(0))
         {
             int nearestPage = GetNearestPage();
             if (nearestPage != currentPage)
