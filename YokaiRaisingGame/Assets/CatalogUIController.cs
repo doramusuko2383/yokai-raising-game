@@ -8,6 +8,8 @@ public class CatalogUIController : MonoBehaviour
     [Header("Catalog Canvas")]
     [SerializeField] private CanvasGroup catalogCanvasGroup;
     [SerializeField] private GameObject catalogPanelRoot;
+    [SerializeField] private GameObject zukanListPanel;
+    [SerializeField] private GameObject zukanDetailPanel;
 
     [Header("Entries")]
     [SerializeField] private GameObject fireBallEntry;
@@ -37,6 +39,16 @@ public class CatalogUIController : MonoBehaviour
         if (fireBallEntry == null && catalogPanelRoot != null)
         {
             fireBallEntry = catalogPanelRoot.transform.Find("Entries/Entry_FireBall")?.gameObject;
+        }
+
+        if (zukanListPanel == null)
+        {
+            zukanListPanel = catalogPanelRoot;
+        }
+
+        if (zukanDetailPanel == null)
+        {
+            zukanDetailPanel = transform.Find("CatalogPanel/DetailPanel")?.gameObject;
         }
 
         if (openCatalogButton == null)
@@ -92,11 +104,34 @@ public class CatalogUIController : MonoBehaviour
     public void OpenCatalog()
     {
         SetCatalogVisible(true, immediate: false);
+
+        if (zukanListPanel != null)
+        {
+            zukanListPanel.SetActive(true);
+        }
+
+        if (zukanDetailPanel != null)
+        {
+            zukanDetailPanel.SetActive(false);
+        }
+    }
+
+    public void OpenZukan()
+    {
+        OpenCatalog();
     }
 
     public void CloseCatalog()
     {
         SetCatalogVisible(false, immediate: false);
+    }
+
+    public void CloseDetailPanel()
+    {
+        if (zukanDetailPanel != null)
+        {
+            zukanDetailPanel.SetActive(false);
+        }
     }
 
     void SetCatalogVisible(bool visible, bool immediate)
