@@ -286,8 +286,6 @@ public class ZukanPanelController : MonoBehaviour
 
         pageCount = 1;
 
-        ConfigureContentAsDirectGrid();
-
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(viewportRect);
 
@@ -312,60 +310,6 @@ public class ZukanPanelController : MonoBehaviour
         // 一時的にページ切替機能を停止。
         // SnapToCurrentPage(true);
         // UpdateArrowInteractable();
-    }
-
-    void ConfigureContentAsDirectGrid()
-    {
-        if (!(contentParent is RectTransform parentRect))
-            return;
-
-        var grid = contentParent.GetComponent<GridLayoutGroup>();
-        if (grid != null)
-        {
-            grid.enabled = false;
-            Destroy(grid);
-        }
-
-        var horizontal = contentParent.GetComponent<HorizontalLayoutGroup>();
-        if (horizontal != null)
-        {
-            horizontal.enabled = false;
-            Destroy(horizontal);
-        }
-
-        var vertical = contentParent.GetComponent<VerticalLayoutGroup>();
-        if (vertical != null)
-        {
-            vertical.enabled = false;
-            Destroy(vertical);
-        }
-
-        var fitter = contentParent.GetComponent<ContentSizeFitter>();
-        if (fitter != null)
-        {
-            fitter.enabled = false;
-            Destroy(fitter);
-        }
-
-        var contentGrid = contentParent.GetComponent<GridLayoutGroup>();
-        if (contentGrid == null)
-            contentGrid = contentParent.gameObject.AddComponent<GridLayoutGroup>();
-
-        contentGrid.enabled = true;
-        contentGrid.cellSize = new Vector2(300f, 300f);
-        contentGrid.spacing = new Vector2(24f, 24f);
-        contentGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        contentGrid.constraintCount = 3;
-        contentGrid.padding = new RectOffset(0, 0, 0, 0);
-        contentGrid.childAlignment = TextAnchor.UpperLeft;
-        contentGrid.startAxis = GridLayoutGroup.Axis.Horizontal;
-
-        parentRect.anchorMin = Vector2.zero;
-        parentRect.anchorMax = Vector2.one;
-        parentRect.pivot = new Vector2(0f, 1f);
-        parentRect.anchoredPosition = Vector2.zero;
-        parentRect.offsetMin = Vector2.zero;
-        parentRect.offsetMax = Vector2.zero;
     }
 
     void HandleItemClicked(string id)
@@ -627,12 +571,10 @@ public class ZukanPanelController : MonoBehaviour
             return false;
         }
 
-        contentRect.anchorMin = Vector2.zero;
-        contentRect.anchorMax = Vector2.one;
-        contentRect.pivot = new Vector2(0f, 1f);
+        contentRect.anchorMin = new Vector2(0f, 1f);
+        contentRect.anchorMax = new Vector2(1f, 1f);
+        contentRect.pivot = new Vector2(0.5f, 1f);
         contentRect.anchoredPosition = Vector2.zero;
-        contentRect.offsetMin = Vector2.zero;
-        contentRect.offsetMax = Vector2.zero;
 
         EnsureLayoutStability();
 
