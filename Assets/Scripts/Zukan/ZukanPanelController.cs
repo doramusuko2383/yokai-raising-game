@@ -224,6 +224,10 @@ public class ZukanPanelController : MonoBehaviour
 
     void BuildPagedList()
     {
+        Canvas.ForceUpdateCanvases();
+        if (listScrollRect != null && listScrollRect.viewport != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(listScrollRect.viewport);
+
         ClearChildren(contentParent);
         itemOrder.Clear();
 
@@ -451,24 +455,50 @@ public class ZukanPanelController : MonoBehaviour
 
     float GetViewportWidth()
     {
-        if (viewportRect != null && viewportRect.rect.width > 0f)
-            return viewportRect.rect.width;
+        if (listScrollRect != null)
+        {
+            RectTransform viewport = listScrollRect.viewport;
+            if (viewport != null)
+            {
+                float width = viewport.GetComponent<RectTransform>().rect.width;
+                if (width > 10f)
+                    return width;
+            }
+        }
 
-        if (contentParent is RectTransform parentRect && parentRect.rect.width > 0f)
-            return parentRect.rect.width;
+        Canvas rootCanvas = GetComponentInParent<Canvas>();
+        if (rootCanvas != null)
+        {
+            RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
+            if (canvasRect != null)
+                return canvasRect.rect.width;
+        }
 
-        return 1f;
+        return 1080f;
     }
 
     float GetViewportHeight()
     {
-        if (viewportRect != null && viewportRect.rect.height > 0f)
-            return viewportRect.rect.height;
+        if (listScrollRect != null)
+        {
+            RectTransform viewport = listScrollRect.viewport;
+            if (viewport != null)
+            {
+                float height = viewport.GetComponent<RectTransform>().rect.height;
+                if (height > 10f)
+                    return height;
+            }
+        }
 
-        if (contentParent is RectTransform parentRect && parentRect.rect.height > 0f)
-            return parentRect.rect.height;
+        Canvas rootCanvas = GetComponentInParent<Canvas>();
+        if (rootCanvas != null)
+        {
+            RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
+            if (canvasRect != null)
+                return canvasRect.rect.height;
+        }
 
-        return 1f;
+        return 1920f;
     }
 
     void UpdateArrowInteractable()
