@@ -249,13 +249,13 @@ public class ZukanPanelController : MonoBehaviour
             zukanDetailPanel.SetActive(false);
 
         if (listScrollRect != null)
-        {
             listScrollRect.enabled = true;
 
-            Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate(
-                listScrollRect.GetComponent<RectTransform>());
-        }
+        Canvas.ForceUpdateCanvases();
+
+        var rootRect = GetComponentInParent<RectTransform>();
+        if (rootRect != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rootRect);
     }
 
     void BuildPagedList()
