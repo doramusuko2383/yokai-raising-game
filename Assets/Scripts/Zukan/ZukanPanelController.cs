@@ -243,6 +243,18 @@ public class ZukanPanelController : MonoBehaviour
             }
         }
 
+        if (viewportRect != null && contentRect != null)
+        {
+            float pageWidth = viewportRect.rect.width;
+            float totalWidth = pageWidth * pageCount;
+
+            contentRect.anchorMin = new Vector2(0f, 1f);
+            contentRect.anchorMax = new Vector2(0f, 1f);
+            contentRect.pivot = new Vector2(0f, 1f);
+
+            contentRect.sizeDelta = new Vector2(totalWidth, viewportRect.rect.height);
+        }
+
         Canvas.ForceUpdateCanvases();
         SnapToCurrentPage(true);
         UpdateArrowInteractable();
@@ -261,19 +273,12 @@ public class ZukanPanelController : MonoBehaviour
         if (horizontal == null)
             horizontal = contentParent.gameObject.AddComponent<HorizontalLayoutGroup>();
 
-        horizontal.childControlWidth = false;
-        horizontal.childControlHeight = false;
+        horizontal.childControlWidth = true;
+        horizontal.childControlHeight = true;
         horizontal.childForceExpandWidth = false;
         horizontal.childForceExpandHeight = false;
         horizontal.spacing = 0f;
         horizontal.padding = new RectOffset(0, 0, 0, 0);
-
-        var fitter = contentParent.GetComponent<ContentSizeFitter>();
-        if (fitter == null)
-            fitter = contentParent.gameObject.AddComponent<ContentSizeFitter>();
-
-        fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-        fitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
 
         parentRect.anchorMin = Vector2.up;
         parentRect.anchorMax = Vector2.up;
