@@ -50,6 +50,12 @@ public class ZukanPanelController : MonoBehaviour
     TMP_Text descriptionText;
 
     [SerializeField]
+    Button backButton;
+
+    [SerializeField]
+    TMP_Text pageText;
+
+    [SerializeField]
     string lockedNameText = "???";
 
     [SerializeField]
@@ -233,6 +239,18 @@ public class ZukanPanelController : MonoBehaviour
     {
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(false);
+
+        if (listScrollRect != null)
+            listScrollRect.enabled = true;
+    }
+
+    public void OnClickBack()
+    {
+        if (zukanDetailPanel != null)
+            zukanDetailPanel.SetActive(false);
+
+        if (listScrollRect != null)
+            listScrollRect.enabled = true;
     }
 
     void BuildPagedList()
@@ -401,6 +419,14 @@ public class ZukanPanelController : MonoBehaviour
 
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(true);
+
+        if (listScrollRect != null)
+            listScrollRect.enabled = false;
+
+        int index = itemOrder.IndexOf(data);
+        int totalCount = zukanManager != null && zukanManager.allYokaiList != null ? zukanManager.allYokaiList.Count : 0;
+        if (pageText != null)
+            pageText.text = index >= 0 ? $"{index + 1} / {totalCount}" : $"- / {totalCount}";
 
         Debug.Log($"[ZukanPanelController] OpenDetail(): id={data.id}, unlocked={unlocked}");
     }
