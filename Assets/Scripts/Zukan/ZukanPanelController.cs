@@ -229,7 +229,11 @@ public class ZukanPanelController : MonoBehaviour
         if (contentRect != null)
             contentRect.sizeDelta = new Vector2(pageWidth * pageCount, pageHeight);
 
-        Debug.Log($"[ZukanPanelController] BuildPagedList(): pageWidth={pageWidth}, pageHeight={pageHeight}, pageCount={pageCount}, contentSize={(contentRect != null ? contentRect.sizeDelta.ToString() : \"null\")}");
+        Debug.Log("[ZukanPanelController] BuildPagedList(): " +
+                  "pageWidth=" + pageWidth +
+                  ", pageHeight=" + pageHeight +
+                  ", pageCount=" + pageCount +
+                  ", contentSize=" + (contentRect != null ? contentRect.sizeDelta.ToString() : "null"));
 
         for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
         {
