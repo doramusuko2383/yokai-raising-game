@@ -84,14 +84,13 @@ public class ZukanPanelController : MonoBehaviour
             fullImage.raycastTarget = false;
     }
 
+#if UNITY_EDITOR
     void OnValidate()
     {
-        EnsureWired();
-        EnsureLayoutStability();
-
-        if (fullImage != null)
-            fullImage.raycastTarget = false;
+        if (!Application.isPlaying)
+            return;
     }
+#endif
 
     void OnEnable()
     {
