@@ -99,11 +99,12 @@ public class ZukanPanelController : MonoBehaviour
     {
         ZukanItemController.OnItemClicked += HandleItemClicked;
 
-        if (leftArrowButton != null)
-            leftArrowButton.onClick.AddListener(PrevPage);
+        // 一時的にページ切替機能を停止。
+        // if (leftArrowButton != null)
+        //     leftArrowButton.onClick.AddListener(PrevPage);
 
-        if (rightArrowButton != null)
-            rightArrowButton.onClick.AddListener(NextPage);
+        // if (rightArrowButton != null)
+        //     rightArrowButton.onClick.AddListener(NextPage);
 
         if (SaveManager.Instance != null)
             SaveManager.Instance.OnSaveDataChanged += HandleSaveDataChanged;
@@ -113,11 +114,12 @@ public class ZukanPanelController : MonoBehaviour
     {
         ZukanItemController.OnItemClicked -= HandleItemClicked;
 
-        if (leftArrowButton != null)
-            leftArrowButton.onClick.RemoveListener(PrevPage);
+        // 一時的にページ切替機能を停止。
+        // if (leftArrowButton != null)
+        //     leftArrowButton.onClick.RemoveListener(PrevPage);
 
-        if (rightArrowButton != null)
-            rightArrowButton.onClick.RemoveListener(NextPage);
+        // if (rightArrowButton != null)
+        //     rightArrowButton.onClick.RemoveListener(NextPage);
 
         if (SaveManager.Instance != null)
             SaveManager.Instance.OnSaveDataChanged -= HandleSaveDataChanged;
@@ -125,6 +127,8 @@ public class ZukanPanelController : MonoBehaviour
 
     void LateUpdate()
     {
+        // 一時的にページ切替機能を停止。
+        /*
         if (zukanRootCanvasGroup == null ||
             zukanRootCanvasGroup.alpha <= 0.5f ||
             listScrollRect == null ||
@@ -140,6 +144,7 @@ public class ZukanPanelController : MonoBehaviour
             else
                 SnapToCurrentPage(false);
         }
+        */
     }
 
     public void OpenZukan()
@@ -234,7 +239,8 @@ public class ZukanPanelController : MonoBehaviour
 
         CacheUnlockedStatus();
         BuildPagedList();
-        SetPage(0, false);
+        // 一時的にページ切替機能を停止。
+        // SetPage(0, false);
     }
 
     public void CloseDetailPanel()
@@ -278,70 +284,37 @@ public class ZukanPanelController : MonoBehaviour
             return;
         }
 
-        pageCount = Mathf.Max(1, Mathf.CeilToInt(zukanManager.allYokaiList.Count / (float)ItemsPerPage));
+        pageCount = 1;
 
-        ConfigureContentAsPageContainer();
+        ConfigureContentAsDirectGrid();
 
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(viewportRect);
 
-        float pageWidth = viewportRect.rect.width;
-        float pageHeight = viewportRect.rect.height;
-
-        if (pageWidth < MinValidViewportSize || pageHeight < MinValidViewportSize)
-        {
-            Debug.LogWarning($"[ZukanPanelController] BuildPagedList() aborted due to invalid viewport size: " +
-                             $"pageWidth={pageWidth}, pageHeight={pageHeight}, viewportRect={RectToString(viewportRect)}, contentRect={RectToString(contentRect)}");
-            LogRectState("BuildPagedList(aborted)", pageCount, 0);
-            return;
-        }
-
-        if (contentRect != null)
-            contentRect.sizeDelta = new Vector2(pageWidth * pageCount, pageHeight);
-
         int createdItems = 0;
 
-        for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
+        for (int i = 0; i < zukanManager.allYokaiList.Count; i++)
         {
-            var pageRoot = new GameObject($"Page_{pageIndex + 1}", typeof(RectTransform), typeof(GridLayoutGroup));
-            var pageRect = pageRoot.GetComponent<RectTransform>();
-            pageRect.SetParent(contentParent, false);
-            pageRect.anchorMin = Vector2.up;
-            pageRect.anchorMax = Vector2.up;
-            pageRect.pivot = new Vector2(0f, 1f);
-            pageRect.anchoredPosition = new Vector2(pageWidth * pageIndex, 0f);
-            pageRect.sizeDelta = new Vector2(Mathf.Max(1f, pageWidth), Mathf.Max(1f, pageHeight));
-
-            var grid = pageRoot.GetComponent<GridLayoutGroup>();
-            ConfigurePageGrid(grid, new Vector2(pageWidth, pageHeight));
-
-            int pageStart = pageIndex * ItemsPerPage;
-            int pageEnd = Mathf.Min(pageStart + ItemsPerPage, zukanManager.allYokaiList.Count);
-
-            for (int i = pageStart; i < pageEnd; i++)
-            {
-                var data = zukanManager.allYokaiList[i];
-                var item = Instantiate(zukanItemPrefab, pageRect);
-                bool unlocked = IsUnlocked(data.id.ToString());
-                item.Setup(data.id.ToString(), data.icon, data.displayName, unlocked, lockedNameText);
-                itemOrder.Add(data);
-                createdItems++;
-            }
+            var data = zukanManager.allYokaiList[i];
+            var item = Instantiate(zukanItemPrefab, contentParent);
+            bool unlocked = IsUnlocked(data.id.ToString());
+            item.Setup(data.id.ToString(), data.icon, data.displayName, unlocked, lockedNameText);
+            itemOrder.Add(data);
+            createdItems++;
         }
 
         Debug.Log("[ZukanPanelController] BuildPagedList(): " +
-                  "pageWidth=" + pageWidth +
-                  ", pageHeight=" + pageHeight +
                   ", pageCount=" + pageCount +
                   ", createdItems=" + createdItems);
         LogRectState("BuildPagedList", pageCount, createdItems);
 
         Canvas.ForceUpdateCanvases();
-        SnapToCurrentPage(true);
-        UpdateArrowInteractable();
+        // 一時的にページ切替機能を停止。
+        // SnapToCurrentPage(true);
+        // UpdateArrowInteractable();
     }
 
-    void ConfigureContentAsPageContainer()
+    void ConfigureContentAsDirectGrid()
     {
         if (!(contentParent is RectTransform parentRect))
             return;
@@ -374,27 +347,25 @@ public class ZukanPanelController : MonoBehaviour
             Destroy(fitter);
         }
 
-        parentRect.anchorMin = Vector2.up;
-        parentRect.anchorMax = Vector2.up;
+        var contentGrid = contentParent.GetComponent<GridLayoutGroup>();
+        if (contentGrid == null)
+            contentGrid = contentParent.gameObject.AddComponent<GridLayoutGroup>();
+
+        contentGrid.enabled = true;
+        contentGrid.cellSize = new Vector2(300f, 300f);
+        contentGrid.spacing = new Vector2(24f, 24f);
+        contentGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        contentGrid.constraintCount = 3;
+        contentGrid.padding = new RectOffset(0, 0, 0, 0);
+        contentGrid.childAlignment = TextAnchor.UpperLeft;
+        contentGrid.startAxis = GridLayoutGroup.Axis.Horizontal;
+
+        parentRect.anchorMin = Vector2.zero;
+        parentRect.anchorMax = Vector2.one;
         parentRect.pivot = new Vector2(0f, 1f);
         parentRect.anchoredPosition = Vector2.zero;
-    }
-
-    void ConfigurePageGrid(GridLayoutGroup grid, Vector2 pageSize)
-    {
-        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        grid.constraintCount = ColumnsPerPage;
-        grid.spacing = cellSpacing;
-        grid.padding = new RectOffset(0, 0, 0, 0);
-        grid.childAlignment = TextAnchor.UpperLeft;
-        grid.startAxis = GridLayoutGroup.Axis.Horizontal;
-
-        float totalSpacingX = cellSpacing.x * (ColumnsPerPage - 1);
-        float totalSpacingY = cellSpacing.y * (RowsPerPage - 1);
-        float cellWidth = Mathf.Max(200f, (pageSize.x - totalSpacingX) / ColumnsPerPage);
-        float cellHeight = Mathf.Max(120f, (pageSize.y - totalSpacingY) / RowsPerPage);
-
-        grid.cellSize = new Vector2(cellWidth, cellHeight);
+        parentRect.offsetMin = Vector2.zero;
+        parentRect.offsetMax = Vector2.zero;
     }
 
     void HandleItemClicked(string id)
@@ -656,10 +627,12 @@ public class ZukanPanelController : MonoBehaviour
             return false;
         }
 
-        contentRect.anchorMin = new Vector2(0f, 1f);
-        contentRect.anchorMax = new Vector2(0f, 1f);
+        contentRect.anchorMin = Vector2.zero;
+        contentRect.anchorMax = Vector2.one;
         contentRect.pivot = new Vector2(0f, 1f);
         contentRect.anchoredPosition = Vector2.zero;
+        contentRect.offsetMin = Vector2.zero;
+        contentRect.offsetMax = Vector2.zero;
 
         EnsureLayoutStability();
 
