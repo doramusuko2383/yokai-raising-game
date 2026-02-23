@@ -70,16 +70,18 @@ public class ZukanPanelController : MonoBehaviour
 
     void Awake()
     {
-        if (listScrollRect == null && zukanListPanel != null)
-            listScrollRect = zukanListPanel.GetComponentInChildren<ScrollRect>(true);
+        EnsureWired();
 
-        if (listScrollRect != null)
-        {
-            listScrollRect.horizontal = true;
-            listScrollRect.vertical = false;
-            contentRect = listScrollRect.content;
-            viewportRect = listScrollRect.viewport;
-        }
+        if (fullImage != null)
+            fullImage.raycastTarget = false;
+    }
+
+    void OnValidate()
+    {
+        EnsureWired();
+
+        if (fullImage != null)
+            fullImage.raycastTarget = false;
     }
 
     void OnEnable()
@@ -131,7 +133,7 @@ public class ZukanPanelController : MonoBehaviour
 
     public void OpenZukan()
     {
-        if (zukanRootCanvasGroup == null)
+        if (zukanRootCanvasGroup == null || !EnsureWired())
             return;
 
         Debug.Log("[ZukanPanelController] OpenZukan()");
@@ -146,18 +148,20 @@ public class ZukanPanelController : MonoBehaviour
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(false);
 
-        StartCoroutine(InitializeNextFrame());
+        if (fullImage != null)
+            fullImage.raycastTarget = false;
+
+        StartCoroutine(InitializeAfterLayout());
     }
 
-    IEnumerator InitializeNextFrame()
+    IEnumerator InitializeAfterLayout()
     {
         // レイアウト確定待ち
         yield return null;
+        yield return null;
+        yield return new WaitForEndOfFrame();
 
         Canvas.ForceUpdateCanvases();
-
-        if (zukanListPanel != null)
-            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)zukanListPanel.transform);
 
         if (viewportRect != null)
             LayoutRebuilder.ForceRebuildLayoutImmediate(viewportRect);
@@ -202,14 +206,8 @@ public class ZukanPanelController : MonoBehaviour
 
     public void Initialize()
     {
-        if (contentParent == null || zukanItemPrefab == null || zukanManager == null)
+        if (!EnsureWired() || contentParent == null || zukanItemPrefab == null || zukanManager == null)
             return;
-
-        if (listScrollRect != null)
-        {
-            contentRect = listScrollRect.content;
-            viewportRect = listScrollRect.viewport;
-        }
 
         CacheUnlockedStatus();
         BuildPagedList();
@@ -224,9 +222,11 @@ public class ZukanPanelController : MonoBehaviour
 
     void BuildPagedList()
     {
+        if (!EnsureWired())
+            return;
+
         Canvas.ForceUpdateCanvases();
-        if (listScrollRect != null && listScrollRect.viewport != null)
-            LayoutRebuilder.ForceRebuildLayoutImmediate(listScrollRect.viewport);
+        LayoutRebuilder.ForceRebuildLayoutImmediate(viewportRect);
 
         ClearChildren(contentParent);
         itemOrder.Clear();
@@ -242,18 +242,23 @@ public class ZukanPanelController : MonoBehaviour
         ConfigureContentAsPageContainer();
 
         Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(viewportRect);
 
-        float pageWidth = GetViewportWidth();
-        float pageHeight = GetViewportHeight();
+        float pageWidth = viewportRect.rect.width;
+        float pageHeight = viewportRect.rect.height;
+
+        if (pageWidth < 100f || pageHeight < 100f)
+        {
+            Debug.LogWarning($"[ZukanPanelController] BuildPagedList() aborted due to invalid viewport size: " +
+                             $"pageWidth={pageWidth}, pageHeight={pageHeight}, viewportRect={RectToString(viewportRect)}, contentRect={RectToString(contentRect)}");
+            LogRectState("BuildPagedList(aborted)", pageCount, 0);
+            return;
+        }
 
         if (contentRect != null)
             contentRect.sizeDelta = new Vector2(pageWidth * pageCount, pageHeight);
 
-        Debug.Log("[ZukanPanelController] BuildPagedList(): " +
-                  "pageWidth=" + pageWidth +
-                  ", pageHeight=" + pageHeight +
-                  ", pageCount=" + pageCount +
-                  ", contentSize=" + (contentRect != null ? contentRect.sizeDelta.ToString() : "null"));
+        int createdItems = 0;
 
         for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
         {
@@ -267,7 +272,7 @@ public class ZukanPanelController : MonoBehaviour
             pageRect.sizeDelta = new Vector2(Mathf.Max(1f, pageWidth), Mathf.Max(1f, pageHeight));
 
             var grid = pageRoot.GetComponent<GridLayoutGroup>();
-            ConfigurePageGrid(grid, pageRect.rect.size);
+            ConfigurePageGrid(grid, new Vector2(pageWidth, pageHeight));
 
             int pageStart = pageIndex * ItemsPerPage;
             int pageEnd = Mathf.Min(pageStart + ItemsPerPage, zukanManager.allYokaiList.Count);
@@ -279,8 +284,16 @@ public class ZukanPanelController : MonoBehaviour
                 bool unlocked = IsUnlocked(data.id.ToString());
                 item.Setup(data.id.ToString(), data.icon, data.displayName, unlocked, lockedNameText);
                 itemOrder.Add(data);
+                createdItems++;
             }
         }
+
+        Debug.Log("[ZukanPanelController] BuildPagedList(): " +
+                  "pageWidth=" + pageWidth +
+                  ", pageHeight=" + pageHeight +
+                  ", pageCount=" + pageCount +
+                  ", createdItems=" + createdItems);
+        LogRectState("BuildPagedList", pageCount, createdItems);
 
         Canvas.ForceUpdateCanvases();
         SnapToCurrentPage(true);
@@ -294,19 +307,31 @@ public class ZukanPanelController : MonoBehaviour
 
         var grid = contentParent.GetComponent<GridLayoutGroup>();
         if (grid != null)
+        {
+            grid.enabled = false;
             Destroy(grid);
+        }
 
         var horizontal = contentParent.GetComponent<HorizontalLayoutGroup>();
         if (horizontal != null)
+        {
+            horizontal.enabled = false;
             Destroy(horizontal);
+        }
 
         var vertical = contentParent.GetComponent<VerticalLayoutGroup>();
         if (vertical != null)
+        {
+            vertical.enabled = false;
             Destroy(vertical);
+        }
 
         var fitter = contentParent.GetComponent<ContentSizeFitter>();
         if (fitter != null)
+        {
+            fitter.enabled = false;
             Destroy(fitter);
+        }
 
         parentRect.anchorMin = Vector2.up;
         parentRect.anchorMax = Vector2.up;
@@ -520,5 +545,80 @@ public class ZukanPanelController : MonoBehaviour
     {
         for (int i = parent.childCount - 1; i >= 0; i--)
             Destroy(parent.GetChild(i).gameObject);
+    }
+
+    bool EnsureWired()
+    {
+        if (listScrollRect == null && zukanListPanel != null)
+            listScrollRect = zukanListPanel.GetComponentInChildren<ScrollRect>(true);
+
+        if (listScrollRect == null)
+            listScrollRect = GetComponentInChildren<ScrollRect>(true);
+
+        if (listScrollRect == null)
+        {
+            Debug.LogWarning("[ZukanPanelController] EnsureWired() failed: ScrollRect is missing.");
+            return false;
+        }
+
+        listScrollRect.horizontal = true;
+        listScrollRect.vertical = false;
+
+        RectTransform parentRect = contentParent as RectTransform;
+        if (parentRect == null)
+            parentRect = listScrollRect.content;
+
+        if (parentRect == null)
+        {
+            Debug.LogWarning("[ZukanPanelController] EnsureWired() failed: contentParent/content is missing RectTransform.");
+            return false;
+        }
+
+        if (listScrollRect.content != parentRect)
+        {
+            listScrollRect.content = parentRect;
+            Debug.Log("[ZukanPanelController] EnsureWired(): repaired ScrollRect.content reference.");
+        }
+
+        contentParent = parentRect;
+        contentRect = listScrollRect.content;
+
+        viewportRect = listScrollRect.viewport;
+        if (viewportRect == null)
+        {
+            ScrollRect fallback = GetComponentInChildren<ScrollRect>(true);
+            if (fallback != null)
+            {
+                listScrollRect = fallback;
+                if (listScrollRect.content != parentRect)
+                    listScrollRect.content = parentRect;
+
+                viewportRect = listScrollRect.viewport;
+            }
+        }
+
+        if (viewportRect == null || contentRect == null)
+        {
+            Debug.LogWarning($"[ZukanPanelController] EnsureWired() failed: viewport/content missing. viewportNull={viewportRect == null}, contentNull={contentRect == null}");
+            return false;
+        }
+
+        contentRect.anchorMin = new Vector2(0f, 1f);
+        contentRect.anchorMax = new Vector2(0f, 1f);
+        contentRect.pivot = new Vector2(0f, 1f);
+        contentRect.anchoredPosition = Vector2.zero;
+        return true;
+    }
+
+    void LogRectState(string context, int pages, int createdItems)
+    {
+        Debug.Log($"[ZukanPanelController] {context} rects: viewportRect={RectToString(viewportRect)}, " +
+                  $"contentRect={RectToString(contentRect)}, contentAnchored={contentRect.anchoredPosition}, " +
+                  $"contentSizeDelta={contentRect.sizeDelta}, pageCount={pages}, createdItems={createdItems}");
+    }
+
+    static string RectToString(RectTransform rect)
+    {
+        return rect == null ? "null" : rect.rect.ToString();
     }
 }
