@@ -58,6 +58,7 @@ public class ZukanPanelController : MonoBehaviour
     const int ColumnsPerPage = 3;
     const int RowsPerPage = 4;
     const int ItemsPerPage = ColumnsPerPage * RowsPerPage;
+    const float MinValidViewportSize = 100f;
 
     readonly List<YokaiData> itemOrder = new List<YokaiData>();
     readonly Dictionary<string, bool> unlockCache = new Dictionary<string, bool>();
@@ -71,6 +72,7 @@ public class ZukanPanelController : MonoBehaviour
     void Awake()
     {
         EnsureWired();
+        EnsureLayoutStability();
 
         if (fullImage != null)
             fullImage.raycastTarget = false;
@@ -79,6 +81,7 @@ public class ZukanPanelController : MonoBehaviour
     void OnValidate()
     {
         EnsureWired();
+        EnsureLayoutStability();
 
         if (fullImage != null)
             fullImage.raycastTarget = false;
@@ -151,20 +154,32 @@ public class ZukanPanelController : MonoBehaviour
         if (fullImage != null)
             fullImage.raycastTarget = false;
 
+        EnsureLayoutStability();
+
         StartCoroutine(InitializeAfterLayout());
     }
 
     IEnumerator InitializeAfterLayout()
     {
-        // レイアウト確定待ち
-        yield return null;
-        yield return null;
-        yield return new WaitForEndOfFrame();
+        const int MaxWaitFrames = 12;
+
+        for (int frame = 0; frame < MaxWaitFrames; frame++)
+        {
+            Canvas.ForceUpdateCanvases();
+
+            if (viewportRect != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(viewportRect);
+
+                Rect rect = viewportRect.rect;
+                if (rect.width >= MinValidViewportSize && rect.height >= MinValidViewportSize)
+                    break;
+            }
+
+            yield return null;
+        }
 
         Canvas.ForceUpdateCanvases();
-
-        if (viewportRect != null)
-            LayoutRebuilder.ForceRebuildLayoutImmediate(viewportRect);
 
         Initialize();
     }
@@ -247,7 +262,7 @@ public class ZukanPanelController : MonoBehaviour
         float pageWidth = viewportRect.rect.width;
         float pageHeight = viewportRect.rect.height;
 
-        if (pageWidth < 100f || pageHeight < 100f)
+        if (pageWidth < MinValidViewportSize || pageHeight < MinValidViewportSize)
         {
             Debug.LogWarning($"[ZukanPanelController] BuildPagedList() aborted due to invalid viewport size: " +
                              $"pageWidth={pageWidth}, pageHeight={pageHeight}, viewportRect={RectToString(viewportRect)}, contentRect={RectToString(contentRect)}");
@@ -607,7 +622,57 @@ public class ZukanPanelController : MonoBehaviour
         contentRect.anchorMax = new Vector2(0f, 1f);
         contentRect.pivot = new Vector2(0f, 1f);
         contentRect.anchoredPosition = Vector2.zero;
+
+        EnsureLayoutStability();
+
         return true;
+    }
+
+    void EnsureLayoutStability()
+    {
+        if (listScrollRect != null)
+        {
+            RectTransform listAreaRect = listScrollRect.transform.parent as RectTransform;
+            if (listAreaRect == null)
+                listAreaRect = listScrollRect.transform as RectTransform;
+
+            if (listAreaRect != null)
+            {
+                var listAreaLayout = listAreaRect.GetComponent<LayoutElement>();
+                if (listAreaLayout == null)
+                    listAreaLayout = listAreaRect.gameObject.AddComponent<LayoutElement>();
+
+                listAreaLayout.flexibleHeight = 1f;
+                listAreaLayout.flexibleWidth = 1f;
+                listAreaLayout.ignoreLayout = false;
+
+                listAreaRect.anchorMin = Vector2.zero;
+                listAreaRect.anchorMax = Vector2.one;
+                listAreaRect.offsetMin = Vector2.zero;
+                listAreaRect.offsetMax = Vector2.zero;
+            }
+        }
+
+        if (zukanDetailPanel != null)
+        {
+            RectTransform detailRect = zukanDetailPanel.transform as RectTransform;
+            if (detailRect != null)
+            {
+                var detailLayout = detailRect.GetComponent<LayoutElement>();
+                if (detailLayout == null)
+                    detailLayout = detailRect.gameObject.AddComponent<LayoutElement>();
+
+                detailLayout.ignoreLayout = true;
+
+                detailRect.anchorMin = Vector2.zero;
+                detailRect.anchorMax = Vector2.one;
+                detailRect.offsetMin = Vector2.zero;
+                detailRect.offsetMax = Vector2.zero;
+            }
+        }
+
+        if (fullImage != null)
+            fullImage.raycastTarget = false;
     }
 
     void LogRectState(string context, int pages, int createdItems)
