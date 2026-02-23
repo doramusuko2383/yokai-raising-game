@@ -425,7 +425,11 @@ public class ZukanPanelController : MonoBehaviour
         int index = itemOrder.IndexOf(data);
         int totalCount = zukanManager != null && zukanManager.allYokaiList != null ? zukanManager.allYokaiList.Count : 0;
         if (pageText != null)
-            pageText.text = index >= 0 ? $"{index + 1} / {totalCount}" : $"- / {totalCount}";
+        {
+            string current = (index + 1).ToString("000");
+            string total = totalCount.ToString("000");
+            pageText.text = $"No.{current} / {total}";
+        }
 
         Debug.Log($"[ZukanPanelController] OpenDetail(): id={data.id}, unlocked={unlocked}");
     }
