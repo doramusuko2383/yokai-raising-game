@@ -134,6 +134,8 @@ public class ZukanPanelController : MonoBehaviour
         if (zukanRootCanvasGroup == null)
             return;
 
+        Debug.Log("[ZukanPanelController] OpenZukan()");
+
         zukanRootCanvasGroup.alpha = 1f;
         zukanRootCanvasGroup.interactable = true;
         zukanRootCanvasGroup.blocksRaycasts = true;
@@ -142,7 +144,7 @@ public class ZukanPanelController : MonoBehaviour
             zukanListPanel.SetActive(true);
 
         if (zukanDetailPanel != null)
-            zukanDetailPanel.SetActive(true);
+            zukanDetailPanel.SetActive(false);
 
         Initialize();
     }
@@ -164,6 +166,8 @@ public class ZukanPanelController : MonoBehaviour
     {
         if (zukanRootCanvasGroup == null)
             return;
+
+        Debug.Log("[ZukanPanelController] CloseZukan()");
 
         zukanRootCanvasGroup.alpha = 0f;
         zukanRootCanvasGroup.interactable = false;
@@ -196,7 +200,11 @@ public class ZukanPanelController : MonoBehaviour
         SetPage(0, false);
     }
 
-    public void CloseDetailPanel() { }
+    public void CloseDetailPanel()
+    {
+        if (zukanDetailPanel != null)
+            zukanDetailPanel.SetActive(false);
+    }
 
     void BuildPagedList()
     {
@@ -213,6 +221,16 @@ public class ZukanPanelController : MonoBehaviour
 
         ConfigureContentAsPageContainer();
 
+        Canvas.ForceUpdateCanvases();
+
+        float pageWidth = GetViewportWidth();
+        float pageHeight = GetViewportHeight();
+
+        if (contentRect != null)
+            contentRect.sizeDelta = new Vector2(pageWidth * pageCount, pageHeight);
+
+        Debug.Log($"[ZukanPanelController] BuildPagedList(): pageWidth={pageWidth}, pageHeight={pageHeight}, pageCount={pageCount}, contentSize={(contentRect != null ? contentRect.sizeDelta.ToString() : \"null\")}");
+
         for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
         {
             var pageRoot = new GameObject($"Page_{pageIndex + 1}", typeof(RectTransform), typeof(GridLayoutGroup));
@@ -221,10 +239,7 @@ public class ZukanPanelController : MonoBehaviour
             pageRect.anchorMin = Vector2.up;
             pageRect.anchorMax = Vector2.up;
             pageRect.pivot = new Vector2(0f, 1f);
-            pageRect.anchoredPosition = Vector2.zero;
-
-            float pageWidth = viewportRect != null ? viewportRect.rect.width : ((RectTransform)contentParent).rect.width;
-            float pageHeight = viewportRect != null ? viewportRect.rect.height : ((RectTransform)contentParent).rect.height;
+            pageRect.anchoredPosition = new Vector2(pageWidth * pageIndex, 0f);
             pageRect.sizeDelta = new Vector2(Mathf.Max(1f, pageWidth), Mathf.Max(1f, pageHeight));
 
             var grid = pageRoot.GetComponent<GridLayoutGroup>();
@@ -243,18 +258,6 @@ public class ZukanPanelController : MonoBehaviour
             }
         }
 
-        if (viewportRect != null && contentRect != null)
-        {
-            float pageWidth = viewportRect.rect.width;
-            float totalWidth = pageWidth * pageCount;
-
-            contentRect.anchorMin = new Vector2(0f, 1f);
-            contentRect.anchorMax = new Vector2(0f, 1f);
-            contentRect.pivot = new Vector2(0f, 1f);
-
-            contentRect.sizeDelta = new Vector2(totalWidth, viewportRect.rect.height);
-        }
-
         Canvas.ForceUpdateCanvases();
         SnapToCurrentPage(true);
         UpdateArrowInteractable();
@@ -270,15 +273,12 @@ public class ZukanPanelController : MonoBehaviour
             Destroy(grid);
 
         var horizontal = contentParent.GetComponent<HorizontalLayoutGroup>();
-        if (horizontal == null)
-            horizontal = contentParent.gameObject.AddComponent<HorizontalLayoutGroup>();
+        if (horizontal != null)
+            Destroy(horizontal);
 
-        horizontal.childControlWidth = true;
-        horizontal.childControlHeight = true;
-        horizontal.childForceExpandWidth = false;
-        horizontal.childForceExpandHeight = false;
-        horizontal.spacing = 0f;
-        horizontal.padding = new RectOffset(0, 0, 0, 0);
+        var vertical = contentParent.GetComponent<VerticalLayoutGroup>();
+        if (vertical != null)
+            Destroy(vertical);
 
         var fitter = contentParent.GetComponent<ContentSizeFitter>();
         if (fitter != null)
@@ -337,6 +337,8 @@ public class ZukanPanelController : MonoBehaviour
 
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(true);
+
+        Debug.Log($"[ZukanPanelController] OpenDetail(): id={data.id}, unlocked={unlocked}");
     }
 
     void CacheUnlockedStatus()
@@ -380,7 +382,6 @@ public class ZukanPanelController : MonoBehaviour
             currentPage = clamped;
 
         SnapToCurrentPage(smooth);
-        SelectTopLeftOfCurrentPage();
         UpdateArrowInteractable();
     }
 
@@ -428,13 +429,26 @@ public class ZukanPanelController : MonoBehaviour
         return Mathf.RoundToInt(t * (pageCount - 1));
     }
 
-    void SelectTopLeftOfCurrentPage()
+    float GetViewportWidth()
     {
-        if (itemOrder.Count == 0)
-            return;
+        if (viewportRect != null && viewportRect.rect.width > 0f)
+            return viewportRect.rect.width;
 
-        int index = Mathf.Clamp(currentPage * ItemsPerPage, 0, itemOrder.Count - 1);
-        OpenDetail(itemOrder[index]);
+        if (contentParent is RectTransform parentRect && parentRect.rect.width > 0f)
+            return parentRect.rect.width;
+
+        return 1f;
+    }
+
+    float GetViewportHeight()
+    {
+        if (viewportRect != null && viewportRect.rect.height > 0f)
+            return viewportRect.rect.height;
+
+        if (contentParent is RectTransform parentRect && parentRect.rect.height > 0f)
+            return parentRect.rect.height;
+
+        return 1f;
     }
 
     void UpdateArrowInteractable()
