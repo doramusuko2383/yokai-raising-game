@@ -39,6 +39,9 @@ public class ZukanPanelController : MonoBehaviour
     [SerializeField]
     GameObject zukanDetailPanel;
 
+    [SerializeField]
+    RectTransform detailAreaRect;
+
     [Header("Detail")]
     [SerializeField]
     Image fullImage;
@@ -659,6 +662,15 @@ public class ZukanPanelController : MonoBehaviour
         contentRect.anchoredPosition = Vector2.zero;
 
         EnsureLayoutStability();
+
+        if (detailAreaRect != null)
+        {
+            var le = detailAreaRect.GetComponent<LayoutElement>();
+            if (le == null)
+                le = detailAreaRect.gameObject.AddComponent<LayoutElement>();
+
+            le.ignoreLayout = true;
+        }
 
         return true;
     }
