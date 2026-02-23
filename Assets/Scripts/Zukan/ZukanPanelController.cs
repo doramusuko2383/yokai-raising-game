@@ -280,6 +280,10 @@ public class ZukanPanelController : MonoBehaviour
         horizontal.spacing = 0f;
         horizontal.padding = new RectOffset(0, 0, 0, 0);
 
+        var fitter = contentParent.GetComponent<ContentSizeFitter>();
+        if (fitter != null)
+            Destroy(fitter);
+
         parentRect.anchorMin = Vector2.up;
         parentRect.anchorMax = Vector2.up;
         parentRect.pivot = new Vector2(0f, 1f);
