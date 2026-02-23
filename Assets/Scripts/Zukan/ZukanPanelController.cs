@@ -146,6 +146,22 @@ public class ZukanPanelController : MonoBehaviour
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(false);
 
+        StartCoroutine(InitializeNextFrame());
+    }
+
+    IEnumerator InitializeNextFrame()
+    {
+        // レイアウト確定待ち
+        yield return null;
+
+        Canvas.ForceUpdateCanvases();
+
+        if (zukanListPanel != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)zukanListPanel.transform);
+
+        if (viewportRect != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(viewportRect);
+
         Initialize();
     }
 
