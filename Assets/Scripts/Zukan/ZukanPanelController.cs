@@ -40,6 +40,12 @@ public class ZukanPanelController : MonoBehaviour
     GameObject zukanDetailPanel;
 
     [SerializeField]
+    GameObject dimBackground;
+
+    [SerializeField]
+    GameObject detailCard;
+
+    [SerializeField]
     RectTransform detailAreaRect;
 
     [Header("Detail")]
@@ -164,6 +170,12 @@ public class ZukanPanelController : MonoBehaviour
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(false);
 
+        if (dimBackground != null)
+            dimBackground.SetActive(false);
+
+        if (detailCard != null)
+            detailCard.SetActive(false);
+
         if (fullImage != null)
             fullImage.raycastTarget = false;
 
@@ -226,6 +238,12 @@ public class ZukanPanelController : MonoBehaviour
 
         if (zukanDetailPanel != null)
             zukanDetailPanel.SetActive(false);
+
+        if (dimBackground != null)
+            dimBackground.SetActive(false);
+
+        if (detailCard != null)
+            detailCard.SetActive(false);
     }
 
     public void OpenZukanPanel() => OpenZukan();
@@ -245,20 +263,12 @@ public class ZukanPanelController : MonoBehaviour
 
     public void CloseDetailPanel()
     {
-        if (zukanDetailPanel != null)
-            zukanDetailPanel.SetActive(false);
-
-        if (listScrollRect != null)
-            listScrollRect.enabled = true;
+        CloseDetail();
     }
 
     public void OnClickBack()
     {
-        if (zukanDetailPanel != null)
-            zukanDetailPanel.SetActive(false);
-
-        if (listScrollRect != null)
-            listScrollRect.enabled = true;
+        CloseDetail();
 
         Canvas.ForceUpdateCanvases();
 
@@ -340,11 +350,7 @@ public class ZukanPanelController : MonoBehaviour
         if (descriptionText != null)
             descriptionText.text = unlocked ? data.description : lockedDescriptionText;
 
-        if (zukanDetailPanel != null)
-            zukanDetailPanel.SetActive(true);
-
-        if (listScrollRect != null)
-            listScrollRect.enabled = false;
+        OpenDetail();
 
         int index = itemOrder.IndexOf(data);
         int totalCount = zukanManager != null && zukanManager.allYokaiList != null ? zukanManager.allYokaiList.Count : 0;
@@ -356,6 +362,36 @@ public class ZukanPanelController : MonoBehaviour
         }
 
         Debug.Log($"[ZukanPanelController] OpenDetail(): id={data.id}, unlocked={unlocked}");
+    }
+
+    public void OpenDetail()
+    {
+        if (zukanDetailPanel != null)
+            zukanDetailPanel.SetActive(true);
+
+        if (dimBackground != null)
+            dimBackground.SetActive(true);
+
+        if (detailCard != null)
+            detailCard.SetActive(true);
+
+        if (listScrollRect != null)
+            listScrollRect.enabled = false;
+    }
+
+    public void CloseDetail()
+    {
+        if (detailCard != null)
+            detailCard.SetActive(false);
+
+        if (dimBackground != null)
+            dimBackground.SetActive(false);
+
+        if (zukanDetailPanel != null)
+            zukanDetailPanel.SetActive(false);
+
+        if (listScrollRect != null)
+            listScrollRect.enabled = true;
     }
 
     void CacheUnlockedStatus()
