@@ -70,6 +70,9 @@ public class ZukanPanelController : MonoBehaviour
     [SerializeField]
     string lockedDescriptionText = "未解放";
 
+    [SerializeField]
+    bool debugUnlockAll = true;
+
     const int ColumnsPerPage = 3;
     const int RowsPerPage = 4;
     const int ItemsPerPage = ColumnsPerPage * RowsPerPage;
@@ -372,13 +375,10 @@ public class ZukanPanelController : MonoBehaviour
 
         OpenDetail();
 
-        int index = itemOrder.IndexOf(data);
-        int totalCount = zukanManager != null && zukanManager.allYokaiList != null ? zukanManager.allYokaiList.Count : 0;
         if (pageText != null)
         {
-            string current = (index + 1).ToString("000");
-            string total = totalCount.ToString("000");
-            pageText.text = $"No.{current} / {total}";
+            string current = data.id.ToString("000");
+            pageText.text = $"妖怪図鑑　第{current}番";
         }
 
         Debug.Log($"[ZukanPanelController] OpenDetail(): id={data.id}, unlocked={unlocked}, nameText='{(nameText != null ? nameText.text : "<null ref>")}', descriptionLength={(descriptionText != null && descriptionText.text != null ? descriptionText.text.Length : 0)}, imageSprite='{(fullImage != null && fullImage.sprite != null ? fullImage.sprite.name : "null")}'");
@@ -427,6 +427,9 @@ public class ZukanPanelController : MonoBehaviour
 
     bool IsUnlocked(string id)
     {
+        if (debugUnlockAll)
+            return true;
+
         return unlockCache.TryGetValue(id, out bool unlocked) && unlocked;
     }
 
