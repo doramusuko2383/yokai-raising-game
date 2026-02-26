@@ -105,6 +105,9 @@ public class ZukanPanelController : MonoBehaviour
     {
         ZukanItemController.OnItemClicked += HandleItemClicked;
 
+        WarnIfDetailReferencesMissing("OnEnable");
+        EnsureDetailVisualPolish();
+
         // 一時的にページ切替機能を停止。
         // if (leftArrowButton != null)
         //     leftArrowButton.onClick.AddListener(PrevPage);
@@ -159,6 +162,8 @@ public class ZukanPanelController : MonoBehaviour
             return;
 
         Debug.Log("[ZukanPanelController] OpenZukan()");
+        WarnIfDetailReferencesMissing("OpenZukan");
+        EnsureDetailVisualPolish();
 
         zukanRootCanvasGroup.alpha = 1f;
         zukanRootCanvasGroup.interactable = true;
@@ -311,6 +316,15 @@ public class ZukanPanelController : MonoBehaviour
             createdItems++;
         }
 
+        int sampleCount = Mathf.Min(5, itemOrder.Count);
+        for (int i = 0; i < sampleCount; i++)
+        {
+            YokaiData sample = itemOrder[i];
+            bool sampleUnlocked = IsUnlocked(sample.id.ToString());
+            string shownName = sampleUnlocked ? sample.displayName : lockedNameText;
+            Debug.Log($"[ZukanPanelController] BuildPagedList sample[{i}]: id={sample.id}, displayName='{sample.displayName}', unlocked={sampleUnlocked}, shownName='{shownName}'{(sampleUnlocked ? "" : " (locked => ??? is expected)")}");
+        }
+
         Debug.Log("[ZukanPanelController] BuildPagedList(): " +
                   ", pageCount=" + pageCount +
                   ", createdItems=" + createdItems);
@@ -324,10 +338,16 @@ public class ZukanPanelController : MonoBehaviour
 
     void HandleItemClicked(string id)
     {
+        Debug.Log($"[ZukanPanelController] HandleItemClicked(): clickedId='{id}'");
+
         var data = zukanManager.GetData(id);
         if (data == null)
+        {
+            Debug.LogWarning($"[ZukanPanelController] HandleItemClicked() data not found: clickedId='{id}'");
             return;
+        }
 
+        DebugLogDetailData(data, id);
         OpenDetail(data);
     }
 
@@ -361,7 +381,7 @@ public class ZukanPanelController : MonoBehaviour
             pageText.text = $"No.{current} / {total}";
         }
 
-        Debug.Log($"[ZukanPanelController] OpenDetail(): id={data.id}, unlocked={unlocked}");
+        Debug.Log($"[ZukanPanelController] OpenDetail(): id={data.id}, unlocked={unlocked}, nameText='{(nameText != null ? nameText.text : "<null ref>")}', descriptionLength={(descriptionText != null && descriptionText.text != null ? descriptionText.text.Length : 0)}, imageSprite='{(fullImage != null && fullImage.sprite != null ? fullImage.sprite.name : "null")}'");
     }
 
     public void OpenDetail()
@@ -678,6 +698,82 @@ public class ZukanPanelController : MonoBehaviour
         Debug.Log($"[ZukanPanelController] {context} rects: viewportRect={RectToString(viewportRect)}, " +
                   $"contentRect={RectToString(contentRect)}, contentAnchored={contentRect.anchoredPosition}, " +
                   $"contentSizeDelta={contentRect.sizeDelta}, pageCount={pages}, createdItems={createdItems}");
+    }
+
+    void WarnIfDetailReferencesMissing(string context)
+    {
+        if (nameText == null)
+            Debug.LogWarning($"[ZukanPanelController] {context}: nameText is null. Inspector reference missing.");
+
+        if (descriptionText == null)
+            Debug.LogWarning($"[ZukanPanelController] {context}: descriptionText is null. Inspector reference missing.");
+
+        if (fullImage == null)
+            Debug.LogWarning($"[ZukanPanelController] {context}: fullImage is null. Inspector reference missing.");
+    }
+
+    void EnsureDetailVisualPolish()
+    {
+        EnsureShadow(nameText);
+        EnsureShadow(descriptionText);
+
+        if (dimBackground != null)
+        {
+            Image dimImage = dimBackground.GetComponent<Image>();
+            if (dimImage != null)
+            {
+                Color c = dimImage.color;
+                float targetAlpha = Mathf.Clamp(c.a, 0.45f, 0.6f);
+                if (!Mathf.Approximately(c.a, targetAlpha))
+                {
+                    c.a = targetAlpha;
+                    dimImage.color = c;
+                }
+            }
+        }
+
+        if (pageText != null)
+        {
+            RectTransform pageRect = pageText.rectTransform;
+            pageRect.anchorMin = new Vector2(1f, 1f);
+            pageRect.anchorMax = new Vector2(1f, 1f);
+            pageRect.pivot = new Vector2(1f, 1f);
+            pageRect.anchoredPosition = new Vector2(-24f, -20f);
+        }
+    }
+
+    void EnsureShadow(TMP_Text target)
+    {
+        if (target == null)
+            return;
+
+        Shadow shadow = target.GetComponent<Shadow>();
+        if (shadow == null)
+            shadow = target.gameObject.AddComponent<Shadow>();
+
+        shadow.effectDistance = new Vector2(1f, -1f);
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+    }
+
+    void DebugLogDetailData(YokaiData data, string clickedId)
+    {
+        bool unlocked = IsUnlocked(data.id.ToString());
+
+        string unlockedIdsSummary = "<unavailable>";
+        int unlockedCount = 0;
+        if (SaveManager.Instance != null && SaveManager.Instance.CurrentSave != null && SaveManager.Instance.CurrentSave.unlockedYokaiIds != null)
+        {
+            var unlockedIds = SaveManager.Instance.CurrentSave.unlockedYokaiIds;
+            unlockedCount = unlockedIds.Count;
+            int sampleCount = Mathf.Min(10, unlockedCount);
+            unlockedIdsSummary = string.Join(",", unlockedIds.GetRange(0, sampleCount));
+        }
+
+        Debug.Log(
+            $"[ZukanPanelController] DetailData: clickedId='{clickedId}', data.id={data.id}, " +
+            $"displayNameNullOrEmpty={string.IsNullOrEmpty(data.displayName)}, descriptionNullOrEmpty={string.IsNullOrEmpty(data.description)}, " +
+            $"iconNull={data.icon == null}, fullImageNull={data.fullImage == null}, unlocked={unlocked}, " +
+            $"unlockedCount={unlockedCount}, unlockedSample=[{unlockedIdsSummary}]");
     }
 
     static string RectToString(RectTransform rect)
