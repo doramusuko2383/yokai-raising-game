@@ -766,7 +766,22 @@ public class ZukanPanelController : MonoBehaviour
             var unlockedIds = SaveManager.Instance.CurrentSave.unlockedYokaiIds;
             unlockedCount = unlockedIds.Count;
             int sampleCount = Mathf.Min(10, unlockedCount);
-            unlockedIdsSummary = string.Join(",", unlockedIds.GetRange(0, sampleCount));
+            int count = 0;
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+            foreach (var idValue in unlockedIds)
+            {
+                if (count >= sampleCount)
+                    break;
+
+                if (count > 0)
+                    sb.Append(",");
+
+                sb.Append(idValue);
+                count++;
+            }
+
+            unlockedIdsSummary = sb.ToString();
         }
 
         Debug.Log(
