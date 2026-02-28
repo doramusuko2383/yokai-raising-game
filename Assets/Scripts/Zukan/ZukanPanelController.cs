@@ -43,6 +43,9 @@ public class ZukanPanelController : MonoBehaviour
     GameObject dimBackground;
 
     [SerializeField]
+    Image dimBackgroundImage;
+
+    [SerializeField]
     GameObject detailCard;
 
     [SerializeField]
@@ -232,14 +235,20 @@ public class ZukanPanelController : MonoBehaviour
 
     public void CloseZukan()
     {
-        if (zukanRootCanvasGroup == null)
-            return;
-
         Debug.Log("[ZukanPanelController] CloseZukan()");
 
-        zukanRootCanvasGroup.alpha = 0f;
-        zukanRootCanvasGroup.interactable = false;
-        zukanRootCanvasGroup.blocksRaycasts = false;
+        CloseDetail();
+
+        if (zukanRootCanvasGroup != null)
+        {
+            zukanRootCanvasGroup.alpha = 0f;
+            zukanRootCanvasGroup.interactable = false;
+            zukanRootCanvasGroup.blocksRaycasts = false;
+        }
+
+        GameObject zukanRootObject = zukanRootCanvasGroup != null ? zukanRootCanvasGroup.gameObject : gameObject;
+        if (zukanRootObject != null)
+            zukanRootObject.SetActive(false);
 
         if (zukanListPanel != null)
             zukanListPanel.SetActive(false);
@@ -394,12 +403,18 @@ public class ZukanPanelController : MonoBehaviour
         if (detailCard != null)
             detailCard.SetActive(true);
 
+        if (dimBackgroundImage != null)
+            dimBackgroundImage.raycastTarget = true;
+
         if (listScrollRect != null)
             listScrollRect.enabled = false;
     }
 
     public void CloseDetail()
     {
+        if (dimBackgroundImage != null)
+            dimBackgroundImage.raycastTarget = false;
+
         if (detailCard != null)
             detailCard.SetActive(false);
 
@@ -575,6 +590,9 @@ public class ZukanPanelController : MonoBehaviour
 
     bool EnsureWired()
     {
+        if (dimBackgroundImage == null && dimBackground != null)
+            dimBackgroundImage = dimBackground.GetComponent<Image>();
+
         if (listScrollRect == null && zukanListPanel != null)
             listScrollRect = zukanListPanel.GetComponentInChildren<ScrollRect>(true);
 
