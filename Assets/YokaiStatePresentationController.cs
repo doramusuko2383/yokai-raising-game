@@ -92,6 +92,20 @@ public class YokaiStatePresentationController : MonoBehaviour
     bool isEnergyEmptyVisualsActive;
     bool hasEnsuredDangerOverlayLayout;
     bool hasLoggedResolvedReferences;
+    const string AdGlowObjectName = "AdGlow";
+    const float AdEmphasisPulsePeriod = 1.5f;
+    const float AdEmphasisScaleAmplitude = 0.03f;
+    const float AdGlowMinAlpha = 0.2f;
+    const float AdGlowMaxAlpha = 0.6f;
+    readonly Dictionary<GameObject, AdEmphasisRuntime> adEmphasisRuntimes = new Dictionary<GameObject, AdEmphasisRuntime>();
+    readonly HashSet<Transform> adEmphasisPopPlaying = new HashSet<Transform>();
+
+    class AdEmphasisRuntime
+    {
+        public bool IsActive;
+        public Coroutine PopRoutine;
+        public Image GlowImage;
+    }
 
     public static YokaiStatePresentationController Instance => instance;
 
@@ -162,6 +176,7 @@ public class YokaiStatePresentationController : MonoBehaviour
     void LateUpdate()
     {
         UpdatePurityEmptyMotion();
+        UpdateAdEmphasis();
     }
 
     void BindStateController(YokaiStateController controller)
@@ -581,7 +596,190 @@ public class YokaiStatePresentationController : MonoBehaviour
         dangoButtonHandler?.RefreshUI();
         purifyButtonHandler?.RefreshUI();
 
+        if (state == YokaiState.EnergyEmpty)
+            StartAdEmphasis(dangoButton);
+        else
+            StopAdEmphasis(dangoButton);
+
+        if (state == YokaiState.PurityEmpty)
+            StartAdEmphasis(purifyButton);
+        else
+            StopAdEmphasis(purifyButton);
+
         Debug.Log("UI FINAL CONFIRMED");
+    }
+
+    private void StartAdEmphasis(GameObject button)
+    {
+        if (button == null)
+            return;
+
+        if (!adEmphasisRuntimes.TryGetValue(button, out var runtime))
+        {
+            runtime = new AdEmphasisRuntime();
+            adEmphasisRuntimes[button] = runtime;
+        }
+
+        bool wasActive = runtime.IsActive;
+        runtime.IsActive = true;
+
+        Image buttonImage = button.GetComponent<Image>();
+        runtime.GlowImage = EnsureAdGlowImage(button, buttonImage, runtime.GlowImage);
+        if (runtime.GlowImage != null)
+        {
+            Color glowColor = button == dangoButton
+                ? new Color(1f, 0.82f, 0.2f, AdGlowMinAlpha)
+                : new Color(0.7f, 0.9f, 1f, AdGlowMinAlpha);
+            runtime.GlowImage.color = glowColor;
+            runtime.GlowImage.enabled = true;
+            runtime.GlowImage.gameObject.SetActive(true);
+        }
+
+        if (!wasActive)
+        {
+            if (runtime.PopRoutine != null)
+                StopCoroutine(runtime.PopRoutine);
+
+            runtime.PopRoutine = StartCoroutine(PopAnimation(button.transform));
+        }
+    }
+
+    private void StopAdEmphasis(GameObject button)
+    {
+        if (button == null)
+            return;
+
+        if (!adEmphasisRuntimes.TryGetValue(button, out var runtime))
+            return;
+
+        runtime.IsActive = false;
+
+        if (runtime.PopRoutine != null)
+        {
+            StopCoroutine(runtime.PopRoutine);
+            runtime.PopRoutine = null;
+        }
+
+        adEmphasisPopPlaying.Remove(button.transform);
+        button.transform.localScale = Vector3.one;
+
+        if (runtime.GlowImage != null)
+            runtime.GlowImage.gameObject.SetActive(false);
+    }
+
+    private IEnumerator PopAnimation(Transform t)
+    {
+        if (t == null)
+            yield break;
+
+        adEmphasisPopPlaying.Add(t);
+
+        float duration = 0.25f;
+        float halfDuration = duration * 0.5f;
+        float elapsed = 0f;
+        Vector3 startScale = Vector3.one;
+        Vector3 peakScale = Vector3.one * 1.1f;
+
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            float normalized = Mathf.Clamp01(elapsed / halfDuration);
+            float eased = Mathf.SmoothStep(0f, 1f, normalized);
+            t.localScale = Vector3.LerpUnclamped(startScale, peakScale, eased);
+            yield return null;
+        }
+
+        elapsed = 0f;
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            float normalized = Mathf.Clamp01(elapsed / halfDuration);
+            float eased = Mathf.SmoothStep(0f, 1f, normalized);
+            t.localScale = Vector3.LerpUnclamped(peakScale, Vector3.one, eased);
+            yield return null;
+        }
+
+        t.localScale = Vector3.one;
+        adEmphasisPopPlaying.Remove(t);
+
+        foreach (var pair in adEmphasisRuntimes)
+        {
+            if (pair.Key == null || pair.Key.transform != t)
+                continue;
+
+            pair.Value.PopRoutine = null;
+            break;
+        }
+    }
+
+    void UpdateAdEmphasis()
+    {
+        if (adEmphasisRuntimes.Count == 0)
+            return;
+
+        float pulse = Mathf.Sin((Time.time / AdEmphasisPulsePeriod) * Mathf.PI * 2f);
+        float scaleMultiplier = 1f + (AdEmphasisScaleAmplitude * pulse);
+        float glowLerp = (pulse + 1f) * 0.5f;
+        float glowAlpha = Mathf.Lerp(AdGlowMinAlpha, AdGlowMaxAlpha, glowLerp);
+
+        foreach (var pair in adEmphasisRuntimes)
+        {
+            GameObject button = pair.Key;
+            AdEmphasisRuntime runtime = pair.Value;
+
+            if (button == null || runtime == null)
+                continue;
+
+            if (!runtime.IsActive)
+                continue;
+
+            if (!adEmphasisPopPlaying.Contains(button.transform))
+                button.transform.localScale = Vector3.one * scaleMultiplier;
+
+            if (runtime.GlowImage == null)
+                continue;
+
+            Color glowColor = runtime.GlowImage.color;
+            glowColor.a = glowAlpha;
+            runtime.GlowImage.color = glowColor;
+        }
+    }
+
+    Image EnsureAdGlowImage(GameObject button, Image buttonImage, Image currentGlow)
+    {
+        if (button == null || buttonImage == null)
+            return null;
+
+        Image glow = currentGlow;
+        if (glow == null)
+        {
+            Transform glowTransform = button.transform.Find(AdGlowObjectName);
+            if (glowTransform != null)
+                glow = glowTransform.GetComponent<Image>();
+        }
+
+        if (glow == null)
+        {
+            var glowObj = new GameObject(AdGlowObjectName, typeof(RectTransform), typeof(Image));
+            glowObj.transform.SetParent(button.transform, false);
+            glowObj.transform.SetAsFirstSibling();
+            glow = glowObj.GetComponent<Image>();
+        }
+
+        var rect = glow.rectTransform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        rect.localScale = Vector3.one;
+        rect.localRotation = Quaternion.identity;
+
+        glow.sprite = buttonImage.sprite;
+        glow.type = buttonImage.type;
+        glow.preserveAspect = buttonImage.preserveAspect;
+        glow.raycastTarget = false;
+
+        return glow;
     }
 
     void UpdateDangerEffects()
