@@ -148,4 +148,4 @@ MonoBehaviour:
   actionController: {fileID: 0}
   buttonImage: {fileID: 4705597346771749834}
   normalSprite: {fileID: 21300000, guid: 20e06f8f88e86684ebd420364ff85a6c, type: 3}
-  emergencySprite: {fileID: 21300000, guid: 20e06f8f88e86684ebd420364ff85a6c, type: 3}
+  emergencySprite: {fileID: 21300000, guid: cedd6026be838384f9ccd8869e5c6676, type: 3}

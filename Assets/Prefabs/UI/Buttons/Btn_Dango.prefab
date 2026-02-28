@@ -147,6 +147,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buttonImage: {fileID: 7164183894260938311}
   normalSprite: {fileID: 21300000, guid: 264ce7cb831ccaf4aaa098b122ad0606, type: 3}
-  specialSprite: {fileID: 21300000, guid: 264ce7cb831ccaf4aaa098b122ad0606, type: 3}
+  specialSprite: {fileID: 21300000, guid: e3fa8ad624390d64b833cacaef2eed30, type: 3}
   button: {fileID: 4360101150602281952}
   actionController: {fileID: 0}
