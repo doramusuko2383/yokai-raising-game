@@ -1,6 +1,6 @@
 using UnityEngine;
+using UnityEngine.UI;
 using Yokai;
-using TMPro;
 
 public class PurifyButtonHandler : MonoBehaviour
 {
@@ -10,19 +10,18 @@ public class PurifyButtonHandler : MonoBehaviour
         EmergencyPurify
     }
 
-    [SerializeField]
-    UIActionController actionController;
-
-    [SerializeField]
-    TMP_Text buttonText;
+    [SerializeField] UIActionController actionController;
+    [SerializeField] Image buttonImage;
+    [SerializeField] Sprite normalSprite;
+    [SerializeField] Sprite emergencySprite;
 
     PurifyButtonMode currentMode;
     YokaiStateController subscribedStateController;
 
     void Awake()
     {
-        if (buttonText == null)
-            buttonText = GetComponentInChildren<TMP_Text>(true);
+        if (buttonImage == null)
+            buttonImage = GetComponent<Image>();
 
         RefreshUI();
     }
@@ -77,21 +76,17 @@ public class PurifyButtonHandler : MonoBehaviour
 
     void ApplyMode(PurifyButtonMode mode)
     {
-        if (buttonText == null)
+        UpdateButtonState(mode == PurifyButtonMode.EmergencyPurify);
+    }
+
+    public void UpdateButtonState(bool isEmergency)
+    {
+        if (buttonImage == null)
             return;
 
-        switch (mode)
-        {
-            case PurifyButtonMode.EmergencyPurify:
-                buttonText.text = "緊急浄化";
-                buttonText.color = new Color(1f, 0.6f, 0.6f);
-                break;
-
-            default:
-                buttonText.text = "おきよめ";
-                buttonText.color = Color.black;
-                break;
-        }
+        var targetSprite = isEmergency ? emergencySprite : normalSprite;
+        if (targetSprite != null)
+            buttonImage.sprite = targetSprite;
     }
 
     public void OnClickPurify()
