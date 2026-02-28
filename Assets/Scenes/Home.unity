@@ -1486,7 +1486,7 @@ MonoBehaviour:
   purityEmptyWobbleScale: 0.02
   purityEmptyWobbleSpeed: 2.6
   purityEmptyJitterAmplitude: 0.015
-  dangoButtonHandler: {fileID: 0}
+  dangoButtonHandler: {fileID: 1355842320}
   purifyButtonHandler: {fileID: 2094418308}
 --- !u!1 &667190786 stripped
 GameObject:
@@ -3610,6 +3610,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1355842320 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1453558433132528355, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
+  m_PrefabInstance: {fileID: 6224671111732217254}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1355842313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 795a0b602fea4e44a1922b21f0397462, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1390311716
 GameObject:
   m_ObjectHideFlags: 0
@@ -3906,8 +3917,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1119425568}
-  - {fileID: 458856887}
-  - {fileID: 1469008922}
   - {fileID: 2012392953}
   m_Father: {fileID: 543276398}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5293,7 +5302,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8386360970354399399, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_RaycastTarget
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8389146741708154009, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_text
@@ -5333,7 +5342,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9122021159192951217, guid: 0dde655cf750fa64ca28854eb24c21b8, type: 3}
       propertyPath: m_RaycastTarget
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

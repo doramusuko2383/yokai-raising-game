@@ -68,7 +68,6 @@
     <Compile Include="Assets\Debug\DebugOverlay.cs" />
     <Compile Include="Assets\AudioInitializer.cs" />
     <Compile Include="Assets\Scripts\Zukan\ZukanPanelController.cs" />
-    <Compile Include="Assets\EnergyRecoverAdButtonHandler.cs" />
     <Compile Include="Assets\Scripts\Save\YokaiStatisticsData.cs" />
     <Compile Include="Assets\EvolutionRule.cs" />
     <Compile Include="Assets\CurrentYokaiContext.cs" />
@@ -116,7 +115,6 @@
     <Compile Include="Assets\CharacterSwitcher.cs" />
     <Compile Include="Assets\Scripts\Zukan\ZukanItemController.cs" />
     <Compile Include="Assets\AudioHook.cs" />
-    <Compile Include="Assets\PurityRecoverAdButtonHandler.cs" />
     <Compile Include="Assets\MentorMessageService.cs" />
     <Compile Include="Assets\OnmyojiHintCatalog.cs" />
     <Compile Include="Assets\PurifyButtonHandler.cs" />
