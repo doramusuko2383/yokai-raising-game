@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Serialization;
 
 namespace Yokai
 {
@@ -24,9 +23,6 @@ public class YokaiStatePresentationController : MonoBehaviour
 
     [SerializeField]
     GameObject dangoButton;
-
-    [SerializeField]
-    GameObject purityRecoverAdButton;
 
     [SerializeField]
     GameObject purifyStopButton;
@@ -68,14 +64,11 @@ public class YokaiStatePresentationController : MonoBehaviour
     [SerializeField]
     float purityEmptyJitterAmplitude = 0.015f;
 
-    [Header("Recovery Ad Buttons")]
     [SerializeField]
-    [FormerlySerializedAs("energyRecoverAdButton")]
-    GameObject recoverAdButton;
+    DangoButtonHandler dangoButtonHandler;
 
     [SerializeField]
-    [FormerlySerializedAs("purityRecoverAdButton")]
-    GameObject legacyPurityRecoverAdButton;
+    PurifyButtonHandler purifyButtonHandler;
 
     GameObject purityEmptyTargetRoot;
     readonly Dictionary<SpriteRenderer, Color> purityEmptySpriteColors = new Dictionary<SpriteRenderer, Color>();
@@ -492,8 +485,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             missing.Add("PurifyButton");
         if (dangoButton == null)
             missing.Add("DangoButton");
-        if (purityRecoverAdButton == null)
-            missing.Add("PurityRecoverAdButton");
         if (purifyStopButton == null)
             missing.Add("PurifyStopButton");
         if (purifyHoldButton == null)
@@ -502,10 +493,10 @@ public class YokaiStatePresentationController : MonoBehaviour
             missing.Add("DangerOverlay");
         if (magicCircleActivator == null)
             missing.Add("MagicCircleActivator");
-        if (recoverAdButton == null)
-            missing.Add("RecoverAdButton");
-        if (legacyPurityRecoverAdButton == null)
-            missing.Add("LegacyPurityRecoverAdButton");
+        if (dangoButtonHandler == null)
+            missing.Add("DangoButtonHandler");
+        if (purifyButtonHandler == null)
+            missing.Add("PurifyButtonHandler");
         if (dangerEffects == null || dangerEffects.Length == 0)
             missing.Add("DangerEffects");
 
@@ -541,9 +532,6 @@ public class YokaiStatePresentationController : MonoBehaviour
     public void ApplyActionUIForState(YokaiState state)
     {
         bool isPurifying = state == YokaiState.Purifying;
-        if (isPurifying)
-            Debug.Log("[PRESENTATION] Enter Purifying");
-
         if (purifyHoldButton != null)
             purifyHoldButton.SetActive(isPurifying);
 
@@ -555,7 +543,6 @@ public class YokaiStatePresentationController : MonoBehaviour
             lastUIAppliedState.HasValue &&
             lastUIAppliedState.Value == state)
         {
-            Debug.Log($"[UI SKIP] state={state} (already applied)");
             return;
         }
 
@@ -571,27 +558,11 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         // --- ここからUI初期化 ---
         actionPanel.SetActive(false);
-
-        purifyButton?.SetActive(false);
-        dangoButton?.SetActive(false);
-        purityRecoverAdButton?.SetActive(false);
-        recoverAdButton?.SetActive(false);
-        legacyPurityRecoverAdButton?.SetActive(false);
         purifyStopButton?.SetActive(false);
         switch (state)
         {
             case YokaiState.Normal:
-                actionPanel.SetActive(true);
-                purifyButton?.SetActive(true);
-                dangoButton?.SetActive(true);
-                break;
-
             case YokaiState.PurityEmpty:
-                actionPanel.SetActive(true);
-                purifyButton?.SetActive(true);
-                dangoButton?.SetActive(false);
-                break;
-
             case YokaiState.EnergyEmpty:
                 actionPanel.SetActive(true);
                 purifyButton?.SetActive(true);
@@ -607,35 +578,10 @@ public class YokaiStatePresentationController : MonoBehaviour
                 break;
         }
 
-        Debug.Log($"[UI FINAL CONFIRMED] state={state} PurityAd={purityRecoverAdButton?.activeSelf}");
-    }
+        dangoButtonHandler?.RefreshUI();
+        purifyButtonHandler?.RefreshUI();
 
-    void LogPurityRecoverButtonState()
-    {
-        if (purityRecoverAdButton == null)
-        {
-            Debug.Log("[UI] PurityRecoverButton: missing reference");
-            return;
-        }
-
-        Debug.Log(
-            "[UI] PurityRecoverButtonState " +
-            $"activeSelf={purityRecoverAdButton.activeSelf} " +
-            $"activeInHierarchy={purityRecoverAdButton.activeInHierarchy}");
-    }
-
-    void LogPurityRecoverButtonInputState()
-    {
-        if (purityRecoverAdButton == null)
-        {
-            Debug.Log("[PURITY_UI] activeSelf=missing activeInHierarchy=missing");
-            return;
-        }
-
-        Debug.Log(
-            "[PURITY_UI] " +
-            $"activeSelf={purityRecoverAdButton.activeSelf} " +
-            $"activeInHierarchy={purityRecoverAdButton.activeInHierarchy}");
+        Debug.Log("UI FINAL CONFIRMED");
     }
 
     void UpdateDangerEffects()
@@ -1079,6 +1025,12 @@ public class YokaiStatePresentationController : MonoBehaviour
 
         if (dangerEffects == null || dangerEffects.Length == 0)
             dangerEffects = FindObjectsOfType<YokaiDangerEffect>(true);
+
+        if (dangoButtonHandler == null && dangoButton != null)
+            dangoButtonHandler = dangoButton.GetComponent<DangoButtonHandler>();
+
+        if (purifyButtonHandler == null && purifyButton != null)
+            purifyButtonHandler = purifyButton.GetComponent<PurifyButtonHandler>();
     }
 
     void ApplyPentagramInputForState(YokaiState state)

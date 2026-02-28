@@ -700,7 +700,6 @@ public class YokaiEvolutionController : MonoBehaviour
         string[] targets =
         {
             "UI_Action",
-            "Btn_PurityRecover_Ad",
             "Btn_StopPurify",
             "MagicCircleImage",
             "Overlay_Danger",
