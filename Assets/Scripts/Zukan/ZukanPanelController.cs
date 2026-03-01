@@ -167,6 +167,8 @@ public class ZukanPanelController : MonoBehaviour
         if (zukanRootCanvasGroup == null || !EnsureWired())
             return;
 
+        zukanRootCanvasGroup.gameObject.SetActive(true);
+
         Debug.Log("[ZukanPanelController] OpenZukan()");
         WarnIfDetailReferencesMissing("OpenZukan");
         EnsureDetailVisualPolish();
@@ -245,10 +247,6 @@ public class ZukanPanelController : MonoBehaviour
             zukanRootCanvasGroup.interactable = false;
             zukanRootCanvasGroup.blocksRaycasts = false;
         }
-
-        GameObject zukanRootObject = zukanRootCanvasGroup != null ? zukanRootCanvasGroup.gameObject : gameObject;
-        if (zukanRootObject != null)
-            zukanRootObject.SetActive(false);
 
         if (zukanListPanel != null)
             zukanListPanel.SetActive(false);
@@ -590,6 +588,12 @@ public class ZukanPanelController : MonoBehaviour
 
     bool EnsureWired()
     {
+        if (zukanRootCanvasGroup != null)
+        {
+            bool sameObject = zukanRootCanvasGroup.gameObject == gameObject;
+            Debug.Log($"[ZukanPanelController] Root object check: controllerObject='{gameObject.name}', rootCanvasGroupObject='{zukanRootCanvasGroup.gameObject.name}', sameObject={sameObject}");
+        }
+
         if (dimBackgroundImage == null && dimBackground != null)
             dimBackgroundImage = dimBackground.GetComponent<Image>();
 
